@@ -4,7 +4,9 @@ import { vitePreprocess } from '@sveltejs/kit/vite';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+			out: 'public'
+		}),
 		alias: {
 			$main: "src",
 			$translation: "src/lib/translations",
@@ -14,9 +16,9 @@ const config = {
 			$script: "src/lib/scripts",
 			$server: "src/lib/server",
 		  },
-		  prerender: {
+		prerender: {
 			entries: ["/en", "/de"]
-		  },
+		}
 	},
 	preprocess: vitePreprocess()
 };
