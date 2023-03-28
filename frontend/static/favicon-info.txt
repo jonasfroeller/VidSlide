@@ -1,0 +1,6 @@
+This favicon was generated using the following font:
+
+- Font Title: Jaldi
+- Font Author: Copyright (c) 2011-2015, Omnibus-Type (www.omnibus-type.com omnibus.type@gmail.com) with Reserved Font Name 'Jaldi' and 'Asap'
+- Font Source: http://fonts.gstatic.com/s/jaldi/v12/or3hQ67z0_CI33voSbT3LLQ1niPn.ttf
+- Font License: SIL Open Font License, 1.1 (http://scripts.sil.org/OFL))

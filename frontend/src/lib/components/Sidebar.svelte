@@ -21,7 +21,8 @@
 				<a href="/{$locale}/home" class="unstyled">
 					<button
 						type="button"
-						class="btn text-3xl rounded-lg w-full {route === '/home' || route === ''
+						class="btn text-3xl rounded-lg w-full flex justify-start {route === '/home' ||
+						route === ''
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>
@@ -46,7 +47,7 @@
 				<a href="/{$locale}/search" class="unstyled">
 					<button
 						type="button"
-						class="btn text-3xl rounded-lg w-full {route === '/search'
+						class="btn text-3xl rounded-lg w-full flex justify-start {route === '/search'
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>
@@ -65,7 +66,7 @@
 				<a href="/{$locale}/account" class="unstyled">
 					<button
 						type="button"
-						class="btn text-3xl rounded-lg w-full {route === '/account'
+						class="btn text-3xl rounded-lg w-full flex justify-start {route === '/account'
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>
@@ -84,7 +85,7 @@
 				<a href="/{$locale}/settings" class="unstyled">
 					<button
 						type="button"
-						class="btn text-3xl rounded-lg w-full {route === '/settings'
+						class="btn text-3xl rounded-lg w-full flex justify-start {route === '/settings'
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>

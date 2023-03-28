@@ -15,6 +15,7 @@ const config = {
 			$store: "src/lib/stores",
 			$script: "src/lib/scripts",
 			$server: "src/lib/server",
+			$api: "src/routes/api",
 		  },
 		prerender: {
 			entries: ["/en", "/de"]
