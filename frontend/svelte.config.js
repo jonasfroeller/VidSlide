@@ -1,12 +1,10 @@
-import adapter from '@sveltejs/adapter-node';
+import adapter from '@sveltejs/adapter-vercel'; // adapter-auto || adapter-node
 import { vitePreprocess } from '@sveltejs/kit/vite';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter({
-			out: 'public'
-		}),
+		adapter: adapter(), // { out: 'public' }
 		alias: {
 			$main: "src",
 			$translation: "src/lib/translations",

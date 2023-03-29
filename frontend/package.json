@@ -44,6 +44,7 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^4.12.0",
+    "@sveltejs/adapter-vercel": "^2.4.1",
     "@tailwindcss/typography": "^0.5.9",
     "iconify-icon": "^1.0.7",
     "typesafe-i18n": "^5.18.1"
