@@ -33,9 +33,7 @@
 
 	const su: ModalSettings = {
 		type: 'component',
-		component: 'signupModalComponent',
-		title: 'SignIn/Up',
-		body: 'If you do not have an account yet it will be created automatically.'
+		component: 'signupModalComponent'
 	};
 
 	function openLoginModal() {
@@ -57,23 +55,13 @@
 </script>
 
 <header class="flex justify-end gap-2 text-lg">
-	<form method="POST" class="flex gap-2">
-		<button type="button" class="btn variant-ringed" on:click={() => openLoginModal()}>
-			<a href="/register" class="unstyled">
-				<span>register</span>
-			</a>
-		</button>
-
-		<button type="button" class="btn variant-ringed" on:click={() => openLoginModal()}>
-			<span class="flex gap-2">
-				{#if !showPrivateData}
-					<iconify-icon class="cursor-pointer flex items-center" icon="mdi:logout-variant" />
-					<a href="/login" class="unstyled">Login</a>
-				{:else}
-					<iconify-icon class="cursor-pointer flex items-center" icon="mdi:login-variant" />
-					<button formaction="/logout" type="submit">Logout</button>
-				{/if}
-			</span>
-		</button>
-	</form>
+	<button type="button" class="btn variant-ringed" on:click={() => openLoginModal()}>
+		{#if !showPrivateData}
+			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:login-variant" />
+			<span>Login</span>
+		{:else}
+			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:logout-variant" />
+			<span>Logout</span>
+		{/if}
+	</button>
 </header>

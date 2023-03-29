@@ -10,7 +10,7 @@ const config = {
 		alias: {
 			$main: "src",
 			$translation: "src/lib/translations",
-			$image: "src/lib/assets/imgs",
+			$image: "src/lib/assets/images",
 			$component: "src/lib/components",
 			$store: "src/lib/stores",
 			$script: "src/lib/scripts",

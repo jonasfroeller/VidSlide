@@ -44,7 +44,7 @@
 			// props
 			props: {},
 			// default slot
-			slot: "<p>SignUp Form couldn't load</p>"
+			slot: "<p>SignUp Form couldn't load!</p>"
 		}
 	};
 
@@ -56,7 +56,7 @@
 
 	// Svelte
 	import { onMount } from 'svelte';
-	import Sidebar from '$main/lib/components/Sidebar.svelte';
+	import Sidebar from '$component/Sidebar.svelte';
 
 	onMount(async () => {
 		console.log(new Date().toLocaleString());
