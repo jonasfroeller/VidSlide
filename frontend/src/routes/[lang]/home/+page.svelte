@@ -1,7 +1,13 @@
 <script>
+	// TODO: Finish Translation, Responsiveness, Create Components from Wireframe Code (change video frame to aspect-ratio 9:16)
+	/* --- INIT --- */
+	// Translation
+	import translation from '$translation/i18n-svelte'; // translations
+
 	// Components
 	import { Avatar } from '@skeletonlabs/skeleton';
 
+	/* --- LOGIC --- */
 	// true if comments are selected
 	$: selectedBox = true;
 </script>
@@ -10,16 +16,31 @@
 	<meta property="og:url" content="https://rabbidly.com/en/" />
 	<meta property="og:title" content="Home" />
 
-	<!-- TODO: show white on darkmode and black on lightmode -->
 	<!-- %sveltekit.assets% and $images fails -->
-	<link rel="icon" type="image/svg+xml" sizes="any" href="/home.svg" />
+	<!-- prefers-color-scheme and not $themestate because browser has different theme than website -->
+	<link
+		rel="icon"
+		type="image/svg+xml"
+		sizes="any"
+		href="/home-light.svg"
+		media="(prefers-color-scheme:dark)"
+	/>
+	<link
+		rel="icon"
+		type="image/svg+xml"
+		sizes="any"
+		href="/home.svg"
+		media="(prefers-color-scheme:light)"
+	/>
+
 	<!-- Safari -->
-	<link rel="mask-icon" href="/home.svg" color="#000000" />
+	<link rel="mask-icon" href="/home-light.svg" media="(prefers-color-scheme:dark)" />
+	<link rel="mask-icon" href="/home.svg" media="(prefers-color-scheme:light)" />
 
 	<title>Home</title>
 </svelte:head>
 
-<section id="home-body" class="flex justify-center pt-2 gap-6">
+<section id="home-body" class="flex justify-center pt-2 gap-6 flex-wrap">
 	<article id="video-info-section" class="flex flex-col gap-2">
 		<div id="video-info-actions">
 			<div class="btn-group variant-ringed">
@@ -27,13 +48,13 @@
 					class={selectedBox ? 'variant-ghost' : ''}
 					on:click={() => {
 						selectedBox = true;
-					}}>Comments</button
+					}}>{$translation.pages.home.video_info_display_actions.comments()}</button
 				>
 				<button
 					class={!selectedBox ? 'variant-ghost' : ''}
 					on:click={() => {
 						selectedBox = false;
-					}}>Description</button
+					}}>{$translation.pages.home.video_info_display_actions.description()}</button
 				>
 			</div>
 		</div>
@@ -59,9 +80,9 @@
 					<hr />
 					<div class="comment comment-body flex flex-col">
 						<div class="comment-header flex items-center ml-[-10px] mb-[-5px]">
-							<Avatar class="scale-50" initials="JD" />
+							<Avatar class="scale-50" initials="JP" />
 							<p>
-								<span class="comment-author">Jeffrey Dahmer</span> |
+								<span class="comment-author">Jordan Peterson</span> |
 								<span class="comment-datetime text-md text-primary-700 dark:text-primary-500"
 									>5 days ago</span
 								>

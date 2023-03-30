@@ -1,29 +1,37 @@
 <script lang="ts">
-	// Set Language
+	/* --- INIT --- */
+	// Translation
+	import { setLocale } from '$translation/i18n-svelte';
 	import type { PageData } from './$types';
 	export let data: PageData;
 	setLocale(data.locale);
 
-	// Components
-	import Header from '$component/Header.svelte';
-	import { AppShell } from '@skeletonlabs/skeleton';
+	// Styling
+	import '$main/app.css'; // Global CSS
+	import '$main/theme.postcss'; // Skeleton Theme
+
+	// CSS-Framework/Library
+	import '@skeletonlabs/skeleton/styles/all.css';
+	import { Toast } from '@skeletonlabs/skeleton';
 
 	// Icons
 	import 'iconify-icon';
 
-	// CSS-Framework/Library (SKELETON)
-	// Custom Theme
-	import '$main/theme.postcss';
+	// Components
+	import Header from '$component/Header.svelte';
+	import Sidebar from '$component/Sidebar.svelte';
+	import { AppShell } from '@skeletonlabs/skeleton';
 
-	// Skeleton
-	import '@skeletonlabs/skeleton/styles/all.css';
-	import { Toast } from '@skeletonlabs/skeleton';
+	// JS-Framework/Library
+	import { onMount } from 'svelte';
 
-	// Modals
+	/* --- LOGIC --- */
+
+	/* Modals */
 	import { Modal, modalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
 
-	// Confirm Modal
+	/* -- Confirmation Modal -- */
 	const confirm: ModalSettings = {
 		type: 'confirm',
 		// Data
@@ -34,7 +42,7 @@
 
 	// modalStore.trigger(confirm);
 
-	// Signup Form
+	/* -- Signup Form -- */
 	import signupComponent from '$component/SignInUp.svelte';
 
 	const modalComponentRegistry: Record<string, ModalComponent> = {
@@ -48,16 +56,7 @@
 		}
 	};
 
-	// Global Stylesheet
-	import '$main/app.css';
-
-	// Translation
-	import { setLocale } from '$translation/i18n-svelte';
-
-	// Svelte
-	import { onMount } from 'svelte';
-	import Sidebar from '$component/Sidebar.svelte';
-
+	/* --- LOGGING --- */
 	onMount(async () => {
 		console.log(new Date().toLocaleString());
 		console.log(
@@ -65,6 +64,7 @@
 		);
 	});
 
+	/* --- CONFIG --- */
 	$: sidebarVariant = 'small';
 </script>
 
@@ -90,7 +90,7 @@
 			</button>
 		</div>
 		<!-- divider -->
-		<div class="p-4 w-full">
+		<div class="p-8 w-full">
 			<Header loggedIn={false} />
 			<slot />
 		</div>

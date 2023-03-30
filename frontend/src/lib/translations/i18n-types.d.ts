@@ -14,6 +14,18 @@ export type Translation = RootTranslation
 export type Translations = RootTranslation
 
 type RootTranslation = {
+	LangSelect: {
+		/**
+		 * S​p​r​a​c​h​e
+		 */
+		lang: string
+	}
+	ThemeSelect: {
+		/**
+		 * S​t​i​l
+		 */
+		theme: string
+	}
 	Sidebar: {
 		/**
 		 * S​t​a​r​t​s​e​i​t​e
@@ -32,21 +44,59 @@ type RootTranslation = {
 		 */
 		settings: string
 	}
+	Header: {
+		/**
+		 * A​n​m​e​l​d​e​n
+		 */
+		logIn: string
+		/**
+		 * A​b​m​e​l​d​e​n
+		 */
+		logOut: string
+	}
+	SignInUp: {
+	}
 	pages: {
 		home: {
-			/**
-			 * A​n​m​e​l​d​e​n
-			 */
-			logIn: string
-			/**
-			 * A​b​m​e​l​d​e​n
-			 */
-			logOut: string
+			video_info_display_actions: {
+				/**
+				 * K​o​m​m​e​n​t​a​r​e
+				 */
+				comments: string
+				/**
+				 * B​e​s​c​h​r​e​i​b​u​n​g
+				 */
+				description: string
+			}
+		}
+		search: {
+			video_search_bar: {
+				/**
+				 * S​u​c​h​e​n
+				 */
+				search: string
+			}
+		}
+		account: {
+		}
+		settings: {
 		}
 	}
 }
 
 export type TranslationFunctions = {
+	LangSelect: {
+		/**
+		 * Sprache
+		 */
+		lang: () => LocalizedString
+	}
+	ThemeSelect: {
+		/**
+		 * Stil
+		 */
+		theme: () => LocalizedString
+	}
 	Sidebar: {
 		/**
 		 * Startseite
@@ -65,16 +115,42 @@ export type TranslationFunctions = {
 		 */
 		settings: () => LocalizedString
 	}
+	Header: {
+		/**
+		 * Anmelden
+		 */
+		logIn: () => LocalizedString
+		/**
+		 * Abmelden
+		 */
+		logOut: () => LocalizedString
+	}
+	SignInUp: {
+	}
 	pages: {
 		home: {
-			/**
-			 * Anmelden
-			 */
-			logIn: () => LocalizedString
-			/**
-			 * Abmelden
-			 */
-			logOut: () => LocalizedString
+			video_info_display_actions: {
+				/**
+				 * Kommentare
+				 */
+				comments: () => LocalizedString
+				/**
+				 * Beschreibung
+				 */
+				description: () => LocalizedString
+			}
+		}
+		search: {
+			video_search_bar: {
+				/**
+				 * Suchen
+				 */
+				search: () => LocalizedString
+			}
+		}
+		account: {
+		}
+		settings: {
 		}
 	}
 }

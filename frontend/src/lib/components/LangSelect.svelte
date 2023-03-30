@@ -1,21 +1,23 @@
 <script lang="ts">
 	// @ts-nocheck
+	/* --- INIT --- */
 	// Stores
-	import { langState } from '$main/lib/stores/config';
-	import { config } from '$main/lib/stores/config';
+	import { langState } from '$store/config';
+	import { config } from '$store/config';
 
 	// Scripts
 	import styleCfg from '$script/styleStorage';
 
-	// Svelte
+	// JS-Framework/Library
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 
-	// Skeleton
+	// CSS-Framework/Library
 	import { toastStore } from '@skeletonlabs/skeleton';
 	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
+	/* Toast */
 	const ts: ToastSettings = {
 		message: 'Config saved!',
 		// Provide any utility or variant background style:
@@ -23,11 +25,13 @@
 	};
 
 	// Translation
+	import translation from '$translation/i18n-svelte';
 	import { setLocale, locale } from '$translation/i18n-svelte';
 	import { locales } from '$translation/i18n-util';
 	import { loadLocaleAsync } from '$translation/i18n-util.async';
 	import { replaceLocaleInUrl } from '$main/utils';
 
+	/* --- LOGIC --- */
 	export let variant = 'large';
 
 	/**
@@ -91,7 +95,7 @@
 		toastStore.trigger(ts);
 	}}
 >
-	<option disabled selected>Language</option>
+	<option disabled selected>{$translation.LangSelect.lang()}</option>
 	{#each locales as l}
 		<option value={l}>
 			{l}

@@ -1,15 +1,16 @@
 <script>
-	// Svelte
+	/* --- INIT --- */
+	// JS-Framework/Library
 	import { page } from '$app/stores';
 
 	// Translation
 	import { locale } from '$translation/i18n-svelte'; // current language
 	import translation from '$translation/i18n-svelte'; // translations
-	import LangSelect from './LangSelect.svelte';
-	import ThemeSelect from './ThemeSelect.svelte';
+	import LangSelect from '$component/LangSelect.svelte';
+	import ThemeSelect from '$component/ThemeSelect.svelte';
 
+	/* --- LOGIC --- */
 	export let variant = 'large';
-
 	$: route = $page?.route?.id?.replace('/[lang]', '');
 </script>
 

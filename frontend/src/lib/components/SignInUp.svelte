@@ -1,36 +1,45 @@
 <script lang="ts">
-	// Api
-	import Api from '$main/routes/api/api';
+	/* --- INIT --- */
+	// Backend Api
+	import Api from '$api/api';
 
-	async function test() {
-		return await Api.get();
-	}
-
-	// Skeleton
+	// CSS-Framework/Library
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 
-	// Props
-	/** Exposes parent props to this component. */
-	export let parent: any;
 	// Stores
 	import { modalStore } from '@skeletonlabs/skeleton';
-	// Form Data
+
+	/* --- LOGIC --- */
+	/* Form */
+	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
+	const cForm = 'border border-surface-500 p-4 space-y-4 rounded-container-token';
+
+	/* -- Form Data -- */
 	const formData = {
 		username: 'Jonesis Froellerix',
 		password: 'password'
 	};
 
+	export let parent: any;
 	let userIsRegistered: number = 0;
 
+	/* -- Form Submit -- */
 	function onFormSubmit(): void {
 		if ($modalStore[0].response) $modalStore[0].response(formData);
 		console.log(formData);
 		modalStore.close();
 	}
 
-	// Base Classes
-	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
-	const cForm = 'border border-surface-500 p-4 space-y-4 rounded-container-token';
+	/* Database Connection */
+	async function get() {
+		// formData
+		return await Api.get();
+	}
+
+	async function post() {
+		// formData
+		return await Api.post();
+	}
 </script>
 
 <div class="modal-example-form {cBase}">

@@ -1,11 +1,16 @@
 <script lang="ts">
-	// Svelte
+	/* --- INIT --- */
+	// Translation
+	import translation from '$translation/i18n-svelte';
+
+	// JS-Framework/Library
 	import { onMount } from 'svelte';
 
-	// Skeleton
+	// CSS-Framework/Library
 	import { toastStore } from '@skeletonlabs/skeleton';
 	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
+	/* Toast */
 	const ts: ToastSettings = {
 		message: 'Config saved!',
 		// Provide any utility or variant background style:
@@ -19,6 +24,7 @@
 	// Scripts
 	import styleCfg from '$script/styleStorage';
 
+	/* --- LOGIC --- */
 	export let variant = 'large';
 
 	onMount(async () => {
@@ -40,7 +46,7 @@
 		toastStore.trigger(ts);
 	}}
 >
-	<option disabled selected>Color Theme</option>
+	<option disabled selected>{$translation.ThemeSelect.theme()}</option>
 	<option value="dark">dark</option>
 	<option value="light">light</option>
 </select>

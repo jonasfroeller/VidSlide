@@ -1,4 +1,9 @@
 <script>
+	// TODO: Finish Translation, Responsiveness, Create Components from Wireframe Code (change video frame to aspect-ratio 9:16)
+	/* --- INIT --- */
+	// Translation
+	import translation from '$translation/i18n-svelte'; // translations
+
 	// Components
 	import { Avatar } from '@skeletonlabs/skeleton';
 </script>
@@ -7,21 +12,38 @@
 	<meta property="og:url" content="https://rabbidly.com/en/" />
 	<meta property="og:title" content="Search" />
 
-	<link rel="icon" type="image/svg+xml" sizes="any" href="/search.svg" />
+	<link
+		rel="icon"
+		type="image/svg+xml"
+		sizes="any"
+		href="/search-light.svg"
+		media="(prefers-color-scheme:dark)"
+	/>
+	<link
+		rel="icon"
+		type="image/svg+xml"
+		sizes="any"
+		href="/search.svg"
+		media="(prefers-color-scheme:light)"
+	/>
+
 	<!-- Safari -->
-	<link rel="mask-icon" href="/search.svg" color="#000000" />
+	<link rel="mask-icon" href="/search-light.svg" media="(prefers-color-scheme:dark)" />
+	<link rel="mask-icon" href="/search.svg" media="(prefers-color-scheme:light)" />
 
 	<title>Search</title>
 </svelte:head>
 
-<section id="search-body" class="flex justify-center pt-2 gap-6">
+<section id="search-body" class="flex justify-center pt-2 gap-6 flex-wrap">
 	<div id="search-section" class="flex flex-col gap-4">
 		<div id="search-bar" class="mt-2 input-group input-group-divider grid-cols-[auto_1fr_auto]">
 			<div class="input-group-shim">
 				<iconify-icon class="cursor-pointer" icon="material-symbols:search-rounded" />
 			</div>
 			<input class="p-2 rounded-none outline-none" type="search" placeholder="Search..." />
-			<button class="variant-soft-secondary">Submit</button>
+			<button class="variant-soft-secondary"
+				>{$translation.pages.search.video_search_bar.search()}</button
+			>
 		</div>
 		<div id="search-config" class="flex flex-col gap-2">
 			Subject:
