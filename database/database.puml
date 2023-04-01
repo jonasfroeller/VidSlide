@@ -1,0 +1,84 @@
+@startuml database
+
+!define ENTITYMODIFIER abstract
+
+entity User {
+  + UID : INT AUTO_INCREMENT PRIMARY KEY
+  + Username : VARCHAR(25) NOT NULL
+  - Password : VARCHAR(25) NOT NULL
+  + DateTimeCreated : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  + LastUpdate : TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  + ProfilePicture : VARCHAR(100) DEFAULT NULL
+  + ProfileDescription : VARCHAR(1000) DEFAULT NULL
+}
+
+entity Video {
+  + VID : INT AUTO_INCREMENT PRIMARY KEY
+  + UID : INT NOT NULL TITLE VARCHAR(25) NOT NULL
+  + Title : VARCHAR(25) NOT NULL
+  + Description : VARCHAR(500) DEFAULT NULL
+  + DateTimePosted : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  + Views : INT DEFAULT 0
+  + Shares : INT DEFAULT 0
+  FOREIGN KEY (UID) REFERENCES USER(UID)
+}
+
+entity Following {
+  + FID : INT AUTO_INCREMENT PRIMARY KEY
+  + Follower : INT NOT NULL
+  + Following : INT NOT NULL
+  FOREIGN KEY (Follower) REFERENCES User(UID)
+  FOREIGN KEY (Following) REFERENCES User(UID)
+  CONSTRAINT unique_following UNIQUE (Follower, Following)
+}
+
+entity Feedback {
+  + FID : INT AUTO_INCREMENT PRIMARY KEY
+  + VID : INT NOT NULL
+  + Type: ENUM('positive', 'negative') NOT NULL
+  FOREIGN KEY (VID) REFERENCES Video(VID)
+}
+
+entity Comment {
+  + CID : INT AUTO_INCREMENT PRIMARY KEY
+  + ParentCID : INT /' (can be NULL if top-level comment) '/
+  + VID : INT NOT NULL
+  + UID : INT NOT NULL
+  + DateTimePosted : TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  + TextContent : VARCHAR(250) DEFAULT NULL
+  FOREIGN KEY (VID) REFERENCES Video(VID)
+}
+
+entity Hashtag {
+  + HID : INT AUTO_INCREMENT PRIMARY KEY
+  + VID : INT NOT NULL
+  + Name : VARCHAR(500) NOT NULL
+  FOREIGN KEY (VID) REFERENCES Video(VID)
+  CONSTRAINT unique_hashtag UNIQUE (VID, Name)
+}
+
+entity Social {
+  + SID : INT AUTO_INCREMENT PRIMARY KEY
+  + UID : INT NOT NULL
+  + Platform : VARCHAR(25) NOT NULL
+  + URL : VARCHAR(250) NOT NULL
+  FOREIGN KEY (UID) REFERENCES User(UID)
+}
+
+User --> Video : has 0..*
+User <-- Video : has 1
+User --> Social : has 0..*
+User <-- Social : has 1 
+User --> Following : has 0..*
+User <-- Following : has 1
+
+Video --> Feedback : has 0..*
+Video <-- Feedback : has 1
+Video --> Hashtag : has 0..*
+Video <-- Hashtag : has 1 
+Video --> Comment : has 0..*
+Video <-- Comment : has 1
+
+Comment --> Comment : has 0..*
+
+@enduml
