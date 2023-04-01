@@ -1,27 +1,29 @@
 <?php
-// phpinfo();
+// HEADERS
 header("Access-Control-Allow-Origin: *"); // allow CORS
 header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization"); // Authorization => send token
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // OPTIONS => get available methods
 header('Content-Type: application/json'); // return JSON
 
+// phpinfo();
+
+/* ---------- */
+
 // INIT (MySQL-Database Cfg)
-$hostname = 'host.docker.internal'; // database IP in docker container (127.0.0.1 (localhost) or other)
-if (isset($_POST["username"]) && isset($_POST["password"])) {
-    $username = $_POST["username"];
-    $password = $_POST["password"];
-} else {
-    $username = 'root';
-    $password = 'MEDTSSP';
-}
-$databaseschema = 'vidslide';
+$host = 'host.docker.internal'; // database IP in docker container (127.0.0.1 (localhost) or other)
+$root = 'root';
+$pass = 'MEDTSSP';
+$schema = 'vidslide';
 $port = "3306";
 
+/* ---------- */
+
+// RESPONSE
 $response = array(
     "data" => array(),
     "info" => array(
         "database_connection_details" => array(
-            "database_username" => $username
+            "database_username" => $root
         ),
         "fetch_method" => $_SERVER['REQUEST_METHOD']
     ),
@@ -31,409 +33,396 @@ $response = array(
 );
 
 // CONNECT
-$connection = mysqli_connect($hostname, $username, $password, "", $port);
+$connection = mysqli_connect($host, $root, $pass, "", $port); // $connection = mysqli_init(); + $connect_options = array(); + mysqli_real_connect(..., $connect_options (SSL and more));
+
+/* ---------- */
 
 // SETUP
 if (!$connection) {
-    $response["error"] = mysqli_connect_error();
-    echo json_encode($response);
-    exit(); // die()
+    errorOccurred($connection, $response, __LINE__);
 } else {
+    // Permissions: https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+    // Options: https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#privileges-provided-summary
+    // delete user: DROP USER 'username'@'%';
+    // delete right: REVOKE type_of_permission ON database_name.table_name FROM 'username'@'host'; 
+    // display permissions: SHOW GRANTS FOR 'username'@'host'; 
+    // save and reload: FLUSH; 
 
+    // create user
+    $guest_user_username = "guest";
+    $guest_user_password = "420GUEST69";
+    $guest_user = "CREATE USER IF NOT EXISTS '$guest_user_username'@'%' IDENTIFIED WITH mysql_native_password BY '$guest_user_password'"; // create user with mysql_native_password to avoid PHP problems
+    $guest_user_query = mysqli_query($connection, $guest_user);
 
-    $schema = "CREATE DATABASE IF NOT EXISTS $databaseschema";
-
-    if (mysqli_query($connection, $schema)) {
-        array_push($response["log"], "vidslide db created");
-        mysqli_select_db($connection, $databaseschema);
+    if ($guest_user_query) {
+        array_push($response["log"], "vidslide user created or the user existed already " . "[$guest_user_query]");
     } else {
-        $response["error"] = mysqli_connect_error();
-        echo json_encode($response);
-        exit(); // die()
+        errorOccurred($connection, $response, __LINE__);
     }
 
+    // TODO: FIX PRIVILEGES NOT UPDATING | disconnect and reconnect as guest user
+    // get privileges
+    $guest_user_privileges = "SELECT COUNT(*) as privileges FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE GRANTEE = '$guest_user_username@%' AND PRIVILEGE_TYPE = 'SELECT'"; // select privileges of guest user
+    $guest_user_privileges_query = mysqli_query($connection, $guest_user_privileges);
+    $guest_user_privileges_row = mysqli_fetch_assoc($guest_user_privileges_query);
+    $guest_user_privilege_count = $guest_user_privileges_row['privileges'];
+
+    if ($guest_user_privilege_count == 0) {
+        array_push($response["log"], "vidslide user privileges fetched " . "[$guest_user_privilege_count]");
+
+        // free result set
+        mysqli_free_result($guest_user_privileges_query);
+
+        // create privileges
+        $guest_user_grant_privileges = "GRANT SELECT ON *.* TO '$guest_user_username'@'%'"; // read only privileges // WITH GRANT OPTION => grant priviliges to others // PRIVILEGE => all privileges
+        $guest_user_grant_privileges_query = mysqli_query($connection, $guest_user_grant_privileges);
+
+        if ($guest_user_grant_privileges_query) {
+            array_push($response["log"], "vidslide user privileges set or the privileges existed already " . "[$guest_user_grant_privileges_query]");
+        } else {
+            errorOccurred($connection, $response, __LINE__);
+        }
+    } else if ($guest_user_privilege_count == 1) {
+        array_push($response["log"], "vidslide user privileges fetched " . "[$guest_user_privilege_count]");
+    } else {
+        errorOccurred($connection, $response, __LINE__);
+    }
+
+    // create database
+    // DONT USE: https://dev.mysql.com/doc/refman/8.0/en/keywords.html
+    $create_schema = "CREATE DATABASE IF NOT EXISTS $schema";
+    $schema_query = mysqli_query($connection, $create_schema);
+
+    if ($schema_query) {
+        array_push($response["log"], "vidslide database created or the database existed already " . "[$schema_query]");
+        mysqli_select_db($connection, $schema);
+    } else {
+        errorOccurred($connection, $response, __LINE__);
+    }
+
+    // create tables
     $table_01 = "CREATE TABLE IF NOT EXISTS USER (
-        UID INT AUTO_INCREMENT PRIMARY KEY,
-        USERNAME VARCHAR(25) NOT NULL,
-        PASSWORD VARCHAR(25) NOT NULL,
-        DATETIMECREATED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PROFILEPICTURE VARCHAR(100) DEFAULT NULL,
-        PROFILEDESCRIPTION VARCHAR(1000) DEFAULT NULL
+        USER_ID INT AUTO_INCREMENT PRIMARY KEY,
+        USER_USERNAME VARCHAR(25) NOT NULL,
+        USER_PASSWORD VARCHAR(25) NOT NULL,
+        USER_PROFILEPICTURE VARCHAR(100) DEFAULT NULL,
+        USER_PROFILEDESCRIPTION VARCHAR(1000) DEFAULT NULL,
+        USER_DATETIMECREATED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        USER_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT UNIQUE_USERNAME UNIQUE (USER_USERNAME)
     )";
 
     $table_02 = "CREATE TABLE IF NOT EXISTS VIDEO (
-        VID INT AUTO_INCREMENT PRIMARY KEY,
-        UID INT NOT NULL,
-        TITLE VARCHAR(25) NOT NULL,
-        DESCRIPTION VARCHAR(500) DEFAULT NULL,
-        DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        VID_VIEWS INT DEFAULT 0,
-        SHARES INT DEFAULT 0,
-        FOREIGN KEY (UID) REFERENCES USER(UID)
+        VIDEO_ID INT AUTO_INCREMENT PRIMARY KEY,
+        VIDEO_TITLE VARCHAR(25) NOT NULL,
+        VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL,
+        VIDEO_VIEWS INT DEFAULT 0,
+        VIDEO_SHARES INT DEFAULT 0,
+        VIDEO_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        VIDEO_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        USER_ID INT NOT NULL,
+        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID)
     )";
 
     $table_03 = "CREATE TABLE IF NOT EXISTS USER_SOCIAL (
-        SID INT AUTO_INCREMENT PRIMARY KEY,
-        UID INT NOT NULL,
-        PLATFORM VARCHAR(25) NOT NULL,
-        URL VARCHAR(250) NOT NULL,
-        FOREIGN KEY (UID) REFERENCES USER(UID)
+        SOCIAL_ID INT AUTO_INCREMENT PRIMARY KEY,
+        SOCIAL_PLATFORM VARCHAR(25) NOT NULL,
+        SOCIAL_URL VARCHAR(250) NOT NULL,
+        USER_ID INT NOT NULL,
+        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID),
+        CONSTRAINT UNIQUE_SOCIAL UNIQUE (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID)
     )";
 
     $table_04 = "CREATE TABLE IF NOT EXISTS USER_FOLLOWING (
-        FID INT AUTO_INCREMENT PRIMARY KEY,
-        FOLLOWER INT NOT NULL,
-        FOLLOWING INT NOT NULL,
-        FOREIGN KEY (FOLLOWER) REFERENCES USER(UID),
-        FOREIGN KEY (FOLLOWING) REFERENCES USER(UID),
-        CONSTRAINT UNIQUE_FOLLOWING UNIQUE (FOLLOWER, FOLLOWING)
+        FOLLOWING_ID INT AUTO_INCREMENT PRIMARY KEY,
+        FOLLOWING_SUBSCRIBER INT NOT NULL,
+        FOLLOWING_SUBSCRIBED INT NOT NULL,
+        FOREIGN KEY (FOLLOWING_SUBSCRIBER) REFERENCES USER(USER_ID),
+        FOREIGN KEY (FOLLOWING_SUBSCRIBED) REFERENCES USER(USER_ID),
+        CONSTRAINT UNIQUE_FOLLOWING UNIQUE (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED)
     )";
 
     $table_05 = "CREATE TABLE IF NOT EXISTS VIDEO_FEEDBACK (
-        FID INT AUTO_INCREMENT PRIMARY KEY,
-        VID INT NOT NULL,
-        FB_TYPE ENUM('positive', 'negative') NOT NULL,
-        FOREIGN KEY (VID) REFERENCES VIDEO(VID)
+        VIDEO_FEEDBACK_ID INT AUTO_INCREMENT PRIMARY KEY,
+        VIDEO_FEEDBACK_TYPE ENUM('positive', 'negative') NOT NULL,
+        VIDEO_ID INT NOT NULL,
+        USER_ID INT NOT NULL,
+        FOREIGN KEY (VIDEO_ID) REFERENCES VIDEO(VIDEO_ID),
+        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID),
+        CONSTRAINT UNIQUE_VIDEO_FEEDBACK UNIQUE (VIDEO_ID, USER_ID)
     )";
 
-    $table_06 = "CREATE TABLE IF NOT EXISTS VIDEO_HASHTAG (
-        HID INT AUTO_INCREMENT PRIMARY KEY,
-        VID INT NOT NULL,
-        HT_NAME VARCHAR(500) NOT NULL,
-        FOREIGN KEY (VID) REFERENCES VIDEO(VID),
-        CONSTRAINT UNIQUE_HASHTAG UNIQUE (VID, HT_NAME)
+    $table_06 = "CREATE TABLE IF NOT EXISTS VIDEO_COMMENT (
+        COMMENT_ID INT AUTO_INCREMENT PRIMARY KEY,
+        COMMENT_PARENT_ID INT DEFAULT NULL,
+        COMMENT_MESSAGE VARCHAR(250) NOT NULL,
+        COMMENT_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        COMMENT_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        VIDEO_ID INT NOT NULL,
+        USER_ID INT NOT NULL,
+        FOREIGN KEY (VIDEO_ID) REFERENCES VIDEO(VIDEO_ID),
+        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID)
     )";
 
-    $table_07 = "CREATE TABLE IF NOT EXISTS VIDEO_COMMENT (
-        CID INT AUTO_INCREMENT PRIMARY KEY,
-        PARENTCID INT,
-        VID INT NOT NULL,
-        UID INT NOT NULL,
-        DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        TEXTCONTENT VARCHAR(250) DEFAULT NULL,
-        LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (VID) REFERENCES VIDEO(VID)
+    $table_07 = "CREATE TABLE IF NOT EXISTS COMMENT_FEEDBACK (
+        COMMENT_FEEDBACK_ID INT AUTO_INCREMENT PRIMARY KEY,
+        COMMENT_FEEDBACK_TYPE ENUM('positive', 'negative') NOT NULL,
+        COMMENT_ID INT NOT NULL,
+        USER_ID INT NOT NULL,
+        FOREIGN KEY (COMMENT_ID) REFERENCES VIDEO_COMMENT(COMMENT_ID),
+        CONSTRAINT UNIQUE_COMMENT_FEEDBACK UNIQUE (COMMENT_ID, USER_ID)
     )";
 
-    for ($i = 1; $i <= 7; $i++) {
-        if (mysqli_query($connection, ${"table_" . str_pad($i, 2, "0", STR_PAD_LEFT)})) {
+    $table_08 = "CREATE TABLE IF NOT EXISTS VIDEO_HASHTAG (
+        HASHTAG_ID INT AUTO_INCREMENT PRIMARY KEY,
+        HASHTAG_NAME VARCHAR(500) NOT NULL,
+        VIDEO_ID INT NOT NULL,
+        FOREIGN KEY (VIDEO_ID) REFERENCES VIDEO(VIDEO_ID),
+        CONSTRAINT UNIQUE_HASHTAG UNIQUE (VIDEO_ID, HASHTAG_NAME)
+    )";
+
+    for ($i = 1; $i <= 8; $i++) {
+        $table_create_query = mysqli_query($connection, ${"table_" . str_pad($i, 2, "0", STR_PAD_LEFT)});
+        if ($table_create_query) {
             array_push($response["log"], "table " . $i . " created successfully or the table existed already");
         } else {
-            $response["error"] = mysqli_connect_error();
-            echo json_encode($response);
-            exit(); // die()
+            errorOccurred($connection, $response, __LINE__);
         }
     }
 
-    // echo json_encode($response);
+    // mock data
+    insertMockData($connection);
+
+    // check if server is alive
+    if (mysqli_ping($connection)) {
+        array_push($response["log"], "connection is ok!");
+    } else {
+        errorOccurred($connection, $response, __LINE__);
+    }
+
+    // login as guest => READ ONLY
+    mysqli_close($connection);
+    $connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
 }
 
-function getUser($connection, $response, $table_user)
-{
-    $user_query = mysqli_query($connection, $table_user); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object
+/* ---------- */
 
-    // fetch all
-    $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
-
-    // save as response data
-    $response["response"] = $response["response"] . "READ user table;"; // res;res;res
-    array_push($response["data"], json_encode($user_rows));
-
-    // free result set
-    mysqli_free_result($user_query);
-
-    return $response;
-}
-
+// REQUEST METHODS | GET, POST, PUT, DELETE STATEMENTS
 if ($_SERVER['REQUEST_METHOD'] === 'GET') { // no private data (password is hashed)
     if (isset($_GET["user"])) {
-        if ($_GET["user"] === "all") {
+        $user = mysqli_real_escape_string($connection, $_GET["user"]);
+        if ($user == "all") {
             $table_user = "SELECT * FROM USER";
-            $response = getUser($connection, $response, $table_user);
+            $response = getUser($connection, $response, $table_user, $user, false);
         } else {
-            $userID = intval($_GET["user"]);
-            if ($userID !== 0) {
-                $table_user = "SELECT * FROM USER WHERE UID = $userID";
-                $response = getUser($connection, $response, $table_user);
+            $userID = intval($user); // check if exists => SELECT COUNT(*) as count FROM USER WHERE UID = $userID;
+            $userID_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
+            mysqli_stmt_bind_param($userID_exists, 'i', $userID);
+            mysqli_stmt_execute($userID_exists);
+            $user_query = mysqli_stmt_get_result($userID_exists);
+            $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
+
+            if ($user_rows[0]["count"] !== 0) {
+                $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
+                $response = getUser($connection, $response, $table_user, $userID, true);
             } else {
-                $response["error"] = "failed to parse userID";
-                echo json_encode($response);
-                exit(); // die()
+                errorOccurred($connection, $response, __LINE__, "user not found");
             }
         }
     }
+
+    if (isset($_GET["video"])) {
+        $video = mysqli_real_escape_string($connection, $_GET["video"]);
+        if ($video == "all") {
+            $table_video = "SELECT * FROM VIDEO";
+            $response = getUser($connection, $response, $table_video, $video, false);
+        } else if ($video == "random") {
+            $table_video = "SELECT * FROM VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
+            $response = getVideo($connection, $response, $table_video, $video, false);
+        } else {
+            $videoID = intval($video);
+            if ($videoID !== 0) {
+                $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_ID = ?');
+                $response = getVideo($connection, $response, $table_video, $videoID, true);
+            } else {
+                errorOccurred($connection, $response, __LINE__);
+            }
+        }
+    }
+
+    if (isset($_GET["comments"])) {
+        $videoID = intval(mysqli_real_escape_string($connection, $_GET["comments"]));
+        $table_comment = "SELECT * FROM VIDEO_COMMENT WHERE VIDEO_ID = ?";
+        $response = getComments($response, $table_comment, $videoID);
+    }
 }
 
-echo json_encode($response);
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST["action"])) {
+        $action = $_POST["action"];
+        if ($action == "signup") {
+        } else if ($action == "signin") {
+            if (isset($_POST["username"]) && isset($_POST["password"])) {
+                $username = mysqli_real_escape_string($connection, $_POST["username"]);
+                $password = mysqli_real_escape_string($connection, $_POST["password"]);
+                $response["info"]["database_connection_details"]["database_username"] = $username;
+            }
+        } else if ($action == "signout") {
+        } else if ($action == "video") {
+        } else if ($action == "comment") {
+        } else if ($action == "like") {
+        } else if ($action == "dislike") {
+        }
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    if (isset($_POST["medium"])) {
+        $medium = $_POST["medium"];
+        if ($medium == "profile_username") {
+        } else if ($medium == "profile_password") {
+        } else if ($medium == "profile_description") {
+        } else if ($medium == "profile_socials") {
+        } else if ($medium == "profile_picture") {
+        } else if ($medium == "video_post_title") {
+        } else if ($medium == "video_post_description") {
+        } else if ($medium == "video_post_hashtags") {
+        } else if ($medium == "comment_post_text") {
+        }
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    if (isset($_POST["medium"])) {
+        $medium = $_POST["medium"];
+        if ($medium == "all") {
+        } else if ($medium == "account") {
+        } else if ($medium == "video") {
+        } else if ($medium == "comment") {
+        }
+    }
 }
+
+/* ---------- */
+
+// FUNCTIONS
+function errorOccurred($connection, $response, $line, $message = null)
+{
+    $response["error"] = ($message ?? "") . " (error occurred at line " . $line . " [" . mysqli_connect_errno() . ";" .  mysqli_connect_error() . "])";
+    // Disconnect
+    mysqli_close($connection); // mysqli_kill() => close fast | $thread_id = mysqli_thread_id($con); mysqli_kill($con, $thread_id);
+    // Log Response
+    echo json_encode($response);
+    exit(); // die()
+}
+
+function getUser($connection, $response, $table_user, $userID, $prepare)
+{
+    if ($prepare) {
+        // bind values
+        mysqli_stmt_bind_param($table_user, 'i', $userID);
+        // execute query
+        mysqli_stmt_execute($table_user);
+        // fetch result
+        $user_query = mysqli_stmt_get_result($table_user);
+        $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
+        $user_response = json_encode($user_rows);
+    } else {
+        // execute query
+        $user_query = mysqli_query($connection, $table_user); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object // mysqli_real_query() => doesn't wait for response // mysqli_reap_async_query() => async
+        // fetch all
+        $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
+        $user_response = json_encode($user_rows);
+    }
+
+    // save as response data
+    $response["response"] = $response["response"] . "READ user table [$prepare];"; // res;res;res
+    array_push($response["data"], $user_response);
+    // free result set
+    mysqli_free_result($user_query);
+    return $response;
+}
+
+function getVideo($connection, $response, $table_video, $videoID, $prepare)
+{
+    if ($prepare) {
+        // bind values
+        mysqli_stmt_bind_param($table_video, 'i', $videoID);
+        // execute query
+        mysqli_stmt_execute($table_video);
+        // fetch result
+        $video_query = mysqli_stmt_get_result($table_video);
+        $video_rows = mysqli_fetch_all($video_query, MYSQLI_ASSOC);
+        $video_response = json_encode($video_rows);
+    } else {
+        // excecute query
+        $video_query = mysqli_query($connection, $table_video); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object
+        // fetch all
+        $video_rows = mysqli_fetch_all($video_query, MYSQLI_ASSOC);
+        $video_response = json_encode($video_rows);
+    }
+
+    // save as response data
+    $response["response"] = $response["response"] . "READ video table [$prepare];"; // res;res;res
+    array_push($response["data"], $video_response);
+    // free result set
+    mysqli_free_result($video_query);
+    return $response;
+}
+
+function getComments($response, $table_comment, $videoID)
+{
+    // bind values
+    mysqli_stmt_bind_param($table_comment, 'i', $videoID);
+    // execute query
+    mysqli_stmt_execute($table_comment);
+    // fetch result
+    $comment_query = mysqli_stmt_get_result($table_comment);
+    $comment_rows = mysqli_fetch_all($comment_query, MYSQLI_ASSOC);
+    $comment_response = json_encode($comment_rows);
+
+    // save as response data
+    $response["response"] = $response["response"] . "READ user table;"; // res;res;res
+    array_push($response["data"], $comment_response);
+    // free result set
+    mysqli_free_result($comment_query);
+    return $response;
+}
+
+function insertMockData($connection)
+{
+    // SELECT COUNT(*) FROM table_name; returns 0 => empty || IGNORE => ignores if UNIQUE
+
+    $mock_user =
+        "INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('maxmustermann', 'passwort123', 'https://example.com/profilepic1.jpg', 'Ich bin Max und ich liebe es, Videos zu machen!');
+
+        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 1);
+    
+        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Twitter', 'https://twitter.com/maxmustermann', 1);
+        
+        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 1);
+        
+        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('positive', 1, 1);
+        
+        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('Vlog', 1);
+        
+        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES ('Tolles Video!', 1, 1);
+        
+        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('negative', 1, 1);";
+
+    mysqli_multi_query($connection, $mock_user);
+}
+
+/* ---------- */
+
+// CLEAN UP
+// Log Response
+echo json_encode($response);
 
 // Disconnect
 mysqli_close($connection);
 
-// TODO: USERS
-// if no user specified use user that can only read on the database
-// Permissions: https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
-// Options: https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#privileges-provided-summary
-// "CREATE USER 'username'@'%' IDENTIFIED WITH mysql_native_password BY 'password'"; // create user with mysql_native_password to avoid PHP problems
-// GRANT PRIVILEGE SELECT ON vidslide.user TO 'username'@'%'; // WITH GRANT OPTION => grant priviliges to others
-// DROP USER 'username'@'%'; // delete user
+/* ---------- */
 
-// GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on *.* TO 'sammy'@'localhost' WITH GRANT OPTION;
-// FLUSH PRIVILEGES; // save and reload, just to be sure - not needed
-// REVOKE type_of_permission ON database_name.table_name FROM 'username'@'host'; // delete right
-// SHOW GRANTS FOR 'username'@'host'; // display permissions
-// DROP USER 'username'@'localhost'; // delete user
-
-function insertMockData()
-{
-    /* SELECT COUNT(*) FROM table_name; returns 0 => empty
-
-    INSERT INTO USER (
-        USERNAME,
-        PASSWORD,
-        PROFILEPICTURE,
-        PROFILEDESCRIPTION
-    ) VALUES (
-        "JohnDoe",
-        "pass123",
-        "https://picsum.photos/50/50",
-        "I'm a software engineer"
-    ),
-    (
-        "JaneDoe",
-        "qwerty123",
-        "https://picsum.photos/50/50",
-        "I love to dance and create videos"
-    ),
-    (
-        "PeterPan",
-        "ilovefairytales",
-        "https://picsum.photos/50/50",
-        NULL
-    ),
-    (
-        "MaryPoppins",
-        "supercalifragilisticexpialidocious",
-        NULL,
-        "Practically perfect in every way"
-    );
-    
-    INSERT INTO VIDEO (
-        UID,
-        TITLE,
-        DESCRIPTION
-    ) VALUES (
-        1,
-        "My First Video",
-        "Just testing out this new platform!"
-    ),
-    (
-        2,
-        "Dancing to my favorite song",
-        "I can't stop listening to this song and wanted to share my dance with you all!"
-    ),
-    (
-        3,
-        "How to Fly with Peter Pan",
-        "Join me on a magical journey to Neverland!"
-    ),
-    (
-        4,
-        "Cleaning up the nursery with Mary Poppins",
-        "A spoonful of sugar helps the medicine go down!"
-    ),
-    (
-        1,
-        "Reacting to my first video",
-        "I can't believe how far I've come!"
-    );
-    
-    INSERT INTO USER_SOCIAL (
-        UID,
-        PLATFORM,
-        URL
-    ) VALUES (
-        1,
-        "GitHub",
-        "https://github.com/johndoe"
-    ),
-    (
-        2,
-        "GitHub",
-        "https://github.com/janedoe"
-    ),
-    (
-        3,
-        "GitHub",
-        "https://github.com/peterpan"
-    ),
-    (
-        4,
-        "GitHub",
-        "https://github.com/marypoppins"
-    );
-    
-    INSERT INTO USER_FOLLOWING (
-        FOLLOWER,
-        FOLLOWING
-    ) VALUES (
-        1,
-        2
-    ),
-    (
-        1,
-        3
-    ),
-    (
-        2,
-        1
-    ),
-    (
-        2,
-        4
-    ),
-    (
-        3,
-        1
-    ),
-    (
-        3,
-        4
-    ),
-    (
-        4,
-        2
-    ),
-    (
-        4,
-        3
-    );
-    
-    INSERT INTO VIDEO_FEEDBACK (
-        VID,
-        FB_TYPE
-    ) VALUES (
-        1,
-        "positive"
-    ),
-    (
-        1,
-        "negative"
-    ),
-    (
-        2,
-        "positive"
-    ),
-    (
-        2,
-        "positive"
-    ),
-    (
-        2,
-        "negative"
-    ),
-    (
-        3,
-        "positive"
-    ),
-    (
-        4,
-        "positive"
-    );
-    
-    INSERT INTO VIDEO_HASHTAG (
-        VID,
-        HT_NAME
-    ) VALUES (
-        1,
-        "firstvideo"
-    ),
-    (
-        2,
-        "dance"
-    ),
-    (
-        2,
-        "favorite"
-    ),
-    (
-        3,
-        "neverland"
-    ),
-    (
-        3,
-        "flying"
-    ),
-    (
-        4,
-        "cleaning"
-    ),
-    (
-        4,
-        "nursery"
-    );
-    
-    INSERT INTO VIDEO_COMMENT (
-        PARENTCID,
-        VID,
-        UID,
-        TEXTCONTENT
-    ) VALUES (
-        NULL,
-        1,
-        2,
-        "Great job on your first video, John!"
-    ),
-    (
-        NULL,
-        1,
-        3,
-        "I think you have a lot of potential on this platform"
-    ),
-    (
-        1,
-        1,
-        1,
-        "Thanks for the feedback, Jane!"
-    ),
-    (
-        2,
-        1,
-        2,
-        "Sorry, John, I didn't mean to come across as harsh"
-    ),
-    (
-        NULL,
-        2,
-        1,
-        "I loved your dance, Jane!"
-    ),
-    (
-        NULL,
-        3,
-        4,
-        "This is such a fun video, Mary!"
-    ),
-    (
-        NULL,
-        4,
-        2,
-        "I wish Mary Poppins would come clean my house!"
-    ),
-    (
-        NULL,
-        4,
-        3,
-        "Haha, me too!"
-    ) */
-}
+// SCRIPT END
+exit();
