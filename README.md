@@ -18,7 +18,7 @@
 
 ## Setup Database & Backend API
 
-| `docker-compose up --build -d`  
+| `sudo MYSQL_ROOT_PASSWORD=<password> docker-compose up --build -d`  
 <span style="color:green">  
 // The command uses the "`docker-compose`" file and builds it with the RUN-commands in the "`Docker`" file to install mysqli.
 The compose file includes 2 containers: The **mySQL database** and the **Apache PHP server** which functions as an mysqli-API to the database. The frontend GETs or POSTs to the backend and receives the index.php which is filled with the response at the backend API as a JSON file.

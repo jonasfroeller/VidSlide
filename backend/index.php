@@ -5,7 +5,16 @@ header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorizatio
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // OPTIONS => get available methods
 header('Content-Type: application/json'); // return JSON
 
+// INFO: 
 // phpinfo();
+// Permissions: https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+// Options: https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#privileges-provided-summary
+// delete user: DROP USER 'username'@'%';
+// delete right: REVOKE type_of_permission ON database_name.table_name FROM 'username'@'host'; 
+// display permissions: SHOW GRANTS FOR 'username'@'host'; 
+// save and reload: FLUSH; 
+// WITH GRANT OPTION => grant priviliges to others // ALL PRIVILEGES => all privileges
+// DONT USE (table names and attributes): https://dev.mysql.com/doc/refman/8.0/en/keywords.html
 
 /* ---------- */
 
@@ -41,66 +50,59 @@ $connection = mysqli_connect($host, $root, $pass, "", $port); // $connection = m
 if (!$connection) {
     errorOccurred($connection, $response, __LINE__);
 } else {
-    // Permissions: https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
-    // Options: https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#privileges-provided-summary
-    // delete user: DROP USER 'username'@'%';
-    // delete right: REVOKE type_of_permission ON database_name.table_name FROM 'username'@'host'; 
-    // display permissions: SHOW GRANTS FOR 'username'@'host'; 
-    // save and reload: FLUSH; 
-
-    // create user
+    // create guest user
     $guest_user_username = "guest";
     $guest_user_password = "420GUEST69";
-    $guest_user = "CREATE USER IF NOT EXISTS '$guest_user_username'@'%' IDENTIFIED WITH mysql_native_password BY '$guest_user_password'"; // create user with mysql_native_password to avoid PHP problems
+    $guest_user = "CREATE USER IF NOT EXISTS '$guest_user_username'@'%' IDENTIFIED WITH mysql_native_password BY '$guest_user_password'"; // with mysql_native_password to avoid PHP problems
     $guest_user_query = mysqli_query($connection, $guest_user);
 
     if ($guest_user_query) {
-        array_push($response["log"], "vidslide user created or the user existed already " . "[$guest_user_query]");
+        array_push($response["log"], date('H:i:s') . ": vidslide guest user created/found " . "[$guest_user_query]");
     } else {
         errorOccurred($connection, $response, __LINE__);
     }
 
-    // TODO: FIX PRIVILEGES NOT UPDATING | disconnect and reconnect as guest user
-    // get privileges
-    $guest_user_privileges = "SELECT COUNT(*) as privileges FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE GRANTEE = '$guest_user_username@%' AND PRIVILEGE_TYPE = 'SELECT'"; // select privileges of guest user
+    // get privileges of guest user
+    $grantee = "guest'@'%";
+    $guest_user_privileges = "SELECT COUNT(*) as privileges FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE GRANTEE = \"'guest'@'%'\" AND PRIVILEGE_TYPE = 'SELECT'";
     $guest_user_privileges_query = mysqli_query($connection, $guest_user_privileges);
     $guest_user_privileges_row = mysqli_fetch_assoc($guest_user_privileges_query);
     $guest_user_privilege_count = $guest_user_privileges_row['privileges'];
 
     if ($guest_user_privilege_count == 0) {
-        array_push($response["log"], "vidslide user privileges fetched " . "[$guest_user_privilege_count]");
+        array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges fetched " . "[$guest_user_privilege_count]");
 
-        // free result set
         mysqli_free_result($guest_user_privileges_query);
 
-        // create privileges
-        $guest_user_grant_privileges = "GRANT SELECT ON *.* TO '$guest_user_username'@'%'"; // read only privileges // WITH GRANT OPTION => grant priviliges to others // PRIVILEGE => all privileges
+        // set guest user privileges => READ ONLY (SELECT)
+        $guest_user_grant_privileges = "GRANT SELECT ON *.* TO '$guest_user_username'@'%'";
         $guest_user_grant_privileges_query = mysqli_query($connection, $guest_user_grant_privileges);
 
         if ($guest_user_grant_privileges_query) {
-            array_push($response["log"], "vidslide user privileges set or the privileges existed already " . "[$guest_user_grant_privileges_query]");
+            array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges set " . "[$guest_user_grant_privileges_query]");
         } else {
             errorOccurred($connection, $response, __LINE__);
         }
     } else if ($guest_user_privilege_count == 1) {
-        array_push($response["log"], "vidslide user privileges fetched " . "[$guest_user_privilege_count]");
+        array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges fetched " . "[$guest_user_privilege_count]");
     } else {
         errorOccurred($connection, $response, __LINE__);
     }
 
     // create database
-    // DONT USE: https://dev.mysql.com/doc/refman/8.0/en/keywords.html
     $create_schema = "CREATE DATABASE IF NOT EXISTS $schema";
     $schema_query = mysqli_query($connection, $create_schema);
 
     if ($schema_query) {
-        array_push($response["log"], "vidslide database created or the database existed already " . "[$schema_query]");
+        array_push($response["log"], date('H:i:s') . ": vidslide database created/found " . "[$schema_query]");
         mysqli_select_db($connection, $schema);
     } else {
         errorOccurred($connection, $response, __LINE__);
     }
 
     // create tables
+    array_push($response["log"], date('H:i:s') . "looking for tables...");
+
     $table_01 = "CREATE TABLE IF NOT EXISTS USER (
         USER_ID INT AUTO_INCREMENT PRIMARY KEY,
         USER_USERNAME VARCHAR(25) NOT NULL,
@@ -184,25 +186,58 @@ if (!$connection) {
     for ($i = 1; $i <= 8; $i++) {
         $table_create_query = mysqli_query($connection, ${"table_" . str_pad($i, 2, "0", STR_PAD_LEFT)});
         if ($table_create_query) {
-            array_push($response["log"], "table " . $i . " created successfully or the table existed already");
+            array_push($response["log"], date('H:i:s') . ": table " . $i . " created/found");
         } else {
             errorOccurred($connection, $response, __LINE__);
         }
     }
 
-    // mock data
-    insertMockData($connection);
+    // create mock data
+    $user_count = "SELECT COUNT(*) as amount FROM USER"; // returns 0 => empty || IGNORE => ignores if UNIQUE
+    $user_count_query = mysqli_query($connection, $user_count);
+    $video_count_fetched = mysqli_fetch_assoc($user_count_query);
+    if (intval($video_count_fetched["amount"]) == 0) { // PROBLEM: causes out of sync problem somehow if run again after first execution
+        $mock_user =
+            "INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('maxmustermann', 'passwort123', 'https://example.com/profilepic1.jpg', 'Ich bin Max und ich liebe es, Videos zu machen!');
+
+            INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 1);
+    
+            INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Twitter', 'https://twitter.com/maxmustermann', 1);
+        
+            INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 1);
+        
+            INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('positive', 1, 1);
+        
+            INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('Vlog', 1);
+        
+            INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES ('Tolles Video!', 1, 1);
+        
+            INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('negative', 1, 1);";
+
+        mysqli_multi_query($connection, $mock_user);
+
+        array_push($response["log"], date('H:i:s') . ": inserted mock data");
+    } else {
+        array_push($response["log"], date('H:i:s') . ": found mock data in database");
+    }
 
     // check if server is alive
     if (mysqli_ping($connection)) {
-        array_push($response["log"], "connection is ok!");
+        array_push($response["log"], date('H:i:s') . ": connection ok");
     } else {
         errorOccurred($connection, $response, __LINE__);
     }
 
-    // login as guest => READ ONLY
+    array_push($response["log"], date('H:i:s') . ": finished database initialisation");
     mysqli_close($connection);
+
+    // login as guest => READ ONLY
     $connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
+    if (!$connection) {
+        errorOccurred($connection, $response, __LINE__);
+    } else {
+        array_push($response["log"], date('H:i:s') . ": logged in as read only guest");
+    }
 }
 
 /* ---------- */
@@ -234,6 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') { // no private data (password is hash
     if (isset($_GET["video"])) {
         $video = mysqli_real_escape_string($connection, $_GET["video"]);
         if ($video == "all") {
+            // TODO: get all videos from specfied user
             $table_video = "SELECT * FROM VIDEO";
             $response = getUser($connection, $response, $table_video, $video, false);
         } else if ($video == "random") {
@@ -382,35 +418,11 @@ function getComments($response, $table_comment, $videoID)
     $comment_response = json_encode($comment_rows);
 
     // save as response data
-    $response["response"] = $response["response"] . "READ user table;"; // res;res;res
+    $response["response"] = $response["response"] . "READ comment table;"; // res;res;res
     array_push($response["data"], $comment_response);
     // free result set
     mysqli_free_result($comment_query);
     return $response;
-}
-
-function insertMockData($connection)
-{
-    // SELECT COUNT(*) FROM table_name; returns 0 => empty || IGNORE => ignores if UNIQUE
-
-    $mock_user =
-        "INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('maxmustermann', 'passwort123', 'https://example.com/profilepic1.jpg', 'Ich bin Max und ich liebe es, Videos zu machen!');
-
-        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 1);
-    
-        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Twitter', 'https://twitter.com/maxmustermann', 1);
-        
-        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 1);
-        
-        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('positive', 1, 1);
-        
-        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('Vlog', 1);
-        
-        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES ('Tolles Video!', 1, 1);
-        
-        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('negative', 1, 1);";
-
-    mysqli_multi_query($connection, $mock_user);
 }
 
 /* ---------- */

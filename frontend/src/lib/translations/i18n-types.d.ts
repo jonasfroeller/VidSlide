@@ -2,16 +2,19 @@
 /* eslint-disable */
 import type { BaseTranslation as BaseTranslationType, LocalizedString } from 'typesafe-i18n'
 
-export type BaseTranslation = BaseTranslationType
+export type BaseTranslation = BaseTranslationType & DisallowNamespaces
 export type BaseLocale = 'de'
 
 export type Locales =
 	| 'de'
 	| 'en'
 
-export type Translation = RootTranslation
+export type Translation = RootTranslation & DisallowNamespaces
 
-export type Translations = RootTranslation
+export type Translations = RootTranslation &
+{
+	home: NamespaceHomeTranslation
+}
 
 type RootTranslation = {
 	LangSelect: {
@@ -84,6 +87,55 @@ type RootTranslation = {
 	}
 }
 
+export type NamespaceHomeTranslation = {
+	LangSelect: {
+		lang: string
+	}
+	ThemeSelect: {
+		theme: string
+	}
+	Sidebar: {
+		home: string
+		search: string
+		account: string
+		settings: string
+	}
+	Header: {
+		logIn: string
+		logOut: string
+	}
+	SignInUp: {
+	}
+	pages: {
+		home: {
+			video_info_display_actions: {
+				comments: string
+				description: string
+			}
+		}
+		search: {
+			video_search_bar: {
+				search: string
+			}
+		}
+		account: {
+		}
+		settings: {
+		}
+	}
+}
+
+export type Namespaces =
+	| 'home'
+
+type DisallowNamespaces = {
+	/**
+	 * reserved for 'home'-namespace\
+	 * you need to use the `./home/index.ts` file instead
+	 */
+	home?: "[typesafe-i18n] reserved for 'home'-namespace. You need to use the `./home/index.ts` file instead."
+}
+
 export type TranslationFunctions = {
 	LangSelect: {
 		/**
@@ -151,6 +203,43 @@ export type TranslationFunctions = {
 		account: {
 		}
 		settings: {
+		}
+	}
+	home: {
+		LangSelect: {
+			lang: () => LocalizedString
+		}
+		ThemeSelect: {
+			theme: () => LocalizedString
+		}
+		Sidebar: {
+			home: () => LocalizedString
+			search: () => LocalizedString
+			account: () => LocalizedString
+			settings: () => LocalizedString
+		}
+		Header: {
+			logIn: () => LocalizedString
+			logOut: () => LocalizedString
+		}
+		SignInUp: {
+		}
+		pages: {
+			home: {
+				video_info_display_actions: {
+					comments: () => LocalizedString
+					description: () => LocalizedString
+				}
+			}
+			search: {
+				video_search_bar: {
+					search: () => LocalizedString
+				}
+			}
+			account: {
+			}
+			settings: {
+			}
 		}
 	}
 }

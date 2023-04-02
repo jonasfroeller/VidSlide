@@ -14,9 +14,18 @@ import { loadedFormatters, loadedLocales, locales } from './i18n-util'
 import de from './de'
 import en from './en'
 
+import de_home from './de/home'
+import en_home from './en/home'
+
 const localeTranslations = {
-	de,
-	en,
+	de: {
+		...de,
+		home: de_home
+	},
+	en: {
+		...en,
+		home: en_home
+	},
 }
 
 /**
