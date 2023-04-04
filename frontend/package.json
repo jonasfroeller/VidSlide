@@ -47,7 +47,8 @@
     "@sveltejs/adapter-vercel": "^2.4.1",
     "@tailwindcss/typography": "^0.5.9",
     "iconify-icon": "^1.0.7",
-    "typesafe-i18n": "^5.18.1"
+    "typesafe-i18n": "^5.18.1",
+    "zod": "^3.21.4"
   },
   "description": "Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).",
   "main": "playwright.config.js",

@@ -1,9 +1,4 @@
 <?php
-// HEADERS
-header("Access-Control-Allow-Origin: *"); // allow CORS
-header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization"); // Authorization => send token
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // OPTIONS => get available methods
-header('Content-Type: application/json'); // return JSON
 
 // INFO: 
 // phpinfo();
@@ -16,6 +11,32 @@ header('Content-Type: application/json'); // return JSON
 // WITH GRANT OPTION => grant priviliges to others // ALL PRIVILEGES => all privileges
 // DONT USE (table names and attributes): https://dev.mysql.com/doc/refman/8.0/en/keywords.html
 
+/* declare(strict_types=1); */
+
+// HEADERS
+header("Access-Control-Allow-Origin: *"); // allow CORS
+header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization"); // Authorization => send token
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // OPTIONS => get available methods
+header('Content-Type: application/json'); // return JSON
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\SignatureInvalidException;
+use Firebase\JWT\BeforeValidException;
+use Firebase\JWT\ExpiredException;
+use Firebase\JWT\Key;
+use Dotenv\Dotenv;
+
+require_once('./vendor/autoload.php');
+
+/* ---------- */
+
+// JWT - Authentication
+// Using getenv() and putenv() is strongly discouraged due to the fact that these functions are not thread safe.
+// https://github.com/vlucas/phpdotenv
+$dotenv = Dotenv::createImmutable(__DIR__); // (.env content: PRIVATE_KEY="", PUBLIC_KEY="") || __DIR__ ,private_key.pem || public_key.pem
+$dotenv->load(); // load .env file
+$dotenv->required(['PRIVATE_KEY', 'PUBLIC_KEY'])->notEmpty(); // RS256
+
 /* ---------- */
 
 // INIT (MySQL-Database Cfg)
@@ -23,7 +44,7 @@ $host = 'host.docker.internal'; // database IP in docker container (127.0.0.1 (l
 $root = 'root';
 $pass = 'MEDTSSP';
 $schema = 'vidslide';
-$port = "3306";
+$port = "3196"; /* 3196 || 3306 */
 
 /* ---------- */
 
@@ -37,7 +58,9 @@ $response = array(
         "fetch_method" => $_SERVER['REQUEST_METHOD']
     ),
     "log" => array(),
+    "token" => "",
     "response" => "",
+    "requested" => "",
     "error" => false
 );
 
@@ -101,7 +124,7 @@ if (!$connection) {
     }
 
     // create tables
-    array_push($response["log"], date('H:i:s') . "looking for tables...");
+    array_push($response["log"], date('H:i:s') . ": looking for tables...");
 
     $table_01 = "CREATE TABLE IF NOT EXISTS USER (
         USER_ID INT AUTO_INCREMENT PRIMARY KEY,
@@ -230,81 +253,113 @@ if (!$connection) {
 
     array_push($response["log"], date('H:i:s') . ": finished database initialisation");
     mysqli_close($connection);
+}
 
-    // login as guest => READ ONLY
-    $connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
-    if (!$connection) {
-        errorOccurred($connection, $response, __LINE__);
-    } else {
-        array_push($response["log"], date('H:i:s') . ": logged in as read only guest");
-    }
+// login as guest => READ ONLY
+$connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
+if (!$connection) {
+    errorOccurred($connection, $response, __LINE__);
+} else {
+    $response["info"]["database_connection_details"]["database_username"] = $guest_user_username;
+    array_push($response["log"], date('H:i:s') . ": logged in as read only guest");
 }
 
 /* ---------- */
 
 // REQUEST METHODS | GET, POST, PUT, DELETE STATEMENTS
 if ($_SERVER['REQUEST_METHOD'] === 'GET') { // no private data (password is hashed)
-    if (isset($_GET["user"])) {
-        $user = mysqli_real_escape_string($connection, $_GET["user"]);
-        if ($user == "all") {
-            $table_user = "SELECT * FROM USER";
-            $response = getUser($connection, $response, $table_user, $user, false);
-        } else {
-            $userID = intval($user); // check if exists => SELECT COUNT(*) as count FROM USER WHERE UID = $userID;
-            $userID_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
-            mysqli_stmt_bind_param($userID_exists, 'i', $userID);
-            mysqli_stmt_execute($userID_exists);
-            $user_query = mysqli_stmt_get_result($userID_exists);
-            $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
-
-            if ($user_rows[0]["count"] !== 0) {
-                $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
-                $response = getUser($connection, $response, $table_user, $userID, true);
+    $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
+    if (isset($_GET["medium"])) {
+        $medium = $_GET["medium"];
+        if ($medium == "user") {
+            $id = mysqli_real_escape_string($connection, $_GET["id"]);
+            if ($id == "all") {
+                $table_user = "SELECT * FROM USER";
+                $response = getUser($connection, $response, $table_user, $id, false);
             } else {
-                errorOccurred($connection, $response, __LINE__, "user not found");
-            }
-        }
-    }
+                $userID = intval($id); // check if exists => SELECT COUNT(*) as count FROM USER WHERE UID = $userID;
+                $userID_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
+                mysqli_stmt_bind_param($userID_exists, 'i', $userID);
+                mysqli_stmt_execute($userID_exists);
+                $user_query = mysqli_stmt_get_result($userID_exists);
+                $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
 
-    if (isset($_GET["video"])) {
-        $video = mysqli_real_escape_string($connection, $_GET["video"]);
-        if ($video == "all") {
-            // TODO: get all videos from specfied user
-            $table_video = "SELECT * FROM VIDEO";
-            $response = getUser($connection, $response, $table_video, $video, false);
-        } else if ($video == "random") {
-            $table_video = "SELECT * FROM VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
-            $response = getVideo($connection, $response, $table_video, $video, false);
-        } else {
-            $videoID = intval($video);
-            if ($videoID !== 0) {
-                $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_ID = ?');
-                $response = getVideo($connection, $response, $table_video, $videoID, true);
+                if ($user_rows[0]["count"] !== 0) {
+                    $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
+                    $response = getUser($connection, $response, $table_user, $userID, true);
+                } else {
+                    errorOccurred($connection, $response, __LINE__, "user not found");
+                }
+            }
+        } else if ($medium == "video") {
+            $id = mysqli_real_escape_string($connection, $_GET["id"]);
+            if ($id == "all") {
+                // TODO: get all videos from specfied user
+                $table_video = "SELECT * FROM VIDEO";
+                $response = getUser($connection, $response, $table_video, $id, false);
+            } else if ($id == "random") {
+                $table_video = "SELECT * FROM VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
+                $response = getVideo($connection, $response, $table_video, $id, false);
             } else {
-                errorOccurred($connection, $response, __LINE__);
+                $videoID = intval($id);
+                if ($videoID !== 0) {
+                    $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_ID = ?');
+                    $response = getVideo($connection, $response, $table_video, $videoID, true);
+                } else {
+                    errorOccurred($connection, $response, __LINE__, "video not found");
+                }
             }
+        } else if ($medium == "comments") {
+            $videoID = intval(mysqli_real_escape_string($connection, $_GET["id"]));
+            $table_comment = "SELECT * FROM VIDEO_COMMENT WHERE VIDEO_ID = ?";
+            $response = getComments($response, $table_comment, $videoID);
         }
-    }
-
-    if (isset($_GET["comments"])) {
-        $videoID = intval(mysqli_real_escape_string($connection, $_GET["comments"]));
-        $table_comment = "SELECT * FROM VIDEO_COMMENT WHERE VIDEO_ID = ?";
-        $response = getComments($response, $table_comment, $videoID);
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
     if (isset($_POST["action"])) {
         $action = $_POST["action"];
-        if ($action == "signup") {
-        } else if ($action == "signin") {
+        if ($action == "auth") {
+            // authentication
+            // https://github.com/firebase/php-jwt
+            $privateKey = $_ENV['PRIVATE_KEY'];
+            $issuedAt   = new DateTimeImmutable();
+            $expire     = $issuedAt->modify('+60 seconds')->getTimestamp();
+            $serverName = "vidslide.com";
+
+            $payload = [
+                'iat'  => $issuedAt->getTimestamp(),         // Issued at: time when the token was generated
+                'iss'  => $serverName,                       // Issuer
+                'nbf'  => $issuedAt->getTimestamp(),         // Not before
+                'exp'  => $expire,                           // Expire
+            ];
+
             if (isset($_POST["username"]) && isset($_POST["password"])) {
                 $username = mysqli_real_escape_string($connection, $_POST["username"]);
                 $password = mysqli_real_escape_string($connection, $_POST["password"]);
                 $response["info"]["database_connection_details"]["database_username"] = $username;
+
+                // TODO: USER EXISTS => false: create user
             }
+
+            $response["token"] = sendJWT($payload, $privateKey);
+        } else if ($action == "signup") {
+        } else if ($action == "signin") {
         } else if ($action == "signout") {
         } else if ($action == "video") {
+            // authentication
+            // https://github.com/firebase/php-jwt
+
+            if (!preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
+                $response["token"] = 'Token not found in request';
+            }
+
+            $jwt = $matches[1];
+            $publicKey = $_ENV['PUBLIC_KEY'];
+
+            $response["token"] = getJWT($jwt, $publicKey);
         } else if ($action == "comment") {
         } else if ($action == "like") {
         } else if ($action == "dislike") {
@@ -313,6 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
     if (isset($_POST["medium"])) {
         $medium = $_POST["medium"];
         if ($medium == "profile_username") {
@@ -329,6 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
     if (isset($_POST["medium"])) {
         $medium = $_POST["medium"];
         if ($medium == "all") {
@@ -342,6 +399,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
 /* ---------- */
 
 // FUNCTIONS
+// sends token to client
+function sendJWT($payload, $privateKey)
+{
+    $jwt = JWT::encode($payload, $privateKey, 'RS256');
+    return $jwt;
+}
+
+// gets and validates token from client
+function getJWT($jwt, $publicKey) // TODO: ERROR MESSAGES
+{
+    try {
+        $token = JWT::decode($jwt, new Key($publicKey, 'RS256'));
+    } catch (InvalidArgumentException $e) {
+        // provided key/key-array is empty or malformed.
+    } catch (DomainException $e) {
+        // provided algorithm is unsupported OR
+        // provided key is invalid OR
+        // unknown error thrown in openSSL or libsodium OR
+        // libsodium is required but not available.
+    } catch (SignatureInvalidException $e) {
+        // provided JWT signature verification failed.
+    } catch (BeforeValidException $e) {
+        // provided JWT is trying to be used before "nbf" claim OR
+        // provided JWT is trying to be used before "iat" claim.
+    } catch (ExpiredException $e) {
+        // provided JWT is trying to be used after "exp" claim.
+    } catch (UnexpectedValueException $e) {
+        // provided JWT is malformed OR
+        // provided JWT is missing an algorithm / using an unsupported algorithm OR
+        // provided JWT algorithm does not match provided key OR
+        // provided key ID in key/key-array is empty or invalid.
+    }
+
+    return json_decode(json_encode($token), true); // (array) casts to assoc array
+}
+
 function errorOccurred($connection, $response, $line, $message = null)
 {
     $response["error"] = ($message ?? "") . " (error occurred at line " . $line . " [" . mysqli_connect_errno() . ";" .  mysqli_connect_error() . "])";
@@ -372,7 +465,7 @@ function getUser($connection, $response, $table_user, $userID, $prepare)
     }
 
     // save as response data
-    $response["response"] = $response["response"] . "READ user table [$prepare];"; // res;res;res
+    $response["requested"] = $response["requested"] . "READ user table [$prepare];"; // res;res;res
     array_push($response["data"], $user_response);
     // free result set
     mysqli_free_result($user_query);
@@ -399,7 +492,7 @@ function getVideo($connection, $response, $table_video, $videoID, $prepare)
     }
 
     // save as response data
-    $response["response"] = $response["response"] . "READ video table [$prepare];"; // res;res;res
+    $response["requested"] = $response["requested"] . "READ video table [$prepare];"; // res;res;res
     array_push($response["data"], $video_response);
     // free result set
     mysqli_free_result($video_query);
@@ -418,7 +511,7 @@ function getComments($response, $table_comment, $videoID)
     $comment_response = json_encode($comment_rows);
 
     // save as response data
-    $response["response"] = $response["response"] . "READ comment table;"; // res;res;res
+    $response["requested"] = $response["requested"] . "READ comment table;"; // res;res;res
     array_push($response["data"], $comment_response);
     // free result set
     mysqli_free_result($comment_query);

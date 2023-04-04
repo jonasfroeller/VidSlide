@@ -23,3 +23,9 @@
 // The command uses the "`docker-compose`" file and builds it with the RUN-commands in the "`Docker`" file to install mysqli.
 The compose file includes 2 containers: The **mySQL database** and the **Apache PHP server** which functions as an mysqli-API to the database. The frontend GETs or POSTs to the backend and receives the index.php which is filled with the response at the backend API as a JSON file.
 </span>
+
+### Generate JWT Keys for Authentication (Linux | Windows: installed on WSL2, https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md)
+
+`openssl genrsa -out private_key.pem 2048` <span style="color:green">// generates private key</span> 
+
+`openssl rsa -in private_key.pem -outform PEM -pubout -out public_key.pem` <span style="color:green">// generates public key from private key</span> 

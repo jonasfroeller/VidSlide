@@ -45,9 +45,14 @@
 ### Dev ###
 **/*.idea
 **/*.vscode
-**/.vercel
-**/*.node_modules
 **/*.code-workspace
+**/*.node_modules
+**/*vendor
+**/*.vercel
+
+# Env
+**/*.env*
+**/*.pem
 
 # Framework Builds
 **/dist
