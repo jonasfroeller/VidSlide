@@ -4,28 +4,13 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// CSS-Framework/Library
-	import { toastStore } from '@skeletonlabs/skeleton';
-	import type { ToastSettings } from '@skeletonlabs/skeleton';
-
-	/* Notifications */
-	const ts: ToastSettings = {
-		message: 'Logged in!',
-		background: 'variant-ghost-success'
-	};
-
-	const ti: ToastSettings = {
-		message: 'You are already logged in!',
-		background: 'variant-ghost-primary'
-	};
-
-	const tw: ToastSettings = {
-		message: 'Something went wrong!',
-		background: 'variant-ghost-warning'
-	};
-
-	const te: ToastSettings = {
-		message: "Couldn't log in!",
-		background: 'variant-ghost-error'
+	/* -- Confirmation Modal -- */
+	const confirm: ModalSettings = {
+		type: 'confirm',
+		// Data
+		title: 'Sign Out?',
+		body: 'Would you like to sign out?',
+		response: (r: boolean) => console.log('response:', r)
 	};
 
 	/* Form */
@@ -40,10 +25,9 @@
 	/* --- LOGIC --- */
 	function openLoginModal() {
 		if (!li) {
-			// $modalStore.push(su);
 			modalStore.trigger(su);
 		} else {
-			toastStore.trigger(ti);
+			modalStore.trigger(confirm);
 		}
 	}
 

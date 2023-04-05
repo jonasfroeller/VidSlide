@@ -10,6 +10,7 @@
 // save and reload: FLUSH; 
 // WITH GRANT OPTION => grant priviliges to others // ALL PRIVILEGES => all privileges
 // DONT USE (table names and attributes): https://dev.mysql.com/doc/refman/8.0/en/keywords.html
+// Jump To: REMOVE, TODO, BUG
 
 /* declare(strict_types=1); */
 
@@ -55,7 +56,10 @@ $response = array(
         "database_connection_details" => array(
             "database_username" => $root
         ),
-        "fetch_method" => $_SERVER['REQUEST_METHOD']
+        "fetch_method" => $_SERVER['REQUEST_METHOD'],
+        "fetch_object" => "",
+        "fetch_id" => "",
+        "fetch_params" => array()
     ),
     "log" => array(),
     "token" => "",
@@ -71,7 +75,7 @@ $connection = mysqli_connect($host, $root, $pass, "", $port); // $connection = m
 
 // SETUP
 if (!$connection) {
-    errorOccurred($connection, $response, __LINE__);
+    errorOccurred($connection, $response, __LINE__, "connection error");
 } else {
     // create guest user
     $guest_user_username = "guest";
@@ -82,7 +86,7 @@ if (!$connection) {
     if ($guest_user_query) {
         array_push($response["log"], date('H:i:s') . ": vidslide guest user created/found " . "[$guest_user_query]");
     } else {
-        errorOccurred($connection, $response, __LINE__);
+        errorOccurred($connection, $response, __LINE__, "couldn't create guest user");
     }
 
     // get privileges of guest user
@@ -104,12 +108,12 @@ if (!$connection) {
         if ($guest_user_grant_privileges_query) {
             array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges set " . "[$guest_user_grant_privileges_query]");
         } else {
-            errorOccurred($connection, $response, __LINE__);
+            errorOccurred($connection, $response, __LINE__, "couldn't asign guest user privileges");
         }
     } else if ($guest_user_privilege_count == 1) {
         array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges fetched " . "[$guest_user_privilege_count]");
     } else {
-        errorOccurred($connection, $response, __LINE__);
+        errorOccurred($connection, $response, __LINE__, "couldn't fetch guest user privileges");
     }
 
     // create database
@@ -120,7 +124,7 @@ if (!$connection) {
         array_push($response["log"], date('H:i:s') . ": vidslide database created/found " . "[$schema_query]");
         mysqli_select_db($connection, $schema);
     } else {
-        errorOccurred($connection, $response, __LINE__);
+        errorOccurred($connection, $response, __LINE__, "couldn't create database");
     }
 
     // create tables
@@ -141,6 +145,8 @@ if (!$connection) {
         VIDEO_ID INT AUTO_INCREMENT PRIMARY KEY,
         VIDEO_TITLE VARCHAR(25) NOT NULL,
         VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL,
+        VIDEO_LOCATION VARCHAR(250) NOT NULL,
+        VIDEO_SIZE VARCHAR(6) NOT NULL,
         VIDEO_VIEWS INT DEFAULT 0,
         VIDEO_SHARES INT DEFAULT 0,
         VIDEO_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -211,7 +217,7 @@ if (!$connection) {
         if ($table_create_query) {
             array_push($response["log"], date('H:i:s') . ": table " . $i . " created/found");
         } else {
-            errorOccurred($connection, $response, __LINE__);
+            errorOccurred($connection, $response, __LINE__, "couldn't create table " . $i);
         }
     }
 
@@ -221,11 +227,11 @@ if (!$connection) {
     $video_count_fetched = mysqli_fetch_assoc($user_count_query);
     if (intval($video_count_fetched["amount"]) == 0) { // PROBLEM: causes out of sync problem somehow if run again after first execution
         $mock_user =
-            "INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('maxmustermann', 'passwort123', 'https://example.com/profilepic1.jpg', 'Ich bin Max und ich liebe es, Videos zu machen!');
+            "INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('maxmustermann', 'passwort123', 'https://picsum.photos/50/50', 'Ich bin Max und ich liebe es, Videos zu machen!');
 
-            INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 1);
+            INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', '25MB', 1);
     
-            INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Twitter', 'https://twitter.com/maxmustermann', 1);
+            INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Twitter', 'https://github.com/jonasfroeller', 1);
         
             INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 1);
         
@@ -248,17 +254,19 @@ if (!$connection) {
     if (mysqli_ping($connection)) {
         array_push($response["log"], date('H:i:s') . ": connection ok");
     } else {
-        errorOccurred($connection, $response, __LINE__);
+        errorOccurred($connection, $response, __LINE__, "database ping failed");
     }
 
     array_push($response["log"], date('H:i:s') . ": finished database initialisation");
+    // export_database($connection);
+
     mysqli_close($connection);
 }
 
 // login as guest => READ ONLY
 $connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
 if (!$connection) {
-    errorOccurred($connection, $response, __LINE__);
+    errorOccurred($connection, $response, __LINE__, "reconnection as guest user couldn't be astablished");
 } else {
     $response["info"]["database_connection_details"]["database_username"] = $guest_user_username;
     array_push($response["log"], date('H:i:s') . ": logged in as read only guest");
@@ -267,56 +275,133 @@ if (!$connection) {
 /* ---------- */
 
 // REQUEST METHODS | GET, POST, PUT, DELETE STATEMENTS
-if ($_SERVER['REQUEST_METHOD'] === 'GET') { // no private data (password is hashed)
-    $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
+
+// GET-Options:
+// - medium=user [MEDIUM]
+//   - id=all [ID]
+//   - id=? [ID]
+// - medium=video [MEDIUM]
+//   - id=all [ID]
+//     - user_id=? [ID]
+//   - id=random [ID]
+//   - id=? [ID]
+// - medium=comments [MEDIUM]
+//   - id=? (video id) [ID]
+if ($_SERVER['REQUEST_METHOD'] === 'GET') { // no private data (password is hashed before writing it into the database)
+    $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD']; // logging
     if (isset($_GET["medium"])) {
         $medium = $_GET["medium"];
-        if ($medium == "user") {
-            $id = mysqli_real_escape_string($connection, $_GET["id"]);
-            if ($id == "all") {
-                $table_user = "SELECT * FROM USER";
-                $response = getUser($connection, $response, $table_user, $id, false);
-            } else {
-                $userID = intval($id); // check if exists => SELECT COUNT(*) as count FROM USER WHERE UID = $userID;
-                $userID_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
-                mysqli_stmt_bind_param($userID_exists, 'i', $userID);
-                mysqli_stmt_execute($userID_exists);
-                $user_query = mysqli_stmt_get_result($userID_exists);
-                $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
+        $response["info"]["fetch_object"] = $medium; // logging
+        if ($medium == "user") { // ?medium=user [MEDIUM]
+            if (isset($_GET["id"])) {
+                $id = mysqli_real_escape_string($connection, $_GET["id"]);
 
-                if ($user_rows[0]["count"] !== 0) {
-                    $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
-                    $response = getUser($connection, $response, $table_user, $userID, true);
-                } else {
-                    errorOccurred($connection, $response, __LINE__, "user not found");
+                // logging
+                $response["info"]["fetch_id"] = $id;
+                $log = $medium . " with id=" . $id . " as " . $response["info"]["database_connection_details"]["database_username"] . " [" . $response["info"]["fetch_method"] . "]";
+                array_push($response["log"], date('H:i:s') . ": fetching " . $log);
+                $response["response"] = "fetched " . $log;
+
+                if ($id == "all") { // ?medium=video&id=all [ID] // REMOVE: just for testing, not needed in production
+                    $table_user = "SELECT * FROM USER";
+                    $response = getMedium($connection, $response, $table_user, $id, false);
+                } else { // ?medium=video&id=? [ID]
+                    $userID = intval($id);
+                    if ($userID != 0) { // 0 on failure 1 on non empty arrays :/
+                        $response["info"]["fetch_id"] = $userID; // logging
+                        $exists = checkIfIdExists($connection, "user", $userID);
+
+                        if ($exists) {
+                            $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
+                            $response = getMedium($connection, $response, $table_user, $userID, true);
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "user not found");
+                        }
+                    } else {
+                        errorOccurred($connection, $response, __LINE__, "id param invalid");
+                    }
                 }
-            }
-        } else if ($medium == "video") {
-            $id = mysqli_real_escape_string($connection, $_GET["id"]);
-            if ($id == "all") {
-                // TODO: get all videos from specfied user
-                $table_video = "SELECT * FROM VIDEO";
-                $response = getUser($connection, $response, $table_video, $id, false);
-            } else if ($id == "random") {
-                $table_video = "SELECT * FROM VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
-                $response = getVideo($connection, $response, $table_video, $id, false);
             } else {
-                $videoID = intval($id);
-                if ($videoID !== 0) {
-                    $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_ID = ?');
-                    $response = getVideo($connection, $response, $table_video, $videoID, true);
+                errorOccurred($connection, $response, __LINE__, "id param missing");
+            }
+        } else if ($medium == "video") { // ?medium=video [MEDIUM]
+            if (isset($_GET["id"])) {
+                $id = mysqli_real_escape_string($connection, $_GET["id"]);
+                $response["info"]["fetch_id"] = $id; // logging
+
+                // logging
+                $response["info"]["fetch_id"] = $id;
+                $log = $medium . " with id=" . $id . " as " . $response["info"]["database_connection_details"]["database_username"] . " [" . $response["info"]["fetch_method"] . "]";
+                array_push($response["log"], date('H:i:s') . ": fetching " . $log);
+                $response["response"] = "fetched " . $log;
+
+                if ($id == "all") {
+                    if (isset($_GET["user_id"])) { // ?medium=video&id=all&user_id=1 [ID]
+                        $userID = intval(mysqli_real_escape_string($connection, $_GET["user_id"]));
+                        if ($userID != 0) { // 0 on failure 1 on non empty arrays :/
+                            array_push($response["info"]["fetch_params"], array("user_id" => $userID)); // logging
+                            $exists = checkIfIdExists($connection, "video", $userID);
+
+                            if ($exists) {
+                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE USER_ID = ? ORDER BY VIDEO_ID DESC');
+                                $response = getMedium($connection, $response, $table_video, $userID, true);
+                            } else {
+                                errorOccurred($connection, $response, __LINE__, "videos of user not found");
+                            }
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "id param invalid");
+                        }
+                    } else {
+                        errorOccurred($connection, $response, __LINE__, "user_id param missing");
+                    }
+                } else if ($id == "random") { // ?medium=video&id=random [ID]
+                    $table_video = "SELECT * FROM VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
+                    $response = getMedium($connection, $response, $table_video, $id, false);
+                } else { // ?medium=video&id=? [ID]
+                    $videoID = intval($id);
+                    if ($videoID != 0) { // 0 on failure 1 on non empty arrays :/
+                        $response["info"]["fetch_id"] = $videoID; // logging
+                        $exists = checkIfIdExists($connection, "video", $videoID);
+
+                        if ($exists) {
+                            $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_ID = ?');
+                            $response = getMedium($connection, $response, $table_video, $videoID, true);
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "video not found");
+                        }
+                    } else {
+                        errorOccurred($connection, $response, __LINE__, "id param invalid");
+                    }
+                }
+            } else {
+                errorOccurred($connection, $response, __LINE__, "id param missing");
+            }
+        } else if ($medium == "comments") { // ?medium=comments [MEDIUM]
+            if (isset($_GET["id"])) { // ?medium=comments&id=? [ID]
+                $videoID = intval(mysqli_real_escape_string($connection, $_GET["id"]));
+                if ($videoID != 0) { // 0 on failure 1 on non empty arrays :/
+                    $response["info"]["fetch_id"] = $videoID;
+                    $exists_1 = checkIfIdExists($connection, "video", $videoID);
+                    $exists_2 = checkIfIdExists($connection, "comment", $videoID);
+
+                    if ($exists_1 && $exists_2) {
+                        $table_comment = mysqli_prepare($connection, 'SELECT * FROM VIDEO_COMMENT WHERE VIDEO_ID = ?');
+                        $response = getMedium($connection, $response, $table_comment, $videoID, true);
+                    } else {
+                        errorOccurred($connection, $response, __LINE__, "comments not found");
+                    }
                 } else {
-                    errorOccurred($connection, $response, __LINE__, "video not found");
+                    errorOccurred($connection, $response, __LINE__, "id param invalid");
                 }
             }
-        } else if ($medium == "comments") {
-            $videoID = intval(mysqli_real_escape_string($connection, $_GET["id"]));
-            $table_comment = "SELECT * FROM VIDEO_COMMENT WHERE VIDEO_ID = ?";
-            $response = getComments($response, $table_comment, $videoID);
         }
+    } else {
+        errorOccurred($connection, $response, __LINE__, "medium param missing");
     }
 }
 
+// POST-Options:
+// TODO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
     if (isset($_POST["action"])) {
@@ -359,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jwt = $matches[1];
             $publicKey = $_ENV['PUBLIC_KEY'];
 
-            $response["token"] = getJWT($jwt, $publicKey);
+            $response["token"] = getJWT($connection, $response, $jwt, $publicKey);
         } else if ($action == "comment") {
         } else if ($action == "like") {
         } else if ($action == "dislike") {
@@ -367,6 +452,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// PUT-Options:
+// TODO
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
     if (isset($_POST["medium"])) {
@@ -384,6 +471,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     }
 }
 
+// DELETE-Options:
+// TODO
 if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
     if (isset($_POST["medium"])) {
@@ -399,43 +488,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
 /* ---------- */
 
 // FUNCTIONS
-// sends token to client
-function sendJWT($payload, $privateKey)
-{
-    $jwt = JWT::encode($payload, $privateKey, 'RS256');
-    return $jwt;
-}
-
-// gets and validates token from client
-function getJWT($jwt, $publicKey) // TODO: ERROR MESSAGES
-{
-    try {
-        $token = JWT::decode($jwt, new Key($publicKey, 'RS256'));
-    } catch (InvalidArgumentException $e) {
-        // provided key/key-array is empty or malformed.
-    } catch (DomainException $e) {
-        // provided algorithm is unsupported OR
-        // provided key is invalid OR
-        // unknown error thrown in openSSL or libsodium OR
-        // libsodium is required but not available.
-    } catch (SignatureInvalidException $e) {
-        // provided JWT signature verification failed.
-    } catch (BeforeValidException $e) {
-        // provided JWT is trying to be used before "nbf" claim OR
-        // provided JWT is trying to be used before "iat" claim.
-    } catch (ExpiredException $e) {
-        // provided JWT is trying to be used after "exp" claim.
-    } catch (UnexpectedValueException $e) {
-        // provided JWT is malformed OR
-        // provided JWT is missing an algorithm / using an unsupported algorithm OR
-        // provided JWT algorithm does not match provided key OR
-        // provided key ID in key/key-array is empty or invalid.
-    }
-
-    return json_decode(json_encode($token), true); // (array) casts to assoc array
-}
-
-function errorOccurred($connection, $response, $line, $message = null)
+// GENERAL FUNCTIONS
+// on error
+function errorOccurred($connection = null, $response, $line, $message = null)
 {
     $response["error"] = ($message ?? "") . " (error occurred at line " . $line . " [" . mysqli_connect_errno() . ";" .  mysqli_connect_error() . "])";
     // Disconnect
@@ -445,77 +500,142 @@ function errorOccurred($connection, $response, $line, $message = null)
     exit(); // die()
 }
 
-function getUser($connection, $response, $table_user, $userID, $prepare)
+// VALIDATION FUNCTIONS
+// sends token to client
+function sendJWT($payload, $privateKey)
+{
+    $jwt = JWT::encode($payload, $privateKey, 'RS256');
+    return $jwt;
+}
+
+// gets and validates token from client
+function getJWT($connection, $response, $jwt, $publicKey)
+{
+    try {
+        $token = JWT::decode($jwt, new Key($publicKey, 'RS256'));
+    } catch (InvalidArgumentException $e) {
+        errorOccurred($connection, $response, __LINE__, "provided key/key-array is empty or malformed.");
+    } catch (DomainException $e) {
+        errorOccurred($connection, $response, __LINE__, "provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.");
+    } catch (SignatureInvalidException $e) {
+        errorOccurred($connection, $response, __LINE__, "provided JWT signature verification failed.");
+    } catch (BeforeValidException $e) {
+        errorOccurred($connection, $response, __LINE__, "provided JWT is trying to be used before 'nbf' claim OR provided JWT is trying to be used before 'iat' claim.");
+    } catch (ExpiredException $e) {
+        errorOccurred($connection, $response, __LINE__, "provided JWT is trying to be used after 'exp' claim.");
+    } catch (UnexpectedValueException $e) {
+        errorOccurred($connection, $response, __LINE__, "provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.");
+    }
+
+    return json_decode(json_encode($token), true); // (array) casts to assoc array
+}
+
+// DATABASE FUNCTIONS
+function checkIfIdExists($connection, $type, $id)
+{
+    if ($type == "user") {
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
+    } else if ($type == "video") {
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO WHERE VIDEO_ID = ?");
+    } else if ($type == "comment") {
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO_COMMENT WHERE VIDEO_ID = ?");
+    } else { // fallback
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
+    }
+
+    mysqli_stmt_bind_param($id_exists, 'i', $id);
+    mysqli_stmt_execute($id_exists);
+    $query = mysqli_stmt_get_result($id_exists);
+    $result = mysqli_fetch_all($query, MYSQLI_ASSOC);
+
+    return $result[0]["count"] !== 0;
+}
+
+// gets data from database
+function getMedium($connection, $response, $table, $id, $prepare = false)
 {
     if ($prepare) {
         // bind values
-        mysqli_stmt_bind_param($table_user, 'i', $userID);
+        mysqli_stmt_bind_param($table, 'i', $id);
         // execute query
-        mysqli_stmt_execute($table_user);
+        mysqli_stmt_execute($table);
         // fetch result
-        $user_query = mysqli_stmt_get_result($table_user);
-        $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
-        $user_response = json_encode($user_rows);
+        $query = mysqli_stmt_get_result($table);
+        $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
+        $res = json_encode($rows);
     } else {
         // execute query
-        $user_query = mysqli_query($connection, $table_user); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object // mysqli_real_query() => doesn't wait for response // mysqli_reap_async_query() => async
+        $query = mysqli_query($connection, $table); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object // mysqli_real_query() => doesn't wait for response // mysqli_reap_async_query() => async
         // fetch all
-        $user_rows = mysqli_fetch_all($user_query, MYSQLI_ASSOC);
-        $user_response = json_encode($user_rows);
+        $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
+        $res = json_encode($rows);
     }
 
     // save as response data
-    $response["requested"] = $response["requested"] . "READ user table [$prepare];"; // res;res;res
-    array_push($response["data"], $user_response);
+    $response["requested"] = $response["requested"] . "READ table [$prepare];"; // res;res;res
+    array_push($response["data"], $res);
     // free result set
-    mysqli_free_result($user_query);
+    mysqli_free_result($query);
     return $response;
 }
 
-function getVideo($connection, $response, $table_video, $videoID, $prepare)
+// exports data from database
+function export_database($connection)
 {
-    if ($prepare) {
-        // bind values
-        mysqli_stmt_bind_param($table_video, 'i', $videoID);
-        // execute query
-        mysqli_stmt_execute($table_video);
-        // fetch result
-        $video_query = mysqli_stmt_get_result($table_video);
-        $video_rows = mysqli_fetch_all($video_query, MYSQLI_ASSOC);
-        $video_response = json_encode($video_rows);
-    } else {
-        // excecute query
-        $video_query = mysqli_query($connection, $table_video); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object
-        // fetch all
-        $video_rows = mysqli_fetch_all($video_query, MYSQLI_ASSOC);
-        $video_response = json_encode($video_rows);
+    // read tables
+    $tables = array();
+    $result = mysqli_query($connection, 'SHOW TABLES');
+    while ($row = mysqli_fetch_row($result)) {
+        $tables[] = $row[0];
     }
 
-    // save as response data
-    $response["requested"] = $response["requested"] . "READ video table [$prepare];"; // res;res;res
-    array_push($response["data"], $video_response);
-    // free result set
-    mysqli_free_result($video_query);
-    return $response;
-}
+    // create dump file
+    $backup_name = "backup_" . time() . ".sql";
+    $backup_path = "./database-backups/" . $backup_name;
+    $handle = fopen($backup_path, 'w');
 
-function getComments($response, $table_comment, $videoID)
-{
-    // bind values
-    mysqli_stmt_bind_param($table_comment, 'i', $videoID);
-    // execute query
-    mysqli_stmt_execute($table_comment);
-    // fetch result
-    $comment_query = mysqli_stmt_get_result($table_comment);
-    $comment_rows = mysqli_fetch_all($comment_query, MYSQLI_ASSOC);
-    $comment_response = json_encode($comment_rows);
+    // export structure
+    $i = 0;
+    foreach ($tables as $table) {
+        $result = mysqli_query($connection, 'SHOW CREATE TABLE ' . $table);
+        $row = mysqli_fetch_row($result);
 
-    // save as response data
-    $response["requested"] = $response["requested"] . "READ comment table;"; // res;res;res
-    array_push($response["data"], $comment_response);
-    // free result set
-    mysqli_free_result($comment_query);
-    return $response;
+        if ($i != 0) {
+            fwrite($handle, "\n\n" . $row[1] . ";\n\n");
+        } else {
+            fwrite($handle, $row[1] . ";\n\n");
+        }
+
+        $i++;
+
+        // export
+        $result = mysqli_query($connection, 'SELECT * FROM ' . $table);
+        $num_fields = mysqli_num_fields($result);
+
+        while ($row = mysqli_fetch_row($result)) {
+            fwrite($handle, 'INSERT INTO ' . $table . ' VALUES(');
+
+            for ($i = 0; $i < $num_fields; $i++) {
+                if (isset($row[$i])) {
+                    $value = $row[$i];
+                } else {
+                    $value = 'NULL';
+                }
+
+                if ($i == 0) {
+                    fwrite($handle, '');
+                } else {
+                    fwrite($handle, ',');
+                }
+
+                fwrite($handle, "'" . mysqli_real_escape_string($connection, $value) . "'");
+            }
+
+            fwrite($handle, ");\n");
+        }
+    }
+
+    fclose($handle);
 }
 
 /* ---------- */

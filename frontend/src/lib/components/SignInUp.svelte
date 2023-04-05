@@ -8,12 +8,13 @@
 
 	/* -- Form Data -- */
 	const userData = {
-		username: 'Jonesisfroellerix',
-		password: 'Password2$'
+		username: 'Jonesisfroellerix', // test data
+		password: 'Password2$' // test data
 	};
 
-	let passwordConfirmation = 'Password2$';
+	let passwordConfirmation = 'Password2$'; // test data
 
+	/* -- Form Validation Schema -- */
 	const userDataSchema = z.object({
 		username: z
 			.string({ required_error: 'username is required' })
@@ -47,6 +48,7 @@
 			}) /* min 1 symbol/special char, 1 digit, 1 uppercase char, 1 lowercase char */
 	});
 
+	/* -- Form Input Errors -- */
 	$: username_error = 'undefined';
 	$: password_error = 'undefined';
 	$: password_confirm_error = 'undefined';
@@ -56,9 +58,34 @@
 
 	// CSS-Framework/Library
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
+	import { toastStore, modalStore } from '@skeletonlabs/skeleton';
+	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
-	// Stores
-	import { modalStore } from '@skeletonlabs/skeleton';
+	/* Notifications */
+	const ts: ToastSettings = {
+		message: 'Logged in!',
+		background: 'variant-ghost-success'
+	};
+
+	const ti: ToastSettings = {
+		message: 'Logging you in!',
+		background: 'variant-ghost-primary'
+	};
+
+	const tw: ToastSettings = {
+		message: 'Something went wrong!',
+		background: 'variant-ghost-warning'
+	};
+
+	const te: ToastSettings = {
+		message: "Couldn't log in!",
+		background: 'variant-ghost-error'
+	};
+
+	const wrong_input: ToastSettings = {
+		message: 'Input invalid!',
+		background: 'variant-ghost-error'
+	};
 
 	/* --- LOGIC --- */
 	/* Form */
@@ -76,14 +103,17 @@
 		if (userMayExist) {
 			signIn(userData.username, userData.password).then((response) => {
 				console.log(response);
+				toastStore.trigger(ts);
 			});
 		} else {
-			signIn(userData.username, userData.password).then((response) => {
+			signUp(userData.username, userData.password).then((response) => {
 				console.log(response);
+				toastStore.trigger(ts);
 			});
 		}
 	}
 
+	/* -- Form Validation -- */
 	function validateForm(close = false) {
 		let inputParseResult = userDataSchema.safeParse({
 			username: userData.username,
@@ -95,6 +125,8 @@
 			let formattedError = inputParseResult.error.format();
 
 			console.log(formattedError);
+
+			toastStore.trigger(wrong_input);
 
 			username_error = formattedError.username?._errors[0] ?? 'null';
 			password_error = formattedError.password?._errors[0] ?? 'null';
@@ -111,15 +143,17 @@
 	}
 
 	onMount(async () => {
-		validateForm();
+		validateForm(); // validate on load to work with test values
 	});
 
 	/* Database Connection */
 	async function signIn(username: string, password: string) {
-		return await Api.get("user", "1");
+		toastStore.trigger(ti);
+		return await Api.auth(username, password);
 	}
 
 	async function signUp(username: string, password: string) {
+		toastStore.trigger(ti);
 		return await Api.auth(username, password);
 	}
 </script>
@@ -228,19 +262,23 @@
 	</TabGroup>
 	<!-- prettier-ignore -->
 	<footer class="modal-footer {parent.regionFooter}">
-		<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}>{parent.buttonTextCancel}</button>
+		<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}
+			>{parent.buttonTextCancel}</button
+		>
 		{#if signInOrUp == 1}
-			{#if username_error != "null" || password_error != "null" || password_confirm_error != "null" || username_error == "undefined" || password_error == "undefined" || password_confirm_error == "undefined"}
+			{#if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined')  || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
 				<button class="btn {parent.buttonPositive}" disabled>Log In</button>
 			{:else}
-				<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(true)}>Log In</button>
+				<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(true)}
+					>Log In</button
+				>
 			{/if}
-		{:else}
-			{#if username_error != "null" || password_error != "null" || password_confirm_error != "null" || username_error == "undefined" || password_error == "undefined" || password_confirm_error == "undefined"}
+		{:else if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined') || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
 			<button class="btn {parent.buttonPositive}" disabled>Sign Up</button>
-			{:else}
-			<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(false)}>Sign Up</button>
-			{/if}
+		{:else}
+			<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(false)}
+				>Sign Up</button
+			>
 		{/if}
 	</footer>
 </div>

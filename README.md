@@ -18,14 +18,46 @@
 
 ## Setup Database & Backend API
 
-| `sudo MYSQL_ROOT_PASSWORD=<password> docker-compose up --build -d`  
-<span style="color:green">  
+| `sudo docker-compose up -d --build`  
+<span style="color:green">   
 // The command uses the "`docker-compose`" file and builds it with the RUN-commands in the "`Docker`" file to install mysqli.
-The compose file includes 2 containers: The **mySQL database** and the **Apache PHP server** which functions as an mysqli-API to the database. The frontend GETs or POSTs to the backend and receives the index.php which is filled with the response at the backend API as a JSON file.
+The compose file includes 2 containers: The **mySQL database** and the **Apache PHP server** which functions as an mysqli-API to the database. The frontend fetches data from the backend index.php file which carries the JSON response.
 </span>
 
-### Generate JWT Keys for Authentication (Linux | Windows: installed on WSL2, https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md)
+![docker-compose](docker-compose-censored.png?raw=true "docker-compose")
+
+### Apache-PHP-Backend
+
+#### Composer dependencies (generated from Docker file on docker-compose)
+
+composer.json:
+{
+    "require": {
+        "firebase/php-jwt": "^6.4",
+        "vlucas/phpdotenv": "^5.5"
+    }
+}
+
+#### Generate JWT keys for authentication  
+
+(Linux | Windows: installed on WSL2, https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md)
 
 `openssl genrsa -out private_key.pem 2048` <span style="color:green">// generates private key</span> 
 
-`openssl rsa -in private_key.pem -outform PEM -pubout -out public_key.pem` <span style="color:green">// generates public key from private key</span> 
+`openssl rsa -in private_key.pem -outform PEM -pubout -out public_key.pem` <span style="color:green">// generates public key from private key</span>  
+
+**Example in backend/.env:**  
+PRIVATE_KEY="
+-----BEGIN PRIVATE KEY-----
+&#60;RS256 private key&#62;
+-----END PRIVATE KEY-----"
+
+PUBLIC_KEY="
+-----BEGIN PUBLIC KEY-----
+&#60;RS256 public key&#62;
+-----END PUBLIC KEY-----"
+
+### MySQL-Database
+
+**Password example in /.env:**  
+MYSQL_ROOT_PASSWORD=&#60;password&#62;  

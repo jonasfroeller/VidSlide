@@ -7,12 +7,10 @@ export default class Api {
 
     /**
      * @param {string} type
-     * @param {string} index can be all and random too
+     * @param {string} index (can be 'all' and 'random' too)
      */
     static async get(type, index) {
-        const response = await fetch(`http://localhost:8196/index.php?medium=${type}&id=${index}`, {
-            method: 'GET',
-        });
+        const response = await fetch(`http://localhost:8196/index.php?medium=${type}&id=${index}`);
         return await response.json();
     }
 
@@ -20,14 +18,15 @@ export default class Api {
      * @param {string} action
      */
     static async post(action) {
+        let params = new FormData();
+        params.append("action", action);
+
         const response = await fetch('http://localhost:8196/index.php', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${this.jwt}`, 
             },
-            body: JSON.stringify({
-                "action": action
-            })
+            body: params
         });
         return await response.json();
     }
@@ -37,13 +36,14 @@ export default class Api {
      * @param {string} password
      */
     static async auth(username, password) {
+        let params = new FormData();
+        params.append("action", "auth");
+        params.append("username", username);
+        params.append("password", password);
+
         const response = await fetch('http://localhost:8196/index.php', {
             method: 'POST',
-            body: JSON.stringify({
-                "action": 'auth',
-                "username": username,
-                "password": password
-            }),
+            body: params
         });
 
         if (response.status >= 200 && response.status <= 299) {
@@ -55,3 +55,22 @@ export default class Api {
         }
     }
 }
+
+/* 
+WHY FormData and not JSON?
+
+JSON approach:
+
+JS:
+JSON.stringify({
+    "action": 'auth',
+    "username": username,
+    "password": password
+})
+
+Content-Type: application/json
+
+PHP:
+$jsonString = file_get_contents('php://input');
+$jsonObj = json_decode($jsonString, true);
+*/

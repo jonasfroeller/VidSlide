@@ -18,6 +18,7 @@
 * UID: int
 * Title: string
 * Description: string
+* Location: string
 * DateTimePosted: datetime
 * Views: int
 * Shares: int
