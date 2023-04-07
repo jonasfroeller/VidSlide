@@ -60,3 +60,7 @@
 **/public
 **/public-default
 **/public-prefix
+
+# Other
+**/backend/media/**
+**/database-backups/**

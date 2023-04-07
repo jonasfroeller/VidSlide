@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import { locale } from '$translation/i18n-svelte'; // current language
+	import { locale } from '$translation/i18n-svelte'; // current locale
 
 	// JS-Framework/Library
 	import { browser } from '$app/environment';

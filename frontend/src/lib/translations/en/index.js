@@ -20,29 +20,73 @@ const en = {
 	},
 	Header: {
 		logIn: "LogIn", 
-		logOut: "LogOut", 
+		logOut: "LogOut"
 	},
 	SignInUp: {
 		
 	},
-	pages: {
-		home: {
-			video_info_display_actions: {
-				comments: 'Comments',
-				description: 'Description',
-			}
-		},
-		search: {
-			video_search_bar: {
-				search: "Search"
-			}
-		},
-		account: {
+	VideoResult: {
+		follower: "{{ no Followers | one Follower | ?? Followers }}",
+		likes: "{{ no Likes | one Like | ?? Likes }}",
+		views: "{{ no Views | one View | ?? Views }}",
+		no_tags: "no tags"
+	},
+	VideoSection: {
+		follower: "{{ no Followers | one Follower | ?? Followers }}",
+		views: "{{ no Views | one View | ?? Views }}",
+		subscribe: "{{ Subscribe | Subscribed }}"
+	},
+	InfoSection: {
+		description: 'Description',
+		comments: 'Comments',
+		comments_amount: "{{ no Comments | one Comment | ?? Comments }}",
+		posted_on: "posted on",
+	},
+	CommentPost: {
+		reply: "reply",
+		replies: "{replies} Replies"
+	},
+	UserData: {
+		videos: "{{ no Videos | one Video | ?? Videos }}",
+		follower: "{{ no Followers | one Follower | ?? Followers }}",
+		likes: "{{ no Likes | one Like | ?? Likes }}",
+		views: "{{ no Views | one View | ?? Views }}",
+		joined: "Joined on ",
+		edit: "Edit ",
+		post: "Post ",
+		more: "Read more ",
+	},
+	Popups: {
 
+	},
+	pages: {
+		account: {
+			subject: "Subject:",
+			category: "Category",
+			username: "Username",
+			title: "Title",
+			sort_by: "Sort By:",
+			date: "Date",
+			views: "Views",
+			likes: "Likes",
+			videos_found: "{{ no Videos found: | one Video found: | ?? Videos found: }}"
 		},
 		settings: {
-
+			site_section: {
+				title: "Site Settings:",
+			},
+			acount_section: {
+				title: "Account Settings:",
+				description: "Description:",
+				username: "Username:",
+				password: "Password:",
+				socials: "Social Media:",
+				edit: "Edit"
+			}
 		}
+	},
+	global: {
+		search: "Search"
 	}
 }
 

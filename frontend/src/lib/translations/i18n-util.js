@@ -8,7 +8,6 @@
  * @typedef { import('typesafe-i18n').LocaleTranslationFunctions<Locales, Translations, TranslationFunctions> } LocaleTranslationFunctions
  * @typedef { import('typesafe-i18n/detectors').LocaleDetector } LocaleDetector
  * @typedef { import('./i18n-types').Locales } Locales
- * @typedef { import('./i18n-types').Namespaces } Namespaces
  * @typedef { import('./i18n-types').Formatters } Formatters
  * @typedef { import('./i18n-types').Translations } Translations
  * @typedef { import('./i18n-types').TranslationFunctions } TranslationFunctions
@@ -28,22 +27,11 @@ export const locales = [
 	'en'
 ]
 
-/** @type { Namespaces[] } */
-export const namespaces = [
-	'home'
-]
-
 /**
  * @param { string } locale
  * @return { locale is Locales }
  */
 export const isLocale = (locale) => locales.includes(/** @type { Locales } */ (locale))
-
-/**
- * @param { string } namespace
- * @return { namespace is Namespaces }
- */
-export const isNamespace = (namespace) => namespaces.includes(/** @type { Namespaces } */ (namespace))
 
 export const loadedLocales = /** @type { Record<Locales, Translations> } */ ({})
 

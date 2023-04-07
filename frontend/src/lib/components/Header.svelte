@@ -3,6 +3,9 @@
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
 
+	// Stores
+	import { loginState } from '$store/config';
+
 	// CSS-Framework/Library
 	/* -- Confirmation Modal -- */
 	const confirm: ModalSettings = {
@@ -10,34 +13,48 @@
 		// Data
 		title: 'Sign Out?',
 		body: 'Would you like to sign out?',
-		response: (r: boolean) => console.log('response:', r)
+		response: (r: boolean) => (r ? SignOut() : console.log('declined log out'))
 	};
 
 	/* Form */
-	import { modalStore } from '@skeletonlabs/skeleton';
-	import type { ModalSettings } from '@skeletonlabs/skeleton';
+	import { modalStore, toastStore } from '@skeletonlabs/skeleton';
+	import type { ModalSettings, ToastSettings } from '@skeletonlabs/skeleton';
 
 	const su: ModalSettings = {
 		type: 'component',
 		component: 'signupModalComponent'
 	};
 
+	/* Notifications */
+	const ts: ToastSettings = {
+		message: 'You are now logged out!',
+		background: 'variant-ghost-success'
+	};
+
+	const ti: ToastSettings = {
+		message: 'Logging you out!',
+		background: 'variant-ghost-primary'
+	};
+
 	/* --- LOGIC --- */
-	function openLoginModal() {
-		if (!li) {
+	export const openLoginModal = () => {
+		if (!$loginState) {
 			modalStore.trigger(su);
 		} else {
 			modalStore.trigger(confirm);
 		}
-	}
+	};
 
-	export let loggedIn = false;
-	$: li = loggedIn;
+	function SignOut() {
+		toastStore.trigger(ti);
+		toastStore.trigger(ts);
+		$loginState = false;
+	}
 </script>
 
 <header class="flex justify-end gap-2 text-lg">
 	<button type="button" class="btn variant-ringed" on:click={() => openLoginModal()}>
-		{#if !li}
+		{#if !$loginState}
 			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:login-variant" />
 			<span>{$translation.Header.logIn()}</span>
 		{:else}

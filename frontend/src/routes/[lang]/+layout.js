@@ -2,7 +2,7 @@
 // JS-Framework/Library
 import { redirect } from '@sveltejs/kit';
 
-// Translation
+// Translation Functions
 import { replaceLocaleInUrl } from '$main/utils';
 import { baseLocale, locales } from '$translation/i18n-util';
 import { loadLocaleAsync } from '$translation/i18n-util.async';

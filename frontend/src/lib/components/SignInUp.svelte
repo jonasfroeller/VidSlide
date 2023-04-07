@@ -3,6 +3,10 @@
 	// Backend Api
 	import Api from '$api/api';
 
+	// Stores
+	import { loginState } from '$store/config';
+	import { user, user_following, user_social } from '$store/account';
+
 	// Form Validation
 	import { z } from 'zod';
 
@@ -96,22 +100,26 @@
 	let signInOrUp: number = 0;
 
 	/* -- Form Submit -- */
-	function onFormSubmit(userMayExist: boolean): void {
-		if ($modalStore[0].response) $modalStore[0].response(userData);
+	const onFormSubmit = (userMayExist: boolean): void => {
+		if ($modalStore[0]?.response) $modalStore[0]?.response(userData);
 		validateForm(true);
 
 		if (userMayExist) {
 			signIn(userData.username, userData.password).then((response) => {
+				// TODO: set user, user_following, user_social in store and change success message according to accountExisted
 				console.log(response);
 				toastStore.trigger(ts);
+				$loginState = true;
 			});
 		} else {
 			signUp(userData.username, userData.password).then((response) => {
+				// TODO: set user, user_following, user_social in store and change success message according to accountExisted
 				console.log(response);
 				toastStore.trigger(ts);
+				$loginState = true;
 			});
 		}
-	}
+	};
 
 	/* -- Form Validation -- */
 	function validateForm(close = false) {
@@ -267,10 +275,10 @@
 		>
 		{#if signInOrUp == 1}
 			{#if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined')  || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
-				<button class="btn {parent.buttonPositive}" disabled>Log In</button>
+				<button class="btn {parent.buttonPositive}" disabled>Sign In</button>
 			{:else}
 				<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(true)}
-					>Log In</button
+					>Sign In</button
 				>
 			{/if}
 		{:else if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined') || password_error.includes('undefined') || password_confirm_error.includes('undefined')}

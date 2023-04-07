@@ -4,7 +4,6 @@
 
 /**
  * @typedef { import('./i18n-types').Locales } Locales
- * @typedef { import('./i18n-types').Namespaces } Namespaces
  * @typedef { import('./i18n-types').Translations } Translations
  */
 
@@ -15,15 +14,6 @@ import { loadedFormatters, loadedLocales, locales } from './i18n-util'
 const localeTranslationLoaders = {
 	de: () => import('./de'),
 	en: () => import('./en'),
-}
-
-const localeNamespaceLoaders = {
-	de: {
-		home: () => import('./de/home')
-	},
-	en: {
-		home: () => import('./en/home')
-	}
 }
 
 /**
@@ -58,19 +48,3 @@ export const loadAllLocalesAsync = () => Promise.all(locales.map(loadLocaleAsync
  */
 export const loadFormatters = (locale) =>
 	void (loadedFormatters[locale] = initFormatters(locale))
-
-/**
- * @param { Locales } locale
- * @param { Namespaces } namespace
- * @return { Promise<Translations[namespace]> }
- */
-export const importNamespaceAsync = async(locale, namespace) =>
-	(await localeNamespaceLoaders[locale][namespace]()).default
-
-/**
- * @param { Locales } locale
- * @param { Namespaces } namespace
- * @return { Promise<void> }
- */
-export const loadNamespaceAsync = async (locale, namespace) =>
-	void updateDictionary(locale, { [namespace]: await importNamespaceAsync(locale, namespace )})
