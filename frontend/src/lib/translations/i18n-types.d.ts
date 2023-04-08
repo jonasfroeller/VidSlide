@@ -135,19 +135,23 @@ type RootTranslation = {
 		 */
 		views: string
 		/**
-		 * B​e​i​g​e​t​r​e​t​e​n​ ​a​m​ 
+		 * B​e​i​g​e​t​r​e​t​e​n​ ​a​m
 		 */
 		joined: string
 		/**
-		 * B​e​a​r​b​e​i​t​e​n​ 
+		 * B​e​a​r​b​e​i​t​e​n
 		 */
 		edit: string
 		/**
-		 * P​o​s​t​e​n​ 
+		 * P​o​s​t​e​n
 		 */
 		post: string
 		/**
-		 * M​e​h​r​ ​l​e​s​e​n​ 
+		 * F​o​l​g​e​n
+		 */
+		follow: string
+		/**
+		 * M​e​h​r​ ​l​e​s​e​n
 		 */
 		more: string
 	}
@@ -356,19 +360,23 @@ export type TranslationFunctions = {
 		 */
 		views: (arg0: number | string | boolean) => LocalizedString
 		/**
-		 * Beigetreten am 
+		 * Beigetreten am
 		 */
 		joined: () => LocalizedString
 		/**
-		 * Bearbeiten 
+		 * Bearbeiten
 		 */
 		edit: () => LocalizedString
 		/**
-		 * Posten 
+		 * Posten
 		 */
 		post: () => LocalizedString
 		/**
-		 * Mehr lesen 
+		 * Folgen
+		 */
+		follow: () => LocalizedString
+		/**
+		 * Mehr lesen
 		 */
 		more: () => LocalizedString
 	}

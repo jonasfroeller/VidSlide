@@ -23,7 +23,7 @@
 	import { AppShell } from '@skeletonlabs/skeleton';
 
 	// Stores
-	import { loginState } from '$store/config';
+	import { loginState } from '$store/account';
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';

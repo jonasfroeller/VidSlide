@@ -51,10 +51,11 @@ const de = {
 		follower: "{{ keine Follower | ein Follower | ?? Follower }}",
 		likes: "{{ keine Likes | ein Like | ?? Likes }}",
 		views: "{{ keine Views | ein View | ?? Views }}",
-		joined: "Beigetreten am ",
-		edit: "Bearbeiten ",
-		post: "Posten ",
-		more: "Mehr lesen ",
+		joined: "Beigetreten am",
+		edit: "Bearbeiten",
+		post: "Posten",
+		follow: "Folgen",
+		more: "Mehr lesen",
 	},
 	Popups: {
 

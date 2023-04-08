@@ -4,7 +4,7 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Stores
-	import { loginState } from '$store/config';
+	import { loginState, user } from '$store/account';
 
 	// CSS-Framework/Library
 	/* -- Confirmation Modal -- */
@@ -56,10 +56,10 @@
 	<button type="button" class="btn variant-ringed" on:click={() => openLoginModal()}>
 		{#if !$loginState}
 			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:login-variant" />
-			<span>{$translation.Header.logIn()}</span>
+			<span>{$user?.USER_USERNAME ?? ''}{$translation.Header.logIn()}</span>
 		{:else}
 			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:logout-variant" />
-			<span>{$translation.Header.logOut()}</span>
+			<span>{$user?.USER_USERNAME ?? ''}{$translation.Header.logOut()}</span>
 		{/if}
 	</button>
 </header>

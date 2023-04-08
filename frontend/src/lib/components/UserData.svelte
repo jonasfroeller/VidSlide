@@ -4,7 +4,14 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Stores
-	import { user, user_following, user_social, user_stats } from '$store/account';
+	import {
+		loginState,
+		user,
+		user_social,
+		user_stats,
+		user_subscribed,
+		user_subscribers
+	} from '$store/account';
 
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
@@ -17,35 +24,45 @@
 	<!-- 1080/3 -->
 	<div class="flex items-center gap-2">
 		<a class="unstyled" href="/">
-			<Avatar initials={$user?.username?.charAt(0) ?? 'UN'} />
+			<Avatar initials={$user?.USER_USERNAME?.charAt(0) ?? '??'} />
 		</a>
 		<div class="flex flex-col">
-			<div id="username" class="text-lg">{$user?.username ?? 'jonesisfroellerix'}</div>
+			<div id="username" class="text-lg">{$user?.USER_USERNAME ?? '??'}</div>
 			<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500 flex">
-				<p class="unstyled">{$translation.UserData.follower($user_stats?.followers ?? 0)}&nbsp;</p>
+				<p class="unstyled">
+					{$translation.UserData.follower($user_subscribers?.length ?? 0)}&nbsp;
+				</p>
 				|
-				<p class="unstyled">&nbsp;{$translation.UserData.views($user_stats?.views ?? 0)}&nbsp;</p>
+				<p class="unstyled">&nbsp;{$translation.UserData.views($user_stats?.VIEWS ?? 0)}&nbsp;</p>
 				|
-				<p class="unstyled">&nbsp;{$translation.UserData.videos($user_stats?.videos ?? 0)}&nbsp;</p>
+				<p class="unstyled">&nbsp;{$translation.UserData.videos($user_stats?.VIDEOS ?? 0)}&nbsp;</p>
 				|
-				<p class="unstyled">&nbsp;{$translation.UserData.joined($user?.joined ?? 0)}</p>
+				<p class="unstyled">
+					&nbsp;{$translation.UserData.joined($user?.USER_DATETIMECREATED ?? 0)}
+				</p>
 			</div>
 		</div>
 	</div>
 	<div class="flex gap-2">
-		<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
-			{$translation.UserData.edit()}
-		</button>
-		<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
-			{$translation.UserData.post()}
-		</button>
+		{#if $loginState}
+			<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
+				{$translation.UserData.edit()}
+			</button>
+			<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
+				{$translation.UserData.post()}
+			</button>
+		{:else}
+			<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
+				{$translation.UserData.follow()}
+			</button>
+		{/if}
 	</div>
 </div>
 <hr />
 <div id="user-description" class="flex justify-between p-2">
 	<div class="flex flex-col">
 		<div class="textbox p-2">
-			{user?.description ?? 'lorem ipsum'}
+			{$user?.USER_PROFILEPICTURE ?? '??'}
 		</div>
 		<button class="btn variant-ringed hover:variant-filled h-1/2 w-fit" type="button">
 			{$translation.UserData.more()}

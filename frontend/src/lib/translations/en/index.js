@@ -51,9 +51,10 @@ const en = {
 		follower: "{{ no Followers | one Follower | ?? Followers }}",
 		likes: "{{ no Likes | one Like | ?? Likes }}",
 		views: "{{ no Views | one View | ?? Views }}",
-		joined: "Joined on ",
-		edit: "Edit ",
-		post: "Post ",
+		joined: "Joined on",
+		edit: "Edit",
+		post: "Post",
+		follow: "Follow",
 		more: "Read more ",
 	},
 	Popups: {

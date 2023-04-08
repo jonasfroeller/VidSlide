@@ -4,10 +4,9 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Stores
-	import { loginState } from '$store/config';
-	import { user, user_following } from '$store/account';
+	import { loginState, user, user_subscribed } from '$store/account';
 
-	// Components
+	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
 
 	// JS-Framework/Library
@@ -16,14 +15,16 @@
 	// Props
 	export let publisher;
 	export let publisher_followers;
-	export let publisher_following = false;
 	export let video;
 	export let video_title;
 	export let video_tags = [];
 	export let video_views;
 	export let video_likes;
 
+	$: publisher_following = $user_subscribed?.includes(publisher);
+
 	/* --- LOGIC --- */
+	let video_path = 'http://localhost:8196/media/video/';
 	let video_name = video.split('_');
 	let video_id = 'video_' + video_name[video_name.length - 1].replace(/.mp4/i, '');
 
@@ -52,7 +53,7 @@
 	}
 </script>
 
-{#if publisher == $user?.username}
+{#if publisher == $user?.USER_USERNAME}
 	<div class="video-result flex flex-col items-center relative">
 		<p class="text-center">{video_title}</p>
 		<div class="absolute right-0 flex gap-2">
@@ -160,7 +161,7 @@
 				controls
 				muted
 			>
-				<source src="http://localhost:8196/media/video/{video}" type="video/mp4" />
+				<source src="{video_path}{video}" type="video/mp4" />
 				Your browser does not support the video tag.
 			</video>
 			<div class="absolute w-full flex justify-between p-2">

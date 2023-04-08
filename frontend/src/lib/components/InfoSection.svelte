@@ -1,23 +1,52 @@
-<script>
+<script lang="ts">
 	/* --- INIT --- */
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Stores
-	import { user, user_following } from '$store/account';
+	import { loginState, user } from '$store/account';
+
+	// CSS-Framework/Library
+	import { Avatar } from '@skeletonlabs/skeleton';
+	import { ProgressBar } from '@skeletonlabs/skeleton';
+
+	/* -- Confirmation Modal -- */
+	const confirm: ModalSettings = {
+		type: 'confirm',
+		// Data
+		title: 'Sign Out?',
+		body: 'Would you like to sign out?',
+		response: (r: boolean) => (r ? SignOut() : console.log('declined log out'))
+	};
+
+	/* Form */
+	import { modalStore } from '@skeletonlabs/skeleton';
+	import type { ModalSettings } from '@skeletonlabs/skeleton';
+
+	const su: ModalSettings = {
+		type: 'component',
+		component: 'signupModalComponent'
+	};
 
 	// Components
 	import CommentPost from '$component/CommentPost.svelte';
-	import { Avatar } from '@skeletonlabs/skeleton';
 
 	// Props
-	export let video_title;
-	export let video_description = '';
-	export let video_date_time_posted;
+	export let video_title = 'loading...';
+	export let video_description = 'loading...';
+	export let video_date_time_posted = 'loading...';
 	export let video_tags = [];
 	export let video_comments = []; // TODO: replies
 
 	/* --- LOGIC --- */
+	export const openLoginModal = () => {
+		if (!$loginState) {
+			modalStore.trigger(su);
+		} else {
+			modalStore.trigger(confirm);
+		}
+	};
+
 	$: selectedBox = true; // true if comments are selected
 </script>
 
@@ -45,27 +74,45 @@
 		{#if selectedBox}
 			<div id="comments">
 				<h3>{$translation.InfoSection.comments_amount(video_comments?.length)}</h3>
-				<div id="write-comment" class="flex items-center gap-2 justify-center">
-					<Avatar class="scale-75" initials={$user?.username?.charAt(0) ?? 'UN'} />
-					<textarea
-						class="textarea p-2 w-fit resize-none"
-						rows="1"
-						maxlength="200"
-						placeholder="I think..."
-					/>
-					<button type="button" class="btn-icon variant-soft-secondary h-fit">
-						<iconify-icon class="cursor-pointer scale-150" icon="material-symbols:send" />
-					</button>
-				</div>
+				{#if $loginState}
+					<div id="write-comment" class="flex items-center gap-2 justify-center">
+						{#if $user?.USER_PROFILEPICTURE != undefined}
+							<Avatar class="scale-50" src={$user?.USER_PROFILEPICTURE} />
+						{:else}
+							<Avatar class="scale-75" initials={$user?.USER_USERNAME?.charAt(0) ?? '??'} />
+						{/if}
+						<textarea
+							class="textarea p-2 w-fit resize-none"
+							rows="1"
+							maxlength="200"
+							placeholder="I think..."
+						/>
+						<button type="button" class="btn-icon variant-soft-secondary h-fit">
+							<iconify-icon class="cursor-pointer scale-150" icon="material-symbols:send" />
+						</button>
+					</div>
+				{:else}
+					<button
+						class="underline hover:no-underline dark:text-tertiary-300 text-tertiary-500"
+						on:click={() => openLoginModal()}>log in</button
+					> to write a comment
+				{/if}
 				<hr />
-				<CommentPost
-					comment_username={'peterson'}
-					comment_avatar={null}
-					date_time_posted={'5 days ago'}
-					text={'hello world!!!'}
-					likes={2}
-					dislikes={3}
-				/>
+				{#each video_comments as comment}
+					<CommentPost
+						comment_id={comment?.COMMENT_ID}
+						comment_username={comment?.USER_USERNAME}
+						comment_avatar={comment?.USER_PROFILEPICTURE}
+						date_time_posted={comment?.COMMENT_DATETIMEPOSTED}
+						text={comment?.COMMENT_MESSAGE}
+						likes={comment?.COMMENT_LIKES}
+						dislikes={comment?.COMMENT_DISLIKES}
+						replies={0}
+					/>
+					<!-- TODO: REPLIES, COMMENT_ID -->
+				{:else}
+					<ProgressBar />
+				{/each}
 			</div>
 		{:else}
 			<div id="info">
@@ -82,9 +129,9 @@
 		<span id="date-posted"> {video_date_time_posted} </span>
 		<span id="time-posted"> <!-- TODO: insert date and time --> </span>
 	</p>
-	<div id="video-info-tags">
+	<div id="video-info-tags" class="flex flex-wrap gap-1">
 		{#each video_tags as tag}
-			<span class="chip variant-ringed truncate">#{tag}</span>
+			<span class="chip variant-ringed truncate">#{tag?.HASHTAG_NAME}</span>
 		{:else}
 			<span class="truncate text-xs text-primary-700 dark:text-primary-500"
 				>{$translation.VideoResult.no_tags()}</span

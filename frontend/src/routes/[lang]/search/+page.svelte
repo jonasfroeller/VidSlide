@@ -83,7 +83,6 @@
 				/>
 				<VideoResult
 					publisher={'Mitch'}
-					publisher_following={true}
 					publisher_followers={'0'}
 					video={'vid_2.MP4'}
 					video_title={'another title'}
@@ -97,7 +96,6 @@
 
 	<VideoSection
 		publisher={'Mitch'}
-		publisher_following={true}
 		publisher_followers={'0'}
 		video={'vid_4.MP4'}
 		video_views={'223'}

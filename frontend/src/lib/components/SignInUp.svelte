@@ -4,8 +4,14 @@
 	import Api from '$api/api';
 
 	// Stores
-	import { loginState } from '$store/config';
-	import { user, user_following, user_social } from '$store/account';
+	import {
+		loginState,
+		user,
+		user_stats,
+		user_subscribed,
+		user_subscribers,
+		user_social
+	} from '$store/account';
 
 	// Form Validation
 	import { z } from 'zod';

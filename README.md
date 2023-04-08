@@ -57,6 +57,8 @@ PUBLIC_KEY="
 &#60;RS256 public key&#62;
 -----END PUBLIC KEY-----"
 
+MYSQL_ROOT_PASSWORD=&#60;password&#62;  
+
 ### MySQL-Database
 
 **Password example in /.env:**  

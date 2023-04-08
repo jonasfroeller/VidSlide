@@ -3,9 +3,6 @@
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
 
-	// Stores
-	import { user, user_following, user_social } from '$store/account';
-
 	// Components
 	import UserData from '$component/UserData.svelte';
 	import VideoResult from '$component/VideoResult.svelte';
@@ -93,7 +90,6 @@
 		<div id="results" class="flex gap-4 p-4 flex-wrap justify-center">
 			<VideoResult
 				publisher={'Mitch'}
-				publisher_following={true}
 				publisher_followers={'0'}
 				video={'vid_2.MP4'}
 				video_title={'another title'}
@@ -103,7 +99,6 @@
 			/>
 			<VideoResult
 				publisher={'Mitch'}
-				publisher_following={true}
 				publisher_followers={'0'}
 				video={'vid_2.MP4'}
 				video_title={'another title'}
@@ -113,7 +108,6 @@
 			/>
 			<VideoResult
 				publisher={'Mitch'}
-				publisher_following={true}
 				publisher_followers={'0'}
 				video={'vid_2.MP4'}
 				video_title={'another title'}

@@ -108,7 +108,7 @@ function checkIfIdExists($connection, $type, $id)
 }
 
 // gets data from database
-function getMedium($connection, $response, $table, $id = 0, $prepare = false, $bind_type = "i")
+function getMedium($connection, $response, $table, $id = 0, $prepare = false, $bind_type = "i", $onlyRes = false)
 {
     if ($prepare) {
         // bind values
@@ -129,13 +129,19 @@ function getMedium($connection, $response, $table, $id = 0, $prepare = false, $b
     }
 
     // save as response data
-    $prepare_state = $prepare ? $prepare : 0;
-    $response["requested"] = $response["requested"] . "READ table [$prepare_state];"; // res;res;res
-    array_push($response["data"], $res); // IMPROVE: assoc would be better
+    if (!$onlyRes) {
+        $prepare_state = $prepare ? $prepare : 0;
+        $response["requested"] = $response["requested"] . "READ table [$prepare_state];"; // res;res;res
+        array_push($response["data"], $res); // IMPROVE: assoc would be better
+    }
     // free result set
     mysqli_free_result($query);
 
-    return $response;
+    if ($onlyRes) {
+        return $res;
+    } else {
+        return $response;
+    }
 }
 
 function getVideoInfo($connection, $response, $topic = "all")
@@ -150,12 +156,8 @@ function getVideoInfo($connection, $response, $topic = "all")
                 $exists = checkIfIdExists($connection, "video_userID", $id);
 
                 if ($exists) {
-                    $query = mysqli_prepare($connection, 'SELECT USER_ID FROM VIDEO WHERE VIDEO_ID = ?');
-                    $user_id = getMedium($connection, $response, $query, $id, true);
-
-                    $uid = json_decode($user_id["data"][0], true)[0]["USER_ID"];
-                    $query = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
-                    $response = getMedium($connection, $response, $query, $uid, true);
+                    $query = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = (SELECT USER_ID FROM VIDEO WHERE VIDEO_ID = ?)');
+                    $response["data"]["user"] = getMedium($connection, $response, $query, $id, true, "i", true);
                 } else {
                     errorOccurred($connection, $response, __LINE__, "user not found");
                 }
@@ -166,7 +168,7 @@ function getVideoInfo($connection, $response, $topic = "all")
 
                 if ($exists) {
                     $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_FEEDBACK WHERE VIDEO_ID = ?');
-                    $response = getMedium($connection, $response, $query, $id, true);
+                    $response["data"]["feedback"] = getMedium($connection, $response, $query, $id, true, "i", true);
                 } else {
                     errorOccurred($connection, $response, __LINE__, "feedback not found");
                 }
@@ -182,7 +184,7 @@ function getVideoInfo($connection, $response, $topic = "all")
 
                     if ($exists) {
                         $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?');
-                        $response = getMedium($connection, $response, $query, $hashtag_includes, true, "s");
+                        $response["data"]["tags"] = getMedium($connection, $response, $query, $hashtag_includes, true, "s", true);
                     } else {
                         errorOccurred($connection, $response, __LINE__, "hashtags not found");
                     }
@@ -191,7 +193,7 @@ function getVideoInfo($connection, $response, $topic = "all")
 
                     if ($exists) {
                         $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_HASHTAG WHERE VIDEO_ID = ?');
-                        $response = getMedium($connection, $response, $query, $id, true);
+                        $response["data"]["tags"] = getMedium($connection, $response, $query, $id, true, "i", true);
                     } else {
                         errorOccurred($connection, $response, __LINE__, "hashtag not found");
                     }
@@ -203,21 +205,13 @@ function getVideoInfo($connection, $response, $topic = "all")
                 $exists_2 = checkIfIdExists($connection, "comments", $id);
 
                 if ($exists_1 && $exists_2) {
-                    $table_comment = mysqli_prepare($connection, 'SELECT * FROM VIDEO_COMMENT WHERE VIDEO_ID = ?');
-                    $response = getMedium($connection, $response, $table_comment, $id, true);
+                    $table_comment = mysqli_prepare($connection, 'SELECT vc.*, u.* FROM VIDEO_COMMENT vc JOIN USER u ON vc.USER_ID = u.USER_ID WHERE vc.VIDEO_ID = ?');
+                    $response["data"]["comments"] = getMedium($connection, $response, $table_comment, $id, true, "i", true);
 
-                    $count = -1;
-                    foreach ($response["data"] as $data_index) {
-                        if (!isset($data_index[0]["COMMENT_ID"])) {
-                            $count++;
-                        }
-                    }
-
-                    $pulled_comments = json_decode($response["data"][$count], true);
-                    foreach ($pulled_comments as $comment) { // get multiple video infos at once
+                    foreach (json_decode($response["data"]["comments"], true) as $comment) {
                         $id = $comment["COMMENT_ID"];
                         $table_comment_feedback = "SELECT * FROM COMMENT_FEEDBACK WHERE COMMENT_ID = $id";
-                        $response = getMedium($connection, $response, $table_comment_feedback);
+                        $response["data"]["comments_feedback"] = getMedium($connection, $response, $table_comment_feedback, null, false, "i", true);
                     }
                 } else {
                     errorOccurred($connection, $response, __LINE__, "comments not found");
@@ -229,6 +223,27 @@ function getVideoInfo($connection, $response, $topic = "all")
             errorOccurred($connection, $response, __LINE__, "id param invalid");
         }
     }
+}
+
+function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
+{
+    if ($bind_type == "s") {
+        $table_socials = mysqli_prepare($connection, 'SELECT USER_ID FROM USER WHERE USER_USERNAME = ?');
+        $user_id = json_decode(getMedium($connection, $response, $table_socials, $bind_var, true, "s", true), true);
+
+        $bind_var = $user_id[0]["USER_ID"];
+    }
+
+    $table_socials = mysqli_prepare($connection, 'SELECT * FROM USER_SOCIAL WHERE USER_ID = ?');
+    $response["data"]["socials"] = getMedium($connection, $response, $table_socials, $bind_var, true, "i", true);
+
+    $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
+    $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
+
+    $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
+    $response["data"]["subscribers"] = getMedium($connection, $response, $table_subscribers, $bind_var, true, "i", true);
+
+    return $response;
 }
 
 // exports data from database
@@ -297,16 +312,16 @@ function export_database($connection)
 // https://github.com/vlucas/phpdotenv
 $dotenv = Dotenv::createImmutable(__DIR__); // (.env content: PRIVATE_KEY="", PUBLIC_KEY="") || __DIR__ ,private_key.pem || public_key.pem
 $dotenv->load(); // load .env file
-$dotenv->required(['PRIVATE_KEY', 'PUBLIC_KEY'])->notEmpty(); // RS256
+$dotenv->required(['PRIVATE_KEY', 'PUBLIC_KEY', 'MYSQL_ROOT_PASSWORD'])->notEmpty(); // RS256
 
 /* ---------- */
 
 // INIT (MySQL-Database Cfg)
-$host = 'host.docker.internal'; // database IP in docker container (127.0.0.1 (localhost) or other)
+$host = 'host.docker.internal'; // database IP in docker container
 $root = 'root';
-$pass = 'MEDTSSP';
+$pass = $_ENV['MYSQL_ROOT_PASSWORD'];
 $schema = 'vidslide';
-$port = "3196"; /* 3196 || 3306 */
+$port = "3196"; /* default: 3306 */
 
 /* ---------- */
 
@@ -602,7 +617,6 @@ try {
                     array_push($response["log"], date('H:i:s') . ": fetching " . $log);
                     $response["response"] = "fetched " . $log;
 
-                    // TODO create getUserInfo to get socials, followings => Data of followings // get own account in auth method
                     if ($id == "video") { // ?medium=video&id=video [ID]
                         if (isset($_GET["medium_id"])) { // ?medium=user&id=video&medium_id=? [ID]
                             $videoID = intval(mysqli_real_escape_string($connection, $_GET["medium_id"]));
@@ -632,6 +646,8 @@ try {
                             if ($exists) {
                                 $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
                                 $response = getMedium($connection, $response, $table_user, $username, true, "s");
+
+                                $response = getUserInfo($connection, $response, $username, "s");
                             } else {
                                 errorOccurred($connection, $response, __LINE__, "user not found");
                             }
@@ -647,6 +663,8 @@ try {
                             if ($exists) {
                                 $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
                                 $response = getMedium($connection, $response, $table_user, $userID, true);
+
+                                $response = getUserInfo($connection, $response, $userID);
                             } else {
                                 errorOccurred($connection, $response, __LINE__, "user not found");
                             }
@@ -778,17 +796,18 @@ try {
                 $expire     = $issuedAt->modify('+60 seconds')->getTimestamp();
                 $serverName = "vidslide.com";
 
-                $payload = [
-                    'iat'  => $issuedAt->getTimestamp(),         // time when the token was generated
-                    'nbf'  => $issuedAt->getTimestamp(),         // not before
-                    'iss'  => $serverName,                       // issuer
-                    'exp'  => $expire                            // expire
-                ];
-
                 if (isset($_POST["username"]) && isset($_POST["password"])) {
                     $username = mysqli_real_escape_string($connection, $_POST["username"]);
                     $password = mysqli_real_escape_string($connection, $_POST["password"]);
                     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+                    $payload = [
+                        'iat'  => $issuedAt->getTimestamp(),         // time when the token was generated
+                        'nbf'  => $issuedAt->getTimestamp(),         // not before
+                        'iss'  => $serverName,                       // issuer
+                        'exp'  => $expire,                           // expire
+                        "username" => $username
+                    ];
 
                     mysqli_close($connection);
                     $connection = mysqli_connect($host, $root, $pass, "", $port);
@@ -852,8 +871,10 @@ try {
                 $jwt = $matches[1];
                 $publicKey = $_ENV['PUBLIC_KEY'];
 
-                getJWT($connection, $response, $jwt, $publicKey);
-                if ($response["error"] === false) {
+
+                $jwt_received = getJWT($connection, $response, $jwt, $publicKey);
+                // TODO: Check for username in jwt => only allow upload to this user id
+                if ($response["error"] == false) {
                     /*  VIDEO_TITLE VARCHAR(25) NOT NULL,
                     VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL, // NOT NEEDED
                     VIDEO_LOCATION VARCHAR(250) NOT NULL, // inserted on upload
@@ -942,6 +963,7 @@ $response["data"] = array_filter($response["data"], function ($index) { // remov
     $index = json_decode($index);
     return !empty($index);
 });
+
 echo json_encode($response);
 
 // Disconnect
