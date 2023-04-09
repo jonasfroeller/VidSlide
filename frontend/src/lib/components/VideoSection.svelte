@@ -40,7 +40,7 @@
 	onMount(async () => {
 		// TODO: fix video not loading after mount and switch to other site (CORS problem. Get whole video and load bytes or disable cors)
 		video_name = video?.includes('_') ? video?.split('_') : video;
-		video_element_id = 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '');
+		video_element_id = 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '') ?? '';
 	});
 
 	$: play_button_state = false;

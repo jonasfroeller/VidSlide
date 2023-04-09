@@ -1,4 +1,6 @@
 export default class Api {
+    static baseURL = "http://localhost:8196";
+    static baseApiFile = "index.php";
     jwt = {};
     account = {};
 
@@ -13,7 +15,7 @@ export default class Api {
      */
     static async get(type, index, specification = "") { // request as logged in or logged out user
         // @ts-ignore
-        const response = await fetch(`http://localhost:8196/index.php?medium=${type}&id=${index}${specification != "" ? "&medium_id=".specification : ""}`);
+        const response = await fetch(`${this.baseURL}/${this.baseApiFile}?medium=${type}&id=${index}${specification != "" ? "&medium_id=".specification : ""}`);
         // console.log(response.text());
         return await response.json();
     }
@@ -25,7 +27,7 @@ export default class Api {
         let params = new FormData();
         params.append("action", action);
 
-        const response = await fetch('http://localhost:8196/index.php', {
+        const response = await fetch(`${this.baseURL}/${this.baseApiFile}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${this.jwt}`, 
@@ -46,7 +48,7 @@ export default class Api {
         params.append("username", username);
         params.append("password", password);
 
-        const response = await fetch('http://localhost:8196/index.php', {
+        const response = await fetch(`${this.baseURL}/${this.baseApiFile}`, {
             method: 'POST',
             body: params
         });

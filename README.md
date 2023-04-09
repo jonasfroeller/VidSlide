@@ -24,7 +24,7 @@
 The compose file includes 2 containers: The **mySQL database** and the **Apache PHP server** which functions as an mysqli-API to the database. The frontend fetches data from the backend index.php file which carries the JSON response.
 </span>
 
-![docker-compose](docker-compose-censored.png?raw=true "docker-compose")
+![docker-compose](./docs/img/docker-compose-censored.png?raw=true "docker-compose")
 
 ### Apache-PHP-Backend
 

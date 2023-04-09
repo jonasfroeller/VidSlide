@@ -76,7 +76,7 @@
 	}
 
 	onMount(async () => {
-		current_video = await getVid(4);
+		current_video = await getVid(0);
 		current_video = formatVideo(current_video);
 		console.log(current_video);
 	});

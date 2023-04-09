@@ -1,0 +1,2 @@
+/database-backups
+/media/video||image
