@@ -32,9 +32,9 @@
 	import CommentPost from '$component/CommentPost.svelte';
 
 	// Props
-	export let video_title = 'loading...';
-	export let video_description = 'loading...';
-	export let video_date_time_posted = 'loading...';
+	export let video_title;
+	export let video_description;
+	export let video_date_time_posted;
 	export let video_tags = [];
 	export let video_comments = []; // TODO: replies
 
@@ -109,9 +109,9 @@
 						dislikes={comment?.COMMENT_DISLIKES}
 						replies={0}
 					/>
-					<!-- TODO: REPLIES, COMMENT_ID -->
+					<!-- TODO: replies -->
 				{:else}
-					<ProgressBar />
+					be the first to comment on this post
 				{/each}
 			</div>
 		{:else}

@@ -21,12 +21,18 @@
 	//     - medium_id=? [ID++] // all videos with title including text
 	//   - id=random [ID]
 	//   - id=? [ID]
-	async function getVid(id: number, id_specification = '') {
+	async function getVideo(id: number, id_specification = '') {
 		id == 0 ? (id = 'random') : id;
 		return await Api.get('video', id, id_specification);
 	}
 
-	// TODO: put me in load file => create class that is loaded in load file and loads videos, user...
+	async function getUserFollowers(id: number) {
+		let userData = await Api.get('user', id);
+		let userSubscribers = userData?.data?.subscribers ?? [];
+		userSubscribers = JSON.parse(userSubscribers);
+		return userSubscribers;
+	}
+
 	function formatVideo(video: JSON) {
 		let formattet_object;
 		formattet_object = current_video.data;
@@ -38,6 +44,16 @@
 		}
 		if (formattet_object && formattet_object.feedback) {
 			formattet_object.feedback = JSON.parse(formattet_object.feedback);
+
+			let likes = formattet_object?.feedback?.filter(
+				(f) => f.VIDEO_FEEDBACK_TYPE === 'positive'
+			).length;
+			let dislikes = formattet_object?.feedback?.filter(
+				(f) => f.VIDEO_FEEDBACK_TYPE === 'negative'
+			).length;
+
+			current_video_likes = likes;
+			current_video_dislikes = dislikes;
 		}
 		if (formattet_object && formattet_object.comments) {
 			if (formattet_object && formattet_object.comments_feedback) {
@@ -68,20 +84,29 @@
 			});
 
 			formattet_object.comments = comments;
-
-			console.log(formattet_object.comments);
 		}
 
 		return formattet_object;
 	}
 
 	onMount(async () => {
-		current_video = await getVid(0);
+		current_video = await getVideo(0);
 		current_video = formatVideo(current_video);
+		publisher_followers = await getUserFollowers(current_video?.user?.USER_ID);
 		console.log(current_video);
 	});
 
+	async function fetchNextVideo(id) {
+		current_video = await getVideo(id);
+		current_video = formatVideo(current_video);
+	}
+
+	$: publisher_followers = null;
+	$: current_video_likes = null;
+	$: current_video_dislikes = null;
+
 	$: current_video = null;
+	$: current_video_id = 0;
 </script>
 
 <svelte:head>
@@ -112,26 +137,29 @@
 	<title>Home</title>
 </svelte:head>
 
+<svelte:window on:keydown|preventDefault={() => fetchNextVideo(current_video_id++)} />
+
 <section id="home-body" class="flex justify-center pt-2 gap-6 flex-wrap">
-	<InfoSection
-		video_title={current_video?.video?.VIDEO_TITLE}
-		video_description={current_video?.video?.VIDEO_DESCRIPTION}
-		video_date_time_posted={current_video?.video?.VIDEO_DATETIMEPOSTED}
-		video_tags={current_video?.tags}
-		video_comments={current_video?.comments}
-	/>
+	{#key current_video}
+		<InfoSection
+			video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
+			video_description={current_video?.video?.VIDEO_DESCRIPTION ?? 'description loading...'}
+			video_date_time_posted={current_video?.video?.VIDEO_DATETIMEPOSTED ??
+				'date and time loading...'}
+			video_tags={current_video?.tags ?? []}
+			video_comments={current_video?.comments ?? []}
+		/>
 
-	<VideoSection
-		publisher={current_video?.user?.USER_USERNAME}
-		publisher_avatar={current_video?.user?.USER_PROFILEPICTURE}
-		publisher_followers={0}
-		video={current_video?.video?.VIDEO_LOCATION}
-		video_id={current_video?.video?.VIDEO_ID}
-		video_views={0}
-		video_likes={0}
-		video_dislikes={0}
-		video_comments={current_video?.comments?.length}
-	/>
-
-	<!-- TODO: followers, likes, dislikes, views -->
+		<VideoSection
+			publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
+			publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
+			publisher_followers={publisher_followers ?? 0}
+			video={current_video?.video?.VIDEO_LOCATION ?? null}
+			video_id={current_video?.video?.VIDEO_ID ?? null}
+			video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
+			video_likes={current_video_likes ?? 0}
+			video_dislikes={current_video_dislikes ?? 0}
+			video_comments={current_video?.comments?.length ?? 0}
+		/>
+	{/key}
 </section>

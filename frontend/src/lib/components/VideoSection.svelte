@@ -21,7 +21,7 @@
 	import { onMount } from 'svelte';
 
 	// Props
-	export let publisher = 'loading...';
+	export let publisher;
 	export let publisher_avatar = null;
 	export let publisher_followers;
 	export let video;
@@ -40,7 +40,9 @@
 	onMount(async () => {
 		// TODO: fix video not loading after mount and switch to other site (CORS problem. Get whole video and load bytes or disable cors)
 		video_name = video?.includes('_') ? video?.split('_') : video;
-		video_element_id = 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '') ?? '';
+		video_element_id = video_name?.length
+			? 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '')
+			: video_name;
 	});
 
 	$: play_button_state = false;
@@ -94,7 +96,7 @@
 					<div id="username" class="text-lg">{publisher}</div>
 					<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
 						<a class="unstyled" href="/"
-							>{$translation.VideoSection.follower(publisher_followers)}</a
+							>{$translation.VideoSection.follower(publisher_followers?.length)}</a
 						>
 					</div>
 				</div>

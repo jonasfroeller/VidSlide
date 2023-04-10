@@ -232,13 +232,14 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
         $user_id = json_decode(getMedium($connection, $response, $table_socials, $bind_var, true, "s", true), true);
 
         $bind_var = $user_id[0]["USER_ID"];
+
+        // fetch more if fetched with username instead of id
+        $table_socials = mysqli_prepare($connection, 'SELECT * FROM USER_SOCIAL WHERE USER_ID = ?');
+        $response["data"]["socials"] = getMedium($connection, $response, $table_socials, $bind_var, true, "i", true);
+
+        $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
+        $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
     }
-
-    $table_socials = mysqli_prepare($connection, 'SELECT * FROM USER_SOCIAL WHERE USER_ID = ?');
-    $response["data"]["socials"] = getMedium($connection, $response, $table_socials, $bind_var, true, "i", true);
-
-    $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
-    $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
 
     $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
     $response["data"]["subscribers"] = getMedium($connection, $response, $table_subscribers, $bind_var, true, "i", true);
