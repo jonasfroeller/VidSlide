@@ -96,9 +96,15 @@
 		console.log(current_video);
 	});
 
-	async function fetchNextVideo(id) {
-		current_video = await getVideo(id);
-		current_video = formatVideo(current_video);
+	async function fetchNextVideo(event, id) {
+		/* ArrowUp && ArrowLeft */
+		if (event.keyCode === 38 || event.keyCode === 37) {
+			current_video = await getVideo(id--);
+			current_video = formatVideo(current_video);
+		} else if (event.keyCode === 40 || event.keyCode === 39) {
+			current_video = await getVideo(id++);
+			current_video = formatVideo(current_video);
+		} /* ArrowDown && ArrowRight */
 	}
 
 	$: publisher_followers = null;
@@ -137,7 +143,7 @@
 	<title>Home</title>
 </svelte:head>
 
-<svelte:window on:keydown|preventDefault={() => fetchNextVideo(current_video_id++)} />
+<svelte:window on:keydown|preventDefault={fetchNextVideo(event, current_video_id)} />
 
 <section id="home-body" class="flex justify-center pt-2 gap-6 flex-wrap">
 	{#key current_video}

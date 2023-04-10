@@ -12,15 +12,16 @@
 
 	// CSS-Framework/Library
 	import '@skeletonlabs/skeleton/styles/all.css';
+	import { AppShell } from '@skeletonlabs/skeleton';
 	import { Toast } from '@skeletonlabs/skeleton';
 
 	// Icons
 	import 'iconify-icon';
 
 	// Components
+	import PageTransition from '$component/PageTransition.svelte';
 	import Header from '$component/Header.svelte';
 	import Sidebar from '$component/Sidebar.svelte';
-	import { AppShell } from '@skeletonlabs/skeleton';
 
 	// Stores
 	import { loginState } from '$store/account';
@@ -101,7 +102,9 @@
 		<!-- divider -->
 		<div class="p-8 w-full">
 			<Header bind:openLoginModal />
-			<slot />
+			<PageTransition key={data.pathname}>
+				<slot />
+			</PageTransition>
 		</div>
 	</section>
 	<!-- ---- / ---- -->

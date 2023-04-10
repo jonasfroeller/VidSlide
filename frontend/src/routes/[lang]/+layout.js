@@ -25,7 +25,7 @@ export const load = async ({ url, params }) => {
 
 	await loadLocaleAsync(lang);
 
-	return { locale: lang };
+	return { locale: lang, pathname: url.pathname };
 };
 
 /* --- CONFIG --- */
