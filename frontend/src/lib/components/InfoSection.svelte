@@ -105,8 +105,8 @@
 						comment_avatar={comment?.USER_PROFILEPICTURE}
 						date_time_posted={comment?.COMMENT_DATETIMEPOSTED}
 						text={comment?.COMMENT_MESSAGE}
-						likes={comment?.COMMENT_LIKES}
-						dislikes={comment?.COMMENT_DISLIKES}
+						likes={comment?.COMMENT_LIKES?.length}
+						dislikes={comment?.COMMENT_DISLIKES?.length}
 						replies={0}
 					/>
 					<!-- TODO: replies -->

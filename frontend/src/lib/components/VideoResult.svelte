@@ -4,29 +4,45 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Stores
-	import { loginState, user, user_subscribed } from '$store/account';
+	import {
+		loginState,
+		user,
+		user_subscribed,
+		user_videos_liked,
+		user_videos_disliked
+	} from '$store/account';
 
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
 
 	// JS-Framework/Library
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	// Props
 	export let publisher;
+	export let publisher_avatar = null;
 	export let publisher_followers;
 	export let video;
+	export let video_id;
 	export let video_title;
+	export let video_views = 0;
+	export let video_likes = 0;
+	export let video_dislikes = 0;
 	export let video_tags = [];
-	export let video_views;
-	export let video_likes;
 
 	$: publisher_following = $user_subscribed?.includes(publisher);
 
 	/* --- LOGIC --- */
 	let video_path = 'http://localhost:8196/media/video/';
-	let video_name = video.split('_');
-	let video_id = 'video_' + video_name[video_name.length - 1].replace(/.mp4/i, '');
+	$: video_name = '';
+	$: video_element_id = '';
+	onMount(async () => {
+		video_name = video?.includes('_') ? video?.split('_') : video;
+		video_element_id = video_name?.length
+			? 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '')
+			: video_name;
+	});
 
 	$: play_button_state = false;
 	$: sound_button_state = false;
@@ -210,13 +226,14 @@
 					{$translation.VideoResult.views(video_views)}
 				</div>
 				<div class="p-2 text-xs">
-					{$translation.VideoResult.likes(video_likes)}
+					<span class="text-success-400">{video_likes}</span> /
+					<span class="text-error-400">{video_dislikes}</span>
 				</div>
 			</div>
 		</div>
 		<div class="video-info-tags flex flex-wrap gap-1 max-w-[180px]">
 			{#each video_tags as tag}
-				<span class="chip variant-ringed truncate">#{tag}</span>
+				<span class="chip variant-ringed truncate">#{tag?.HASHTAG_NAME}</span>
 			{:else}
 				<span class="truncate text-xs text-primary-700 dark:text-primary-500"
 					>{$translation.VideoResult.no_tags()}</span

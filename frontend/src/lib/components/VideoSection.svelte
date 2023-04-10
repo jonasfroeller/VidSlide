@@ -38,7 +38,6 @@
 	$: video_name = '';
 	$: video_element_id = '';
 	onMount(async () => {
-		// TODO: fix video not loading after mount and switch to other site (CORS problem. Get whole video and load bytes or disable cors)
 		video_name = video?.includes('_') ? video?.split('_') : video;
 		video_element_id = video_name?.length
 			? 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '')
@@ -96,7 +95,7 @@
 					<div id="username" class="text-lg">{publisher}</div>
 					<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
 						<a class="unstyled" href="/"
-							>{$translation.VideoSection.follower(publisher_followers?.length)}</a
+							>{$translation.VideoSection.follower(publisher_followers)}</a
 						>
 					</div>
 				</div>

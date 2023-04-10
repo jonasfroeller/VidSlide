@@ -1,17 +1,23 @@
-<script>
+<script lang="ts">
 	/* --- INIT --- */
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
+	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 
 	// Components
-	import VideoSection from '$component/VideoSection.svelte';
-	import VideoResult from '$component/VideoResult.svelte';
+	import FetchVideo from '$component/FetchVideo.svelte';
+
+	// LoadData
+	import type { PageData } from './$types';
+	export let data: PageData;
 
 	/* --- LOGIC --- */
-	// TODO: fetch and parse data
+	let subject: string = 'username';
+	let sort: string = 'date';
+	let search: string = '';
 </script>
 
 <svelte:head>
@@ -50,57 +56,67 @@
 				class="p-2 rounded-none outline-none"
 				type="search"
 				placeholder="{$translation.global.search()}..."
+				bind:value={search}
 			/>
 			<button class="variant-soft-secondary">{$translation.global.search()}</button>
 		</div>
 		<div id="search-config" class="flex flex-col gap-2">
 			Subject:
 			<hr />
-			<div id="sort-subject" class="flex gap-2">
-				<button type="button" class="btn variant-ringed">Category</button>
-				<button type="button" class="btn variant-ringed">Username</button>
-				<button type="button" class="btn variant-ringed">Title</button>
-			</div>
+			<RadioGroup>
+				<RadioItem
+					bind:group={subject}
+					name="justify"
+					active={'variant-ghost-tertiary'}
+					value={'username'}>Username</RadioItem
+				>
+				<RadioItem
+					bind:group={subject}
+					name="justify"
+					active={'variant-ghost-tertiary'}
+					value={'category'}>Category</RadioItem
+				>
+				<RadioItem
+					bind:group={subject}
+					name="justify"
+					active={'variant-ghost-tertiary'}
+					value={'title'}>Title</RadioItem
+				>
+			</RadioGroup>
 			Sort By:
 			<hr />
-			<div id="sort-by" class="flex gap-2">
-				<button type="button" class="btn variant-ringed">Date</button>
-				<button type="button" class="btn variant-ringed">Views</button>
-				<button type="button" class="btn variant-ringed">Likes</button>
-			</div>
+			<RadioGroup>
+				<RadioItem bind:group={sort} name="justify" active={'variant-ghost-tertiary'} value={'date'}
+					>Date</RadioItem
+				>
+				<RadioItem
+					bind:group={sort}
+					name="justify"
+					active={'variant-ghost-tertiary'}
+					value={'views'}>Views</RadioItem
+				>
+				<RadioItem
+					bind:group={sort}
+					name="justify"
+					active={'variant-ghost-tertiary'}
+					value={'likes'}>Likes</RadioItem
+				>
+				<RadioItem
+					bind:group={sort}
+					name="justify"
+					active={'variant-ghost-tertiary'}
+					value={'dislikes'}>Dislikes</RadioItem
+				>
+			</RadioGroup>
 		</div>
-		<div id="search-result" class="flex flex-col gap-2 divide-y">
-			<p>232 Videos found:</p>
-			<div id="video-results" class="flex gap-2">
-				<VideoResult
-					publisher={'Peter'}
-					publisher_following={false}
-					publisher_followers={'1'}
-					video={'vid_1.MP4'}
-					video_title={'some title'}
-					video_views={'20'}
-					video_likes={'8'}
-				/>
-				<VideoResult
-					publisher={'Mitch'}
-					publisher_followers={'0'}
-					video={'vid_2.MP4'}
-					video_title={'another title'}
-					video_tags={['love', 'fashion']}
-					video_views={'223'}
-					video_likes={'2222'}
-				/>
-			</div>
-		</div>
+		<FetchVideo
+			page={data.pathname}
+			isResultVideo={true}
+			searchSubject={subject}
+			sortBy={sort}
+			{search}
+		/>
 	</div>
 
-	<VideoSection
-		publisher={'Mitch'}
-		publisher_followers={'0'}
-		video={'vid_4.MP4'}
-		video_views={'223'}
-		video_likes={'2222'}
-		video_dislikes={'209'}
-		video_comments={'2'}
-	/>
+	<FetchVideo page={data.pathname} />
 </section>
