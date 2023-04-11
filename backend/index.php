@@ -872,9 +872,9 @@ try {
                 $jwt = $matches[1];
                 $publicKey = $_ENV['PUBLIC_KEY'];
 
-
                 $jwt_received = getJWT($connection, $response, $jwt, $publicKey);
-                // TODO: Check for username in jwt => only allow upload to this user id
+                $user = $jwt_received["username"];
+
                 if ($response["error"] == false) {
                     /*  VIDEO_TITLE VARCHAR(25) NOT NULL,
                     VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL, // NOT NEEDED
@@ -904,9 +904,11 @@ try {
                             $files_count = count($files) + 1; // Anzahl der Elemente in der Liste
 
                             move_uploaded_file($video_media_tmp_name, $media_video_path . $media_video_filename . "_$files_count" . $video_media_type);
+
+                            /* INSERT INTO WHERE USER_USERNAME = $user */
                         }
                     } else {
-                        errorOccurred($connection, $response, __LINE__, "invalid password");
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt");
                     }
 
                     $response["token"] = "valid";

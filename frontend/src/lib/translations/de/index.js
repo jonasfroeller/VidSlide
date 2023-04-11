@@ -1,5 +1,5 @@
 // @ts-check
-
+ 
 /**
  * @typedef { import('../i18n-types').BaseTranslation } BaseTranslation
  */
@@ -10,7 +10,9 @@ const de = {
 		lang: 'Sprache'
 	},
 	ThemeSelect: {
-		theme: 'Stil'
+		theme: 'Stil',
+		theme_dark: "dunkel",
+		theme_light: "hell"
 	},
 	Sidebar: {
 		home: "Startseite",
@@ -20,10 +22,15 @@ const de = {
 	},
 	Header: {
 		logIn: "Anmelden", 
-		logOut: "Abmelden"
+		logOut: "{username|} Abmelden"
 	},
-	SignInUp: { // TODO
-		
+	SignInUp: {
+		signUp: "Registrieren",
+		signIn: "Anmelden",
+		username: "Username",
+		password: "Passwort",
+		password_retype: "Passwort Wiederholen",
+		cancel: "Abbrechen",
 	},
 	VideoResult: {
 		follower: "{{ keine Follower | ein Follower | ?? Follower }}",
@@ -40,10 +47,13 @@ const de = {
 		description: 'Beschreibung',
 		comments: 'Kommentare',
 		comments_amount: "{{ keine Kommentare | ein Kommentar | ?? Kommentare }}",
-		posted_on: "gepostet am", // TODO: DATE 
+		dateTime: "gepostet am {0|videoDate}",
+		logIn: "Anmelden",
+		logIn_text: "um einen Kommentar zu schreiben",
+		be_the_first_comment: "Schreibe jetzt einen Kommentar um der Erste zu sein!",
 	},
 	CommentPost: {
-		date: "",
+		dateTime: "{0|commentDate}",
 		reply: "Antworten",
 		replies: "{replies|0} Antworten"
 	},
@@ -59,7 +69,28 @@ const de = {
 		more: "Mehr lesen",
 	},
 	Popups: {
-
+		modal: {
+			confirmLogOut: {
+				title: "Ausloggen?",
+				body: "Würden sie die Website gerne als Gast benutzen und sich ausloggen?"
+			},
+			confirmLogIn: {
+				title: "Einloggen?",
+				body: "Würden sie die Website gerne angemeldet besuchen?"
+			},
+			confirm: "Bestätigen",
+			cancel: "Abbrechen"
+		},
+		toast: {
+			configSaved_success: "Konfiguration gesichert!",
+			copiedURL_toClipboard_success: "URL des Videos erfolgreich kopiert!",
+			loggedOut_success: "Du wurdest ausgeloggt!",
+			loggingOut_info: "Wir loggen dich aus!",
+			loggingIn_error: "Einloggen nicht erfolgreich!",
+			loggingIn_warning: "Eingabe invalide!",
+			loggingIn_info: "Du wirst in kürze eingeloggt!",
+			loggedIn_success: "Eingeloggt!"
+		}
 	},
 	pages: {
 		account: {

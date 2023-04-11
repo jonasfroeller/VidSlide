@@ -4,8 +4,6 @@
 	import translation from '$translation/i18n-svelte'; // translations
 	import { locale } from '$translation/i18n-svelte';
 
-	// TODO: https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/formatters
-
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
 
@@ -49,8 +47,9 @@
 				class="unstyled hover:underline {CSS_Styles.COMMENTS.FONT_PRIMARY}">{comment_username}</a
 			>
 			|
-			<span class={CSS_Styles.COMMENTS.FONT_TERTIARY}>{comment_date_time_posted}</span>
-			<!-- TODO: lang date formatter -->
+			<span class={CSS_Styles.COMMENTS.FONT_TERTIARY}
+				>{$translation.CommentPost.dateTime(new Date(comment_date_time_posted))}</span
+			>
 		</p>
 	</div>
 	<div
@@ -99,11 +98,7 @@
 					{$translation.CommentPost.reply()}
 				</button>
 			{/if}
-			<button
-				type="button"
-				disabled={$loginState ? false : true}
-				class="btn btn-sm variant-ringed-secondary"
-			>
+			<button type="button" class="btn btn-sm variant-ringed-secondary">
 				{$translation.CommentPost.replies({ replies: comment_replies })}
 			</button>
 		</div>

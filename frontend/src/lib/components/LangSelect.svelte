@@ -15,14 +15,10 @@
 
 	// CSS-Framework/Library
 	import { toastStore } from '@skeletonlabs/skeleton';
-	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
-	/* Toast */
-	const ts: ToastSettings = {
-		message: 'Config saved!',
-		// Provide any utility or variant background style:
-		background: 'variant-ghost-success'
-	};
+	// Components
+	import Popups from '$component/Popups.svelte';
+	let popups; // popups in Popups.svelte
 
 	// Translation
 	import translation from '$translation/i18n-svelte';
@@ -81,6 +77,10 @@
 	});
 </script>
 
+{#key $translation}
+	<Popups bind:this={popups} />
+{/key}
+
 <svelte:window on:popstate={handlePopStateEvent} />
 
 <select
@@ -89,10 +89,10 @@
 		: 'w-[6rem]'} max-w-full variant-ringed cursor-pointer"
 	bind:value={$langState}
 	on:change={() => {
+		toastStore.trigger(popups.configSaved_success);
 		$config.language = $langState;
 		styleCfg.save($config);
 		switchLocale($langState);
-		toastStore.trigger(ts);
 	}}
 >
 	<option disabled selected>{$translation.LangSelect.lang()}</option>

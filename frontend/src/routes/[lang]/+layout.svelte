@@ -1,19 +1,28 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
+	import translation from '$translation/i18n-svelte';
 	import { setLocale } from '$translation/i18n-svelte';
 	import type { PageData } from './$types';
 	export let data: PageData;
 	setLocale(data.locale);
 
-	// Styling
-	import '$main/app.css'; // Global CSS
-	import '$main/theme.postcss'; // Skeleton Theme
+	// JS-Framework/Library
+	import { onMount } from 'svelte';
 
 	// CSS-Framework/Library
 	import '@skeletonlabs/skeleton/styles/all.css';
 	import { AppShell } from '@skeletonlabs/skeleton';
 	import { Toast } from '@skeletonlabs/skeleton';
+	import { Modal, modalStore } from '@skeletonlabs/skeleton';
+	import type { ModalComponent } from '@skeletonlabs/skeleton';
+	import { storePopup } from '@skeletonlabs/skeleton';
+	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
+	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+
+	// Styling
+	import '$main/app.css'; // Global CSS
+	import '$main/theme.postcss'; // Skeleton Theme
 
 	// Icons
 	import 'iconify-icon';
@@ -22,21 +31,15 @@
 	import PageTransition from '$component/PageTransition.svelte';
 	import Header from '$component/Header.svelte';
 	import Sidebar from '$component/Sidebar.svelte';
+	import Popups from '$component/Popups.svelte';
+	import signupComponent from '$component/SignInUp.svelte';
 
 	// Stores
 	import { loginState } from '$store/account';
 
-	// JS-Framework/Library
-	import { onMount } from 'svelte';
-
 	/* --- LOGIC --- */
-
-	/* Modals */
-	import { Modal, modalStore } from '@skeletonlabs/skeleton';
-	import type { ModalComponent } from '@skeletonlabs/skeleton';
-
-	/* -- Signup Form -- */
-	import signupComponent from '$component/SignInUp.svelte';
+	let popups; // popups in Popups.svelte
+	let openLoginModal; // passed by Header
 
 	const modalComponentRegistry: Record<string, ModalComponent> = {
 		signupModalComponent: {
@@ -45,25 +48,9 @@
 			// props
 			props: {},
 			// default slot
-			slot: "<p>SignUp Form couldn't load!</p>"
+			slot: '<em>Error</em>'
 		}
 	};
-
-	/* -- Confirmation Modal -- */
-	const confirm: ModalSettings = {
-		type: 'confirm',
-		// Data
-		title: 'You are not logged in!',
-		body: 'Would you like to create an Account or log in an existing account?',
-		response: (r: boolean) => (r ? openLoginModal() : console.log('declined opening form'))
-	};
-
-	let openLoginModal;
-	function checkIfLoggedIn() {
-		if (!$loginState) {
-			modalStore.trigger(confirm);
-		}
-	}
 
 	/* --- LOGGING --- */
 	onMount(async () => {
@@ -74,9 +61,19 @@
 		checkIfLoggedIn();
 	});
 
+	function checkIfLoggedIn() {
+		if (!$loginState) {
+			modalStore.trigger(popups.confirmLogIn);
+		}
+	}
+
 	/* --- CONFIG --- */
 	$: sidebarVariant = 'small';
 </script>
+
+{#key $translation}
+	<Popups bind:this={popups} />
+{/key}
 
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">

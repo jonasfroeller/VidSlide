@@ -25,6 +25,14 @@ type RootTranslation = {
 		 * S​t​i​l
 		 */
 		theme: string
+		/**
+		 * d​u​n​k​e​l
+		 */
+		theme_dark: string
+		/**
+		 * h​e​l​l
+		 */
+		theme_light: string
 	}
 	Sidebar: {
 		/**
@@ -50,11 +58,36 @@ type RootTranslation = {
 		 */
 		logIn: string
 		/**
-		 * A​b​m​e​l​d​e​n
+		 * {​u​s​e​r​n​a​m​e​|​}​ ​A​b​m​e​l​d​e​n
+		 * @param {unknown} username
 		 */
-		logOut: string
+		logOut: RequiredParams<'username|'>
 	}
 	SignInUp: {
+		/**
+		 * R​e​g​i​s​t​r​i​e​r​e​n
+		 */
+		signUp: string
+		/**
+		 * A​n​m​e​l​d​e​n
+		 */
+		signIn: string
+		/**
+		 * U​s​e​r​n​a​m​e
+		 */
+		username: string
+		/**
+		 * P​a​s​s​w​o​r​t
+		 */
+		password: string
+		/**
+		 * P​a​s​s​w​o​r​t​ ​W​i​e​d​e​r​h​o​l​e​n
+		 */
+		password_retype: string
+		/**
+		 * A​b​b​r​e​c​h​e​n
+		 */
+		cancel: string
 	}
 	VideoResult: {
 		/**
@@ -102,12 +135,29 @@ type RootTranslation = {
 		 */
 		comments_amount: string
 		/**
-		 * g​e​p​o​s​t​e​t​ ​a​m
+		 * g​e​p​o​s​t​e​t​ ​a​m​ ​{​0​|​v​i​d​e​o​D​a​t​e​}
+		 * @param {unknown} 0
 		 */
-		posted_on: string
+		dateTime: RequiredParams<'0|videoDate'>
+		/**
+		 * A​n​m​e​l​d​e​n
+		 */
+		logIn: string
+		/**
+		 * u​m​ ​e​i​n​e​n​ ​K​o​m​m​e​n​t​a​r​ ​z​u​ ​s​c​h​r​e​i​b​e​n
+		 */
+		logIn_text: string
+		/**
+		 * S​c​h​r​e​i​b​e​ ​j​e​t​z​t​ ​e​i​n​e​n​ ​K​o​m​m​e​n​t​a​r​ ​u​m​ ​d​e​r​ ​E​r​s​t​e​ ​z​u​ ​s​e​i​n​!
+		 */
+		be_the_first_comment: string
 	}
 	CommentPost: {
-		date: string
+		/**
+		 * {​0​|​c​o​m​m​e​n​t​D​a​t​e​}
+		 * @param {unknown} 0
+		 */
+		dateTime: RequiredParams<'0|commentDate'>
 		/**
 		 * A​n​t​w​o​r​t​e​n
 		 */
@@ -157,6 +207,70 @@ type RootTranslation = {
 		more: string
 	}
 	Popups: {
+		modal: {
+			confirmLogOut: {
+				/**
+				 * A​u​s​l​o​g​g​e​n​?
+				 */
+				title: string
+				/**
+				 * W​ü​r​d​e​n​ ​s​i​e​ ​d​i​e​ ​W​e​b​s​i​t​e​ ​g​e​r​n​e​ ​a​l​s​ ​G​a​s​t​ ​b​e​n​u​t​z​e​n​ ​u​n​d​ ​s​i​c​h​ ​a​u​s​l​o​g​g​e​n​?
+				 */
+				body: string
+			}
+			confirmLogIn: {
+				/**
+				 * E​i​n​l​o​g​g​e​n​?
+				 */
+				title: string
+				/**
+				 * W​ü​r​d​e​n​ ​s​i​e​ ​d​i​e​ ​W​e​b​s​i​t​e​ ​g​e​r​n​e​ ​a​n​g​e​m​e​l​d​e​t​ ​b​e​s​u​c​h​e​n​?
+				 */
+				body: string
+			}
+			/**
+			 * B​e​s​t​ä​t​i​g​e​n
+			 */
+			confirm: string
+			/**
+			 * A​b​b​r​e​c​h​e​n
+			 */
+			cancel: string
+		}
+		toast: {
+			/**
+			 * K​o​n​f​i​g​u​r​a​t​i​o​n​ ​g​e​s​i​c​h​e​r​t​!
+			 */
+			configSaved_success: string
+			/**
+			 * U​R​L​ ​d​e​s​ ​V​i​d​e​o​s​ ​e​r​f​o​l​g​r​e​i​c​h​ ​k​o​p​i​e​r​t​!
+			 */
+			copiedURL_toClipboard_success: string
+			/**
+			 * D​u​ ​w​u​r​d​e​s​t​ ​a​u​s​g​e​l​o​g​g​t​!
+			 */
+			loggedOut_success: string
+			/**
+			 * W​i​r​ ​l​o​g​g​e​n​ ​d​i​c​h​ ​a​u​s​!
+			 */
+			loggingOut_info: string
+			/**
+			 * E​i​n​l​o​g​g​e​n​ ​n​i​c​h​t​ ​e​r​f​o​l​g​r​e​i​c​h​!
+			 */
+			loggingIn_error: string
+			/**
+			 * E​i​n​g​a​b​e​ ​i​n​v​a​l​i​d​e​!
+			 */
+			loggingIn_warning: string
+			/**
+			 * D​u​ ​w​i​r​s​t​ ​i​n​ ​k​ü​r​z​e​ ​e​i​n​g​e​l​o​g​g​t​!
+			 */
+			loggingIn_info: string
+			/**
+			 * E​i​n​g​e​l​o​g​g​t​!
+			 */
+			loggedIn_success: string
+		}
 	}
 	pages: {
 		account: {
@@ -252,6 +366,14 @@ export type TranslationFunctions = {
 		 * Stil
 		 */
 		theme: () => LocalizedString
+		/**
+		 * dunkel
+		 */
+		theme_dark: () => LocalizedString
+		/**
+		 * hell
+		 */
+		theme_light: () => LocalizedString
 	}
 	Sidebar: {
 		/**
@@ -277,11 +399,35 @@ export type TranslationFunctions = {
 		 */
 		logIn: () => LocalizedString
 		/**
-		 * Abmelden
+		 * {username|} Abmelden
 		 */
-		logOut: () => LocalizedString
+		logOut: (arg: { username: unknown }) => LocalizedString
 	}
 	SignInUp: {
+		/**
+		 * Registrieren
+		 */
+		signUp: () => LocalizedString
+		/**
+		 * Anmelden
+		 */
+		signIn: () => LocalizedString
+		/**
+		 * Username
+		 */
+		username: () => LocalizedString
+		/**
+		 * Passwort
+		 */
+		password: () => LocalizedString
+		/**
+		 * Passwort Wiederholen
+		 */
+		password_retype: () => LocalizedString
+		/**
+		 * Abbrechen
+		 */
+		cancel: () => LocalizedString
 	}
 	VideoResult: {
 		/**
@@ -329,12 +475,27 @@ export type TranslationFunctions = {
 		 */
 		comments_amount: (arg0: number | string | boolean) => LocalizedString
 		/**
-		 * gepostet am
+		 * gepostet am {0|videoDate}
 		 */
-		posted_on: () => LocalizedString
+		dateTime: (arg0: unknown) => LocalizedString
+		/**
+		 * Anmelden
+		 */
+		logIn: () => LocalizedString
+		/**
+		 * um einen Kommentar zu schreiben
+		 */
+		logIn_text: () => LocalizedString
+		/**
+		 * Schreibe jetzt einen Kommentar um der Erste zu sein!
+		 */
+		be_the_first_comment: () => LocalizedString
 	}
 	CommentPost: {
-		date: () => LocalizedString
+		/**
+		 * {0|commentDate}
+		 */
+		dateTime: (arg0: unknown) => LocalizedString
 		/**
 		 * Antworten
 		 */
@@ -383,6 +544,70 @@ export type TranslationFunctions = {
 		more: () => LocalizedString
 	}
 	Popups: {
+		modal: {
+			confirmLogOut: {
+				/**
+				 * Ausloggen?
+				 */
+				title: () => LocalizedString
+				/**
+				 * Würden sie die Website gerne als Gast benutzen und sich ausloggen?
+				 */
+				body: () => LocalizedString
+			}
+			confirmLogIn: {
+				/**
+				 * Einloggen?
+				 */
+				title: () => LocalizedString
+				/**
+				 * Würden sie die Website gerne angemeldet besuchen?
+				 */
+				body: () => LocalizedString
+			}
+			/**
+			 * Bestätigen
+			 */
+			confirm: () => LocalizedString
+			/**
+			 * Abbrechen
+			 */
+			cancel: () => LocalizedString
+		}
+		toast: {
+			/**
+			 * Konfiguration gesichert!
+			 */
+			configSaved_success: () => LocalizedString
+			/**
+			 * URL des Videos erfolgreich kopiert!
+			 */
+			copiedURL_toClipboard_success: () => LocalizedString
+			/**
+			 * Du wurdest ausgeloggt!
+			 */
+			loggedOut_success: () => LocalizedString
+			/**
+			 * Wir loggen dich aus!
+			 */
+			loggingOut_info: () => LocalizedString
+			/**
+			 * Einloggen nicht erfolgreich!
+			 */
+			loggingIn_error: () => LocalizedString
+			/**
+			 * Eingabe invalide!
+			 */
+			loggingIn_warning: () => LocalizedString
+			/**
+			 * Du wirst in kürze eingeloggt!
+			 */
+			loggingIn_info: () => LocalizedString
+			/**
+			 * Eingeloggt!
+			 */
+			loggedIn_success: () => LocalizedString
+		}
 	}
 	pages: {
 		account: {
@@ -467,5 +692,8 @@ export type TranslationFunctions = {
 }
 
 export type Formatters = {
+	'': (value: unknown) => unknown
 	'0': (value: unknown) => unknown
+	commentDate: (value: unknown) => unknown
+	videoDate: (value: unknown) => unknown
 }

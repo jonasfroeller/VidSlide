@@ -10,7 +10,9 @@ const en = {
 		lang: 'Language'
 	},
 	ThemeSelect: {
-		theme: 'Style'
+		theme: 'Style',
+		theme_dark: "dark",
+		theme_light: "light"
 	},
 	Sidebar: {
 		home: "Home",
@@ -20,10 +22,15 @@ const en = {
 	},
 	Header: {
 		logIn: "LogIn", 
-		logOut: "LogOut"
+		logOut: "LogOut {username|}"
 	},
 	SignInUp: {
-		
+		signUp: "SignUp",
+		signIn: "SignIn",
+		username: "Username",
+		password: "Password",
+		password_retype: "Retype Password",
+		cancel: "Cancel",
 	},
 	VideoResult: {
 		follower: "{{ no Followers | one Follower | ?? Followers }}",
@@ -40,10 +47,13 @@ const en = {
 		description: 'Description',
 		comments: 'Comments',
 		comments_amount: "{{ no Comments | one Comment | ?? Comments }}",
-		posted_on: "posted on",
+		dateTime: "posted on {0|videoDate}",
+		logIn: "LogIn",
+		logIn_text: "to write a comment",
+		be_the_first_comment: "Be the first to comment on this post!",
 	},
 	CommentPost: {
-		date: "",
+		dateTime: "{0|commentDate}",
 		reply: "reply",
 		replies: "{replies|0} Replies"
 	},
@@ -59,7 +69,28 @@ const en = {
 		more: "Read more ",
 	},
 	Popups: {
-
+		modal: {
+			confirmLogOut: {
+				title: "Sign Out?",
+				body: "Would you like to sign out?"
+			},
+			confirmLogIn: {
+				title: "Sign In?",
+				body: "Would you like to create an Account or log in an existing account?"
+			},
+			confirm: "Confirm",
+			cancel: "Cancel"
+		},
+		toast: {
+			configSaved_success: "Config saved!",
+			copiedURL_toClipboard_success: "Successfully copied URL to clipboard!",
+			loggedOut_success: "You are now logged out!",
+			loggingOut_info: "Logging you out!",
+			loggingIn_error: "Couldn't log in!",
+			loggingIn_warning: "Input invalid!",
+			loggingIn_info: "Logging you in!",
+			loggedIn_success: "Logged in!"
+		}
 	},
 	pages: {
 		account: {

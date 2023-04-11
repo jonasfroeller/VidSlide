@@ -1,7 +1,13 @@
 <script lang="ts">
 	/* --- INIT --- */
+	// Env Vars
+	import { dev } from '$app/environment';
+
 	// Backend Api
 	import Api from '$api/api';
+
+	// Translation
+	import translation from '$translation/i18n-svelte';
 
 	// Stores
 	import {
@@ -18,11 +24,24 @@
 
 	/* -- Form Data -- */
 	const userData = {
-		username: 'Jonesisfroellerix', // test data
-		password: 'Password2$' // test data
+		username: '',
+		password: ''
 	};
 
-	let passwordConfirmation = 'Password2$'; // test data
+	let passwordConfirmation = '';
+
+	/* -- Test/Developement Form Data -- */
+	if (dev) {
+		// insert test account into form, if in developement mode
+		userData.username = 'Jonesisfroellerix';
+		userData.password = 'Password2$';
+		passwordConfirmation = userData.password;
+	}
+
+	/* -- Form Input Errors -- */
+	$: username_error = 'undefined';
+	$: password_error = 'undefined';
+	$: password_confirm_error = 'undefined';
 
 	/* -- Form Validation Schema -- */
 	const userDataSchema = z.object({
@@ -58,44 +77,16 @@
 			}) /* min 1 symbol/special char, 1 digit, 1 uppercase char, 1 lowercase char */
 	});
 
-	/* -- Form Input Errors -- */
-	$: username_error = 'undefined';
-	$: password_error = 'undefined';
-	$: password_confirm_error = 'undefined';
-
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
 
 	// CSS-Framework/Library
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import { toastStore, modalStore } from '@skeletonlabs/skeleton';
-	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
-	/* Notifications */
-	const ts: ToastSettings = {
-		message: 'Logged in!',
-		background: 'variant-ghost-success'
-	};
-
-	const ti: ToastSettings = {
-		message: 'Logging you in!',
-		background: 'variant-ghost-primary'
-	};
-
-	const tw: ToastSettings = {
-		message: 'Something went wrong!',
-		background: 'variant-ghost-warning'
-	};
-
-	const te: ToastSettings = {
-		message: "Couldn't log in!",
-		background: 'variant-ghost-error'
-	};
-
-	const wrong_input: ToastSettings = {
-		message: 'Input invalid!',
-		background: 'variant-ghost-error'
-	};
+	// Components
+	import Popups from '$component/Popups.svelte';
+	let popups; // popups in Popups.svelte
 
 	/* --- LOGIC --- */
 	/* Form */
@@ -114,18 +105,29 @@
 			signIn(userData.username, userData.password).then((response) => {
 				// TODO: set user, user_following, user_social in store and change success message according to accountExisted
 				console.log(response);
-				toastStore.trigger(ts);
 				$loginState = true;
 			});
 		} else {
 			signUp(userData.username, userData.password).then((response) => {
 				// TODO: set user, user_following, user_social in store and change success message according to accountExisted
 				console.log(response);
-				toastStore.trigger(ts);
 				$loginState = true;
 			});
 		}
 	};
+
+	/* Database Connection */
+	async function signIn(username: string, password: string) {
+		toastStore.trigger(popups.loggingIn_info);
+		toastStore.trigger(popups.loggedIn_success);
+		return await Api.auth(username, password);
+	}
+
+	async function signUp(username: string, password: string) {
+		toastStore.trigger(popups.loggingIn_info);
+		toastStore.trigger(popups.loggedIn_success);
+		return await Api.auth(username, password);
+	}
 
 	/* -- Form Validation -- */
 	function validateForm(close = false) {
@@ -140,7 +142,7 @@
 
 			console.log(formattedError);
 
-			toastStore.trigger(wrong_input);
+			toastStore.trigger(popups.loggingIn_warning);
 
 			username_error = formattedError.username?._errors[0] ?? 'null';
 			password_error = formattedError.password?._errors[0] ?? 'null';
@@ -159,37 +161,37 @@
 	onMount(async () => {
 		validateForm(); // validate on load to work with test values
 	});
-
-	/* Database Connection */
-	async function signIn(username: string, password: string) {
-		toastStore.trigger(ti);
-		return await Api.auth(username, password);
-	}
-
-	async function signUp(username: string, password: string) {
-		toastStore.trigger(ti);
-		return await Api.auth(username, password);
-	}
 </script>
+
+{#key $translation}
+	<Popups bind:this={popups} />
+{/key}
 
 <div class="modal-example-form {cBase}">
 	<!-- debugging: -->
 	<!-- <pre>{JSON.stringify(userData, null, 2)}</pre> -->
 
 	<TabGroup>
-		<Tab bind:group={signInOrUp} name="tab1" value={0}>SignUp</Tab>
-		<Tab bind:group={signInOrUp} name="tab2" value={1}>SignIn</Tab>
+		<Tab bind:group={signInOrUp} name="tab1" value={0}>{$translation.SignInUp.signUp()}</Tab>
+		<Tab bind:group={signInOrUp} name="tab2" value={1}>{$translation.SignInUp.signIn()}</Tab>
 		<!-- Tab Panels --->
 		<svelte:fragment slot="panel">
 			<form class="modal-form {cForm}">
 				<label class="label">
-					<span>Username</span>
+					<span>{$translation.SignInUp.username()}</span>
 					<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-						<div class="input-group-shim">
+						<div
+							class="input-group-shim {username_error == 'undefined'
+								? 'input-warning'
+								: username_error == 'null'
+								? 'input-success'
+								: 'input-error'}"
+						>
 							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
 						</div>
 						<input
-							class="input p-2 rounded-l-none {username_error == 'undefined'
+							class="input p-2 rounded-l-none outline-none hover:outline-none {username_error ==
+							'undefined'
 								? 'input-warning'
 								: username_error == 'null'
 								? 'input-success'
@@ -212,13 +214,20 @@
 					{/if}
 				</label>
 				<label class="label">
-					<span>Password</span>
+					<span>{$translation.SignInUp.password()}</span>
 					<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-						<div class="input-group-shim">
+						<div
+							class="input-group-shim {username_error == 'undefined'
+								? 'input-warning'
+								: username_error == 'null'
+								? 'input-success'
+								: 'input-error'}"
+						>
 							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:key" />
 						</div>
 						<input
-							class="input p-2 rounded-l-none {password_error == 'undefined'
+							class="input p-2 rounded-l-none outline-none hover:outline-none {password_error ==
+							'undefined'
 								? 'input-warning'
 								: password_error == 'null'
 								? 'input-success'
@@ -242,13 +251,20 @@
 				</label>
 				{#if signInOrUp === 0}
 					<label class="label">
-						<span>Retype Password</span>
+						<span>{$translation.SignInUp.password_retype()}</span>
 						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-							<div class="input-group-shim">
+							<div
+								class="input-group-shim {username_error == 'undefined'
+									? 'input-warning'
+									: username_error == 'null'
+									? 'input-success'
+									: 'input-error'}"
+							>
 								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:key" />
 							</div>
 							<input
-								class="input p-2 rounded-l-none {password_confirm_error == 'undefined'
+								class="input p-2 rounded-l-none outline-none hover:outline-none {password_confirm_error ==
+								'undefined'
 									? 'input-warning'
 									: password_confirm_error == 'null'
 									? 'input-success'
@@ -277,21 +293,21 @@
 	<!-- prettier-ignore -->
 	<footer class="modal-footer {parent.regionFooter}">
 		<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}
-			>{parent.buttonTextCancel}</button
+			>{$translation.SignInUp.cancel()}</button
 		>
 		{#if signInOrUp == 1}
 			{#if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined')  || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
-				<button class="btn {parent.buttonPositive}" disabled>Sign In</button>
+				<button class="btn {parent.buttonPositive}" disabled>{$translation.SignInUp.signIn()}</button>
 			{:else}
 				<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(true)}
-					>Sign In</button
+					>{$translation.SignInUp.signIn()}</button
 				>
 			{/if}
 		{:else if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined') || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
-			<button class="btn {parent.buttonPositive}" disabled>Sign Up</button>
+			<button class="btn {parent.buttonPositive}" disabled>{$translation.SignInUp.signUp()}</button>
 		{:else}
 			<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(false)}
-				>Sign Up</button
+				>{$translation.SignInUp.signUp()}</button
 			>
 		{/if}
 	</footer>

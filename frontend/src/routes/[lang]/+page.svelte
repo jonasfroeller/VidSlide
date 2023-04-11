@@ -13,6 +13,6 @@
 	}
 </script>
 
-<div class="flex justify-center items-center w-full h-full">
+<div class="flex justify-center items-center">
 	<h1>redirecting to /{$locale}/home...</h1>
 </div>

@@ -8,14 +8,10 @@
 
 	// CSS-Framework/Library
 	import { toastStore } from '@skeletonlabs/skeleton';
-	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
-	/* Toast */
-	const ts: ToastSettings = {
-		message: 'Config saved!',
-		// Provide any utility or variant background style:
-		background: 'variant-ghost-success'
-	};
+	// Components
+	import Popups from '$component/Popups.svelte';
+	let popups; // popups in Popups.svelte
 
 	// Stores
 	import { config } from '$store/config';
@@ -29,10 +25,13 @@
 
 	onMount(async () => {
 		$config = await styleCfg.load();
-		// @ts-ignore
 		$themeState = $config.theme;
 	});
 </script>
+
+{#key $translation}
+	<Popups bind:this={popups} />
+{/key}
 
 <select
 	class="select outlined text-md rounded-lg {variant === 'large'
@@ -40,13 +39,12 @@
 		: 'w-[6rem]'} variant-ringed cursor-pointer"
 	bind:value={$themeState}
 	on:change={() => {
-		// @ts-ignore
+		toastStore.trigger(popups.configSaved_success);
 		$config.theme = $themeState;
 		styleCfg.save($config);
-		toastStore.trigger(ts);
 	}}
 >
 	<option disabled selected>{$translation.ThemeSelect.theme()}</option>
-	<option value="dark">dark</option>
-	<option value="light">light</option>
+	<option value="dark">{$translation.ThemeSelect.theme_dark()}</option>
+	<option value="light">{$translation.ThemeSelect.theme_light()}</option>
 </select>

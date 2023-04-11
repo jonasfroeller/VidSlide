@@ -1,3 +1,13 @@
+<script context="module" lang="ts">
+	const elements = new Set();
+
+	export function stopAll() {
+		elements.forEach((element) => {
+			element.pause();
+		});
+	}
+</script>
+
 <script lang="ts">
 	/* --- INIT --- */
 	// Backend Api
@@ -132,7 +142,7 @@
 	$: current_video_id = 0;
 </script>
 
-<svelte:window on:keydown|preventDefault={fetchNextVideo} />
+<svelte:window on:keydown={fetchNextVideo} />
 
 {#key current_video}
 	{#if page.includes('home')}
@@ -168,7 +178,7 @@
 		<VideoSection
 			publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
 			publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
-			publisher_followers={publisher_followers?.length ?? 0}
+			publisher_followers={publisher_followers ?? []}
 			video={current_video?.video?.VIDEO_LOCATION ?? null}
 			video_id={current_video?.video?.VIDEO_ID ?? null}
 			video_views={current_video?.video?.VIDEO_VIEWS ?? 0}

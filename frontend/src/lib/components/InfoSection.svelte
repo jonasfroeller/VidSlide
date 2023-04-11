@@ -10,26 +10,16 @@
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import { ProgressBar } from '@skeletonlabs/skeleton';
 
-	/* -- Confirmation Modal -- */
-	const confirm: ModalSettings = {
-		type: 'confirm',
-		// Data
-		title: 'Sign Out?',
-		body: 'Would you like to sign out?',
-		response: (r: boolean) => (r ? SignOut() : console.log('declined log out'))
-	};
+	// CSS
+	import CSS_Styles from '$script/styles';
 
-	/* Form */
+	/* Form Trigger */
 	import { modalStore } from '@skeletonlabs/skeleton';
-	import type { ModalSettings } from '@skeletonlabs/skeleton';
-
-	const su: ModalSettings = {
-		type: 'component',
-		component: 'signupModalComponent'
-	};
 
 	// Components
 	import CommentPost from '$component/CommentPost.svelte';
+	import Popups from '$component/Popups.svelte';
+	let popups; // popups in Popups.svelte
 
 	// Props
 	export let video_title;
@@ -39,28 +29,28 @@
 	export let video_comments = []; // TODO: replies
 
 	/* --- LOGIC --- */
-	export const openLoginModal = () => {
-		if (!$loginState) {
-			modalStore.trigger(su);
-		} else {
-			modalStore.trigger(confirm);
-		}
+	const openLoginModal = () => {
+		modalStore.trigger(popups.signInUpForm);
 	};
 
 	$: selectedBox = true; // true if comments are selected
 </script>
 
-<article id="video-info-section" class="flex flex-col gap-2">
-	<div id="video-info-actions">
-		<div class="btn-group variant-ringed">
+{#key $translation}
+	<Popups bind:this={popups} />
+{/key}
+
+<article class="flex flex-col gap-2">
+	<div>
+		<div class="btn-group variant-ghost-tertiary">
 			<button
-				class={selectedBox ? 'variant-ghost' : ''}
+				class={selectedBox ? 'variant-soft-tertiary hover:variant-soft-tertiary' : ''}
 				on:click={() => {
 					selectedBox = true;
 				}}>{$translation.InfoSection.comments()}</button
 			>
 			<button
-				class={!selectedBox ? 'variant-ghost' : ''}
+				class={!selectedBox ? 'variant-soft-tertiary hover:variant-soft-tertiary' : ''}
 				on:click={() => {
 					selectedBox = false;
 				}}>{$translation.InfoSection.description()}</button
@@ -68,36 +58,41 @@
 		</div>
 	</div>
 	<div
-		id="video-info-content"
-		class="border border-gray-500 rounded-md p-4 w-[360px] h-[640px] overflow-auto relative"
+		class="border border-gray-500 rounded-md p-4 pt-0 w-[360px] h-[640px] overflow-auto relative"
 	>
 		{#if selectedBox}
 			<div id="comments">
-				<h3>{$translation.InfoSection.comments_amount(video_comments?.length)}</h3>
-				{#if $loginState}
-					<div id="write-comment" class="flex items-center gap-2 justify-center">
-						{#if $user?.USER_PROFILEPICTURE != undefined}
-							<Avatar class="scale-50" src={$user?.USER_PROFILEPICTURE} />
-						{:else}
-							<Avatar class="scale-75" initials={$user?.USER_USERNAME?.charAt(0) ?? '??'} />
-						{/if}
-						<textarea
-							class="textarea p-2 w-fit resize-none"
-							rows="1"
-							maxlength="200"
-							placeholder="I think..."
-						/>
-						<button type="button" class="btn-icon variant-soft-secondary h-fit">
-							<iconify-icon class="cursor-pointer scale-150" icon="material-symbols:send" />
-						</button>
-					</div>
-				{:else}
-					<button
-						class="underline hover:no-underline dark:text-tertiary-300 text-tertiary-500"
-						on:click={() => openLoginModal()}>log in</button
-					> to write a comment
-				{/if}
-				<hr />
+				<div class="top-0 pt-4 pb-2 w-full sticky bg-surface-50 dark:bg-surface-900 z-[888]">
+					<h3>{$translation.InfoSection.comments_amount(video_comments?.length)}</h3>
+					{#if $loginState}
+						<div id="write-comment" class="flex items-center gap-2 p-2 justify-center">
+							{#if $user?.USER_PROFILEPICTURE != undefined}
+								<Avatar class={CSS_Styles.COMMENTS.AVATAR_SIZE} src={$user?.USER_PROFILEPICTURE} />
+							{:else}
+								<Avatar
+									class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+									initials={$user?.USER_USERNAME?.charAt(0) ?? '??'}
+								/>
+							{/if}
+							<textarea
+								class="textarea outline-none hover:outline-none input p-2 w-fit resize-none"
+								rows="1"
+								maxlength="200"
+								placeholder="I think..."
+							/>
+							<button type="button" class="btn-icon variant-ghost-secondary">
+								<iconify-icon class="cursor-pointer text-2xl" icon="material-symbols:send" />
+							</button>
+						</div>
+					{:else}
+						<button
+							class="underline hover:no-underline dark:text-tertiary-300 text-tertiary-500"
+							on:click={openLoginModal}>{$translation.InfoSection.logIn()}</button
+						>
+						{$translation.InfoSection.logIn_text()}
+					{/if}
+					<hr />
+				</div>
 				<div class="flex flex-col gap-6">
 					{#each video_comments as comment}
 						<CommentPost
@@ -112,12 +107,12 @@
 						/>
 						<!-- TODO: replies -->
 					{:else}
-						be the first to comment on this post
+						<p class="text-secondary-500">{$translation.InfoSection.be_the_first_comment()}</p>
 					{/each}
 				</div>
 			</div>
 		{:else}
-			<div id="info">
+			<div id="info" class="pt-4">
 				<h3>{video_title}</h3>
 				<p class="text-md">
 					{video_description}
@@ -127,11 +122,11 @@
 	</div>
 	<hr />
 	<p class="text-xs text-primary-700 dark:text-primary-500 text-ellipsis">
-		{$translation.InfoSection.posted_on()}
-		<span id="date-posted"> {video_date_time_posted} </span>
-		<span id="time-posted"> <!-- TODO: insert date and time --> </span>
+		{#if video_date_time_posted != 'date and time loading...'}
+			{$translation.InfoSection.dateTime(new Date(video_date_time_posted))}
+		{/if}
 	</p>
-	<div id="video-info-tags" class="flex flex-wrap gap-1">
+	<div id="video-tags" class="flex flex-wrap gap-1">
 		{#each video_tags as tag}
 			<span class="chip variant-ringed truncate">#{tag?.HASHTAG_NAME}</span>
 		{:else}
