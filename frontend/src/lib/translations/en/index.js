@@ -43,8 +43,9 @@ const en = {
 		posted_on: "posted on",
 	},
 	CommentPost: {
+		date: "",
 		reply: "reply",
-		replies: "{replies} Replies"
+		replies: "{replies|0} Replies"
 	},
 	UserData: {
 		videos: "{{ no Videos | one Video | ?? Videos }}",

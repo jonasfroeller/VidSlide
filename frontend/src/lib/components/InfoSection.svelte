@@ -98,21 +98,23 @@
 					> to write a comment
 				{/if}
 				<hr />
-				{#each video_comments as comment}
-					<CommentPost
-						comment_id={comment?.COMMENT_ID}
-						comment_username={comment?.USER_USERNAME}
-						comment_avatar={comment?.USER_PROFILEPICTURE}
-						date_time_posted={comment?.COMMENT_DATETIMEPOSTED}
-						text={comment?.COMMENT_MESSAGE}
-						likes={comment?.COMMENT_LIKES?.length}
-						dislikes={comment?.COMMENT_DISLIKES?.length}
-						replies={0}
-					/>
-					<!-- TODO: replies -->
-				{:else}
-					be the first to comment on this post
-				{/each}
+				<div class="flex flex-col gap-6">
+					{#each video_comments as comment}
+						<CommentPost
+							comment_id={comment?.COMMENT_ID}
+							comment_username={comment?.USER_USERNAME}
+							comment_date_time_posted={comment?.COMMENT_DATETIMEPOSTED}
+							comment_text={comment?.COMMENT_MESSAGE}
+							comment_avatar={comment?.USER_PROFILEPICTURE}
+							comment_likes={comment?.COMMENT_LIKES?.length}
+							comment_dislikes={comment?.COMMENT_DISLIKES?.length}
+							comment_replies={0}
+						/>
+						<!-- TODO: replies -->
+					{:else}
+						be the first to comment on this post
+					{/each}
+				</div>
 			</div>
 		{:else}
 			<div id="info">

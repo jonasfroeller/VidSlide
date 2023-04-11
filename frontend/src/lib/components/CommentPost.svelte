@@ -2,12 +2,12 @@
 	/* --- INIT --- */
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
+	import { locale } from '$translation/i18n-svelte';
+
+	// TODO: https://github.com/ivanhofer/typesafe-i18n/tree/main/packages/formatters
 
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
-
-	// Components
-	import CommentPost from '$component/CommentPost.svelte';
 
 	// Stores
 	import { loginState, user_comments_liked, user_comments_disliked } from '$store/account';
@@ -15,69 +15,97 @@
 	// Props
 	export let comment_id;
 	export let comment_username;
+	export let comment_date_time_posted;
+	export let comment_text;
 	export let comment_avatar = null;
-	export let date_time_posted;
-	export let text;
-	export let likes = 0;
-	export let dislikes = 0;
-	export let replies = 0;
+	export let comment_likes = 0;
+	export let comment_dislikes = 0;
+	export let comment_replies = 0;
+
+	// CSS
+	import CSS_Styles from '$script/styles';
 </script>
 
-<div class="comment comment-body flex flex-col">
-	<div class="comment-header flex items-center ml-[-10px] mb-[-5px]">
-		{#if comment_avatar != null}
-			<Avatar class="scale-50" src={comment_avatar} />
-		{:else}
-			<Avatar class="scale-50" initials={comment_username?.charAt(0)} />
-		{/if}
+<div class="flex flex-col">
+	<div class="flex items-center p-2 pl-0 gap-2">
+		<a href="/{$locale}/account/{comment_username}" class="transition">
+			{#if comment_avatar != null}
+				<Avatar
+					cursor="cursor-pointer"
+					class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+					src={comment_avatar}
+				/>
+			{:else}
+				<Avatar
+					cursor="cursor-pointer"
+					class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+					initials={comment_username?.charAt(0)}
+				/>
+			{/if}
+		</a>
 		<p>
-			<span class="comment-author">{comment_username}</span> |
-			<span class="comment-datetime text-md text-primary-700 dark:text-primary-500"
-				>{date_time_posted}</span
+			<a
+				href="/{$locale}/account/{comment_username}"
+				class="unstyled hover:underline {CSS_Styles.COMMENTS.FONT_PRIMARY}">{comment_username}</a
 			>
+			|
+			<span class={CSS_Styles.COMMENTS.FONT_TERTIARY}>{comment_date_time_posted}</span>
+			<!-- TODO: lang date formatter -->
 		</p>
 	</div>
 	<div
-		class="comment-text w-full h-14 text-md text-primary-700 dark:text-primary-500 p-2 rounded-md bg-surface-200 dark:bg-surface-600 mb-1"
+		class="{CSS_Styles.COMMENTS.FONT_SECONDARY} p-2 rounded-md bg-surface-200 dark:bg-surface-600"
 	>
-		{text}
+		{comment_text}
 	</div>
-	<div class="comment-actions flex justify-between">
-		<div class="flex">
-			<div class="flex flex-col gap-1 scale-[80%]">
-				<button type="button" class="btn-icon variant-ringed">
+	<div class="flex justify-between mt-2">
+		<div class="flex gap-1">
+			<div class="flex gap-1">
+				<button
+					type="button"
+					disabled={$loginState ? false : true}
+					class="btn btn-sm variant-ringed-secondary {CSS_Styles.COMMENTS.FONT_PRIMARY}"
+				>
 					{#if $user_comments_liked?.includes(comment_id)}
 						<iconify-icon icon="material-symbols:thumb-up-rounded" />
 					{:else}
-						<iconify-icon class="scale-125" icon="material-symbols:thumb-up-outline-rounded" />
+						<iconify-icon icon="material-symbols:thumb-up-outline-rounded" />
 					{/if}
+					<span class="text-center {CSS_Styles.COMMENTS.FONT_TERTIARY}">{comment_likes}</span>
 				</button>
-				<span class="text-xs text-center text-primary-700 dark:text-primary-500">{likes}</span>
 			</div>
-			<div class="flex flex-col gap-1 scale-[80%]">
-				<button type="button" class="btn-icon variant-ringed">
+			<div class="flex gap-1">
+				<button
+					type="button"
+					disabled={$loginState ? false : true}
+					class="btn btn-sm variant-ringed-secondary {CSS_Styles.COMMENTS.FONT_PRIMARY}"
+				>
 					{#if $user_comments_disliked?.includes(comment_id)}
 						<iconify-icon icon="material-symbols:thumb-up-rounded" />
 					{:else}
-						<iconify-icon class="scale-125" icon="material-symbols:thumb-down-outline-rounded" />
+						<iconify-icon icon="material-symbols:thumb-down-outline-rounded" />
 					{/if}
+					<span class="text-center {CSS_Styles.COMMENTS.FONT_TERTIARY}">{comment_dislikes}</span>
 				</button>
-				<span class="text-xs text-center text-primary-700 dark:text-primary-500">{dislikes}</span>
 			</div>
 		</div>
-		<div class="flex">
+		<div class="flex gap-1">
 			{#if $loginState}
-				<div class="flex flex-col">
-					<button type="button" class="btn variant-ringed scale-[80%] hover:scale-[80%]">
-						{$translation.CommentPost.reply()}
-					</button>
-				</div>
-			{/if}
-			<div class="flex flex-col gap-1">
-				<button type="button" class="btn variant-ringed scale-[80%] hover:scale-[80%]">
-					{$translation.CommentPost.replies(replies)}
+				<button
+					type="button"
+					disabled={$loginState ? false : true}
+					class="btn btn-sm variant-ringed-secondary"
+				>
+					{$translation.CommentPost.reply()}
 				</button>
-			</div>
+			{/if}
+			<button
+				type="button"
+				disabled={$loginState ? false : true}
+				class="btn btn-sm variant-ringed-secondary"
+			>
+				{$translation.CommentPost.replies({ replies: comment_replies })}
+			</button>
 		</div>
 	</div>
 </div>

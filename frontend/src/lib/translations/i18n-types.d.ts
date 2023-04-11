@@ -107,15 +107,16 @@ type RootTranslation = {
 		posted_on: string
 	}
 	CommentPost: {
+		date: string
 		/**
-		 * r​e​p​l​y
+		 * A​n​t​w​o​r​t​e​n
 		 */
 		reply: string
 		/**
-		 * {​r​e​p​l​i​e​s​}​ ​A​n​t​w​o​r​t​e​n
+		 * {​r​e​p​l​i​e​s​|​0​}​ ​A​n​t​w​o​r​t​e​n
 		 * @param {unknown} replies
 		 */
-		replies: RequiredParams<'replies'>
+		replies: RequiredParams<'replies|0'>
 	}
 	UserData: {
 		/**
@@ -333,12 +334,13 @@ export type TranslationFunctions = {
 		posted_on: () => LocalizedString
 	}
 	CommentPost: {
+		date: () => LocalizedString
 		/**
-		 * reply
+		 * Antworten
 		 */
 		reply: () => LocalizedString
 		/**
-		 * {replies} Antworten
+		 * {replies|0} Antworten
 		 */
 		replies: (arg: { replies: unknown }) => LocalizedString
 	}
@@ -464,4 +466,6 @@ export type TranslationFunctions = {
 	}
 }
 
-export type Formatters = {}
+export type Formatters = {
+	'0': (value: unknown) => unknown
+}

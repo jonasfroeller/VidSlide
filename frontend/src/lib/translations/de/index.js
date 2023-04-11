@@ -43,8 +43,9 @@ const de = {
 		posted_on: "gepostet am", // TODO: DATE 
 	},
 	CommentPost: {
-		reply: "reply",
-		replies: "{replies} Antworten"
+		date: "",
+		reply: "Antworten",
+		replies: "{replies|0} Antworten"
 	},
 	UserData: {
 		videos: "{{ keine Videos | ein Video | ?? Videos }}",
