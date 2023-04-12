@@ -1,18 +1,16 @@
 <?php
 
 // INFO: 
+// Permissions: 
+//  - https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+//  - Options: https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#privileges-provided-summary
+// Tables:
+//  - Don't use in table names and attributes: https://dev.mysql.com/doc/refman/8.0/en/keywords.html
+
 // phpinfo();
-// Permissions: https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
-// Options: https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html#privileges-provided-summary
-// delete user: DROP USER 'username'@'%';
-// delete right: REVOKE type_of_permission ON database_name.table_name FROM 'username'@'host'; 
-// display permissions: SHOW GRANTS FOR 'username'@'host'; 
-// save and reload: FLUSH; 
-// WITH GRANT OPTION => grant priviliges to others // ALL PRIVILEGES => all privileges
-// DONT USE (table names and attributes): https://dev.mysql.com/doc/refman/8.0/en/keywords.html
 // Jump To: TODO (daily tasks), BUG (!!!), IMPROVE (would make things cleaner), REMOVE (only for dev)
 
-/* declare(strict_types=1); */
+declare(strict_types=1);
 
 // HEADERS
 header("Access-Control-Allow-Origin: *"); // allow CORS
@@ -146,7 +144,7 @@ function getMedium($connection, $response, $table, $id = 0, $prepare = false, $b
 
 function getVideoInfo($connection, $response, $topic = "all")
 {
-    if (isset($_GET["id"])) { // ?medium=feedback/comments/tags&id=? [ID]
+    if (isset($_GET["id"])) {
         $escaped_id = mysqli_real_escape_string($connection, $_GET["id"]);
         $id = $escaped_id != "all" ? intval($escaped_id) : $escaped_id;
         if ($id != 0) { // 0 on failure 1 on non empty arrays :/
@@ -322,7 +320,7 @@ $host = 'host.docker.internal'; // database IP in docker container
 $root = 'root';
 $pass = $_ENV['MYSQL_ROOT_PASSWORD'];
 $schema = 'vidslide';
-$port = "3196"; /* default: 3306 */
+$port = 3196; /* default: 3306 */
 
 /* ---------- */
 
@@ -490,7 +488,7 @@ if (!$connection) {
     )";
 
     for ($i = 1; $i <= 8; $i++) {
-        $table_create_query = mysqli_query($connection, ${"table_" . str_pad($i, 2, "0", STR_PAD_LEFT)});
+        $table_create_query = mysqli_query($connection, ${"table_" . str_pad(strval($i), 2, "0", STR_PAD_LEFT)});
         if ($table_create_query) {
             array_push($response["log"], date('H:i:s') . ": table " . $i . " created/found");
         } else {

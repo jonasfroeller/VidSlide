@@ -9,6 +9,9 @@
 	import LangSelect from '$component/LangSelect.svelte';
 	import ThemeSelect from '$component/ThemeSelect.svelte';
 
+	// Stores
+	import { user } from '$store/account';
+
 	/* --- LOGIC --- */
 	export let variant = 'large';
 	$: route = $page?.route?.id?.replace('/[lang]', '');
@@ -60,25 +63,27 @@
 					<span>{$translation.Sidebar.search()}</span>
 				</a>
 			</li>
-			<li>
-				<a
-					href="/{$locale}/account"
-					data-sveltekit-preload-data="hover"
-					type="button"
-					class="btn text-3xl rounded-lg w-full flex justify-start {route === '/account'
-						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
-				>
-					<span>
-						{#if route === '/account'}
-							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
-						{:else}
-							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account-outline" />
-						{/if}
-					</span>
-					<span>{$translation.Sidebar.account()}</span>
-				</a>
-			</li>
+			{#if user?.USER_USERNAME}
+				<li>
+					<a
+						href="/{$locale}/account"
+						data-sveltekit-preload-data="hover"
+						type="button"
+						class="btn text-3xl rounded-lg w-full flex justify-start {route === '/account'
+							? 'variant-ghost-tertiary'
+							: 'variant-ringed-secondary'}"
+					>
+						<span>
+							{#if route === '/account'}
+								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
+							{:else}
+								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account-outline" />
+							{/if}
+						</span>
+						<span>{$translation.Sidebar.account()}</span>
+					</a>
+				</li>
+			{/if}
 			<li>
 				<a
 					href="/{$locale}/settings"
@@ -157,24 +162,26 @@
 					</span>
 				</a>
 			</li>
-			<li class="flex justify-center">
-				<a
-					href="/{$locale}/account"
-					data-sveltekit-preload-data="hover"
-					type="button"
-					class="btn-icon text-3xl rounded-lg w-fit max-w-full {route === '/account'
-						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
-				>
-					<span>
-						{#if route === '/account'}
-							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
-						{:else}
-							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account-outline" />
-						{/if}
-					</span>
-				</a>
-			</li>
+			{#if user?.USER_USERNAME}
+				<li class="flex justify-center">
+					<a
+						href="/{$locale}/account"
+						data-sveltekit-preload-data="hover"
+						type="button"
+						class="btn-icon text-3xl rounded-lg w-fit max-w-full {route === '/account'
+							? 'variant-ghost-tertiary'
+							: 'variant-ringed-secondary'}"
+					>
+						<span>
+							{#if route === '/account'}
+								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
+							{:else}
+								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account-outline" />
+							{/if}
+						</span>
+					</a>
+				</li>
+			{/if}
 			<li class="flex justify-center">
 				<a
 					href="/{$locale}/settings"

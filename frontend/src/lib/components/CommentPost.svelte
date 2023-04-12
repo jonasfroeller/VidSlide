@@ -53,7 +53,8 @@
 		</p>
 	</div>
 	<div
-		class="{CSS_Styles.COMMENTS.FONT_SECONDARY} p-2 rounded-md bg-surface-200 dark:bg-surface-600"
+		class="{CSS_Styles.COMMENTS
+			.FONT_SECONDARY} p-2 rounded-md bg-surface-200 dark:bg-surface-600 max-h-36"
 	>
 		{comment_text}
 	</div>

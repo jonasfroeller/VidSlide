@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Components
-	import FetchVideo from '$component/FetchVideo.svelte';
+	import VideoData from '$component/VideoData.svelte';
 
 	// LoadData
 	import type { PageData } from './$types';
@@ -37,5 +37,5 @@
 </svelte:head>
 
 <section id="home-body" class="flex justify-center pt-2 gap-6 flex-wrap">
-	<FetchVideo page={data.pathname} />
+	<VideoData page={data.pathname} />
 </section>

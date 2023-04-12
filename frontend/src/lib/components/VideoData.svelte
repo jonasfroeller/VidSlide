@@ -1,13 +1,3 @@
-<script context="module" lang="ts">
-	const elements = new Set();
-
-	export function stopAll() {
-		elements.forEach((element) => {
-			element.pause();
-		});
-	}
-</script>
-
 <script lang="ts">
 	/* --- INIT --- */
 	// Backend Api
@@ -16,7 +6,6 @@
 	// Components
 	import InfoSection from '$component/InfoSection.svelte';
 	import VideoSection from '$component/VideoSection.svelte';
-	import VideoResult from '$component/VideoResult.svelte';
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
@@ -160,7 +149,7 @@
 		<div id="search-result" class="flex flex-col gap-2 divide-y">
 			<p>one Video found:</p>
 			<div id="video-results" class="flex gap-2 justify-center">
-				<VideoResult
+				<VideoSection
 					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
 					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
 					publisher_followers={publisher_followers?.length ?? 0}
@@ -171,6 +160,33 @@
 					video_dislikes={current_video_dislikes?.length ?? 0}
 					video_tags={current_video?.tags ?? []}
 					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
+					display_variant={'small'}
+				/>
+				<VideoSection
+					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
+					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
+					publisher_followers={publisher_followers?.length ?? 0}
+					video={current_video?.video?.VIDEO_LOCATION ?? null}
+					video_id={current_video?.video?.VIDEO_ID ?? null}
+					video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
+					video_likes={current_video_likes?.length ?? 0}
+					video_dislikes={current_video_dislikes?.length ?? 0}
+					video_tags={current_video?.tags ?? []}
+					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
+					display_variant={'small'}
+				/>
+				<VideoSection
+					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
+					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
+					publisher_followers={publisher_followers?.length ?? 0}
+					video={current_video?.video?.VIDEO_LOCATION ?? null}
+					video_id={current_video?.video?.VIDEO_ID ?? null}
+					video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
+					video_likes={current_video_likes?.length ?? 0}
+					video_dislikes={current_video_dislikes?.length ?? 0}
+					video_tags={current_video?.tags ?? []}
+					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
+					display_variant={'small'}
 				/>
 			</div>
 		</div>
@@ -185,6 +201,7 @@
 			video_likes={current_video_likes?.length ?? 0}
 			video_dislikes={current_video_dislikes?.length ?? 0}
 			video_comments={current_video?.comments?.length ?? 0}
+			display_variant={'default'}
 		/>
 	{/if}
 {/key}

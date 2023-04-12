@@ -16,6 +16,8 @@
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
 
+	export let page;
+
 	/* --- LOGIC --- */
 	// TODO: fetch and parse data
 </script>

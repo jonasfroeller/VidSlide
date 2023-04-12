@@ -272,8 +272,12 @@ type RootTranslation = {
 			loggedIn_success: string
 		}
 	}
-	pages: {
-		account: {
+	SearchSection: {
+		/**
+		 * S​u​c​h​e​n
+		 */
+		search: string
+		search_option: {
 			/**
 			 * S​u​c​h​e​ ​n​a​c​h​:
 			 */
@@ -307,10 +311,16 @@ type RootTranslation = {
 			 */
 			likes: string
 			/**
+			 * D​i​s​l​i​k​e​s
+			 */
+			dislikes: string
+			/**
 			 * {​{​e​i​n​ ​V​i​d​e​o​ ​g​e​f​u​n​d​e​n​}​}
 			 */
 			videos_found: string
 		}
+	}
+	pages: {
 		settings: {
 			site_section: {
 				/**
@@ -345,12 +355,6 @@ type RootTranslation = {
 				edit: string
 			}
 		}
-	}
-	global: {
-		/**
-		 * S​u​c​h​e​n
-		 */
-		search: string
 	}
 }
 
@@ -609,8 +613,12 @@ export type TranslationFunctions = {
 			loggedIn_success: () => LocalizedString
 		}
 	}
-	pages: {
-		account: {
+	SearchSection: {
+		/**
+		 * Suchen
+		 */
+		search: () => LocalizedString
+		search_option: {
 			/**
 			 * Suche nach:
 			 */
@@ -644,10 +652,16 @@ export type TranslationFunctions = {
 			 */
 			likes: () => LocalizedString
 			/**
+			 * Dislikes
+			 */
+			dislikes: () => LocalizedString
+			/**
 			 * {{ein Video gefunden}}
 			 */
 			videos_found: (arg: { keine Videos gefunden: number | string | boolean }) => LocalizedString
 		}
+	}
+	pages: {
 		settings: {
 			site_section: {
 				/**
@@ -682,12 +696,6 @@ export type TranslationFunctions = {
 				edit: () => LocalizedString
 			}
 		}
-	}
-	global: {
-		/**
-		 * Suchen
-		 */
-		search: () => LocalizedString
 	}
 }
 

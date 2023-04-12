@@ -92,8 +92,9 @@ const de = {
 			loggedIn_success: "Eingeloggt!"
 		}
 	},
-	pages: {
-		account: {
+	SearchSection: {
+		search: "Suchen",
+		search_option: {
 			subject: "Suche nach:",
 			category: "Kategorie",
 			username: "Username",
@@ -102,8 +103,11 @@ const de = {
 			date: "Datum",
 			views: "Aufrufen",
 			likes: "Likes",
+			dislikes: "Dislikes",
 			videos_found: "{{ keine Videos gefunden: | ein Video gefunden: | ?? Videos gefunden: }}"
 		},
+	},
+	pages: {
 		settings: {
 			site_section: {
 				title: "Seiten Einstellungen:",
@@ -117,10 +121,7 @@ const de = {
 				edit: "Bearbeiten"
 			}
 		}
-	},
-	global: {
-		search: "Suchen"
-	}
+	}		
 }
 
 export default de

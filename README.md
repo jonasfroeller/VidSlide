@@ -8,7 +8,7 @@
 
 ## Setup Frontend
 
-1. `npm install` <span style="color:green">// install node_modules</span>
+1. `npm install` <span style="color:green">// install node_modules (dependencies)</span>
 
 2. `npm run all` <span style="color:green">// view development server</span>
 
@@ -19,16 +19,24 @@
 ## Setup Database & Backend API
 
 | `sudo docker-compose up -d --build`  
-<span style="color:green">   
-// The command uses the "`docker-compose`" file and builds it with the RUN-commands in the "`Docker`" file to install mysqli.
+<span style="color:green">
+// The command uses the "<mark>docker-compose.yaml</mark>" file and builds it with the RUN-commands in the "<mark>Docker</mark>" file to install mysqli.
 The compose file includes 2 containers: The **mySQL database** and the **Apache PHP server** which functions as an mysqli-API to the database. The frontend fetches data from the backend index.php file which carries the JSON response.
 </span>
 
 ![docker-compose](./docs/img/docker-compose-censored.png?raw=true "docker-compose")
 
+<strong>Stop And Delete Containers</strong>
+
+* stop and delete: `docker-compose down`  
+* stop: `docker-compose stop`  
+* start after stopped: `docker-compose start`
+
 ### Apache-PHP-Backend
 
-#### Composer dependencies (generated from Docker file on docker-compose)
+#### Composer dependencies  
+
+<em>(generated from Docker file on docker-compose)</em>
 
 composer.json:
 {
@@ -40,9 +48,9 @@ composer.json:
 
 #### Generate JWT keys for authentication  
 
-(Linux | Windows: installed on WSL2, https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md)
+(Linux | Windows: installed on WSL2, <https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md>)
 
-`openssl genrsa -out private_key.pem 2048` <span style="color:green">// generates private key</span> 
+`openssl genrsa -out private_key.pem 2048` <span style="color:green">// generates private key</span>
 
 `openssl rsa -in private_key.pem -outform PEM -pubout -out public_key.pem` <span style="color:green">// generates public key from private key</span>  
 
