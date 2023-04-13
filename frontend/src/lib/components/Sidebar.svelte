@@ -63,7 +63,7 @@
 					<span>{$translation.Sidebar.search()}</span>
 				</a>
 			</li>
-			{#if user?.USER_USERNAME}
+			{#if $user?.USER_USERNAME}
 				<li>
 					<a
 						href="/{$locale}/account"
@@ -162,7 +162,7 @@
 					</span>
 				</a>
 			</li>
-			{#if user?.USER_USERNAME}
+			{#if $user?.USER_USERNAME}
 				<li class="flex justify-center">
 					<a
 						href="/{$locale}/account"

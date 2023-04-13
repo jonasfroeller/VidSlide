@@ -132,12 +132,12 @@
 													{#if follower?.USER_PROFILEPICTURE != null}
 														<Avatar
 															src={follower?.USER_PROFILEPICTURE}
-															class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+															class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
 														/>
 													{:else}
 														<Avatar
 															initials={follower?.USER_USERNAME?.charAt(0) ?? '??'}
-															class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+															class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
 														/>
 													{/if}
 												</a>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Components
+	import Main from '$component/Main.svelte';
 	import VideoData from '$component/VideoData.svelte';
 
 	// LoadData
@@ -9,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<meta property="og:url" content="https://rabbidly.com/en/" />
+	<meta property="og:url" content="https://svelte-kit-vid-slide.vercel.app/" />
 	<meta property="og:title" content="Home" />
 
 	<!-- %sveltekit.assets% and $images fails -->
@@ -36,6 +37,6 @@
 	<title>Home</title>
 </svelte:head>
 
-<section id="home-body" class="flex justify-center pt-2 gap-6 flex-wrap">
+<Main css={'gap-6'}>
 	<VideoData page={data.pathname} />
-</section>
+</Main>

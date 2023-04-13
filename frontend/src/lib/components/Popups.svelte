@@ -58,6 +58,12 @@
 		background: 'variant-ghost-success'
 	};
 
+	let message_registered_success = $translation.Popups.toast.registered__success();
+	export const registered_success: ToastSettings = {
+		message: message_registered_success,
+		background: 'variant-ghost-success'
+	};
+
 	let message_loggingIn_warning = $translation.Popups.toast.loggingIn_warning(); // input wrong
 	export const loggingIn_warning: ToastSettings = {
 		message: message_loggingIn_warning,

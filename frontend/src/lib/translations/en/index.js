@@ -89,7 +89,8 @@ const en = {
 			loggingIn_error: "Couldn't log in!",
 			loggingIn_warning: "Input invalid!",
 			loggingIn_info: "Logging you in!",
-			loggedIn_success: "Logged in!"
+			loggedIn_success: "Logged in!",
+			registered__success: "Registered new account!"
 		}
 	},
 	SearchSection: {
@@ -112,7 +113,7 @@ const en = {
 			site_section: {
 				title: "Site Settings:",
 			},
-			acount_section: {
+			account_section: {
 				title: "Account Settings:",
 				description: "Description:",
 				username: "Username:",

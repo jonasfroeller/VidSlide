@@ -72,7 +72,7 @@ function getJWT($connection, $response, $jwt, $publicKey)
 }
 
 // DATABASE FUNCTIONS
-function checkIfIdExists($connection, $type, $id)
+function checkIfIdExists($connection, $type, $id, $bind_type = "i")
 {
     if ($type == "user") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
@@ -96,13 +96,13 @@ function checkIfIdExists($connection, $type, $id)
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
     }
 
-    mysqli_stmt_bind_param($id_exists, 'i', $id);
+    mysqli_stmt_bind_param($id_exists, $bind_type, $id);
     mysqli_stmt_execute($id_exists);
     $query = mysqli_stmt_get_result($id_exists);
     $result = mysqli_fetch_all($query, MYSQLI_ASSOC);
     mysqli_stmt_close($id_exists);
 
-    return $result[0]["count"] !== 0;
+    return $result[0]["count"] != 0;
 }
 
 // gets data from database
@@ -178,7 +178,7 @@ function getVideoInfo($connection, $response, $topic = "all")
                     $hashtag_includes = '%' . $hashtag . '%';
 
                     array_push($response["info"]["fetch_params"], array("medium_id" => $hashtag)); // logging
-                    $exists = checkIfIdExists($connection, "tags_name", $hashtag_includes);
+                    $exists = checkIfIdExists($connection, "tags_name", $hashtag_includes, "s");
 
                     if ($exists) {
                         $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?');
@@ -237,6 +237,14 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
 
         $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
         $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
+
+        /* TODO:
+        export const user_stats = writable({}); // Videos, Views, Likes, Followers...
+        export const user_videos_liked = writable([]);
+        export const user_videos_disliked = writable([]);
+        export const user_comments_liked = writable([]);
+        export const user_comments_disliked = writable([]);
+        */
     }
 
     $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
@@ -640,7 +648,7 @@ try {
                             $username = mysqli_real_escape_string($connection, $_GET["medium_id"]);
 
                             array_push($response["info"]["fetch_params"], array("medium_id" => $username)); // logging
-                            $exists = checkIfIdExists($connection, "user_username", $username);
+                            $exists = checkIfIdExists($connection, "user_username", $username, "s");
 
                             if ($exists) {
                                 $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
@@ -717,7 +725,7 @@ try {
                             $title_includes = '%' . $title . '%';
 
                             array_push($response["info"]["fetch_params"], array("medium_id" => $title)); // logging
-                            $exists = checkIfIdExists($connection, "video_title", $title_includes);
+                            $exists = checkIfIdExists($connection, "video_title", $title_includes, "s");
 
                             if ($exists) {
                                 $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_TITLE LIKE ?');
@@ -815,37 +823,16 @@ try {
                     if (!$connection) {
                         errorOccurred($connection, $response, __LINE__, "connection error");
                     } else {
-                        $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
+                        $exists = checkIfIdExists($connection, "user_username", $username, "s");
 
-                        // bind values
-                        mysqli_stmt_bind_param($table_user, 's', $username);
-                        // execute query
-                        mysqli_stmt_execute($table_user);
-                        // fetch result
-                        $query = mysqli_stmt_get_result($table_user);
-                        $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
-                        mysqli_stmt_close($table_user);
-                        // free result set
-                        mysqli_free_result($query);
+                        if ($exists) {
+                            // send user data
+                            $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
+                            $response = getMedium($connection, $response, $table_user, $username, true, "s");
+                            $response = getUserInfo($connection, $response, $username, "s");
 
-                        if (empty($rows)) {
-                            $table_user_insert = mysqli_prepare($connection, "INSERT INTO USER (USER_USERNAME, USER_PASSWORD) VALUES (?, ?)");
-                            mysqli_stmt_bind_param($table_user_insert, 'ss', $username, $hashed_password);
-                            mysqli_stmt_execute($table_user_insert);
+                            $password_from_database = json_decode($response["data"][0], true)[0]["USER_PASSWORD"];
 
-                            if (mysqli_affected_rows($connection) > 0) {
-                                array_push($response["log"], date('H:i:s') . ": created new user: " . $username);
-                            } else {
-                                errorOccurred($connection, $response, __LINE__, "user insert failed");
-                            }
-
-                            mysqli_stmt_close($table_user_insert);
-
-                            $response["response"] = "accountDidNotExist";
-                            $response["info"]["database_connection_details"]["database_username"] = $username;
-                            $response["token"] = sendJWT($payload, $privateKey);
-                        } else {
-                            $password_from_database = $rows[0]["USER_PASSWORD"];
                             if (password_verify($password, $password_from_database)) {
                                 $response["response"] = "accountExisted";
                                 $response["info"]["database_connection_details"]["database_username"] = $username;
@@ -853,11 +840,28 @@ try {
                             } else {
                                 errorOccurred($connection, $response, __LINE__, "invalid password");
                             }
-                        }
+                        } else {
+                            $table_user_insert = mysqli_prepare($connection, "INSERT INTO USER (USER_USERNAME, USER_PASSWORD) VALUES (?, ?)");
+                            mysqli_stmt_bind_param($table_user_insert, 'ss', $username, $hashed_password);
+                            mysqli_stmt_execute($table_user_insert);
 
-                        // save as response data
-                        $response["requested"] = $response["requested"] . "READ table [1];"; // res;res;res
-                        array_push($response["data"], json_encode($rows));
+                            if (mysqli_affected_rows($connection) > 0) {
+                                array_push($response["log"], date('H:i:s') . ": created new user: " . $username);
+                                $response["token"] = sendJWT($payload, $privateKey);
+
+                                mysqli_stmt_close($table_user_insert);
+
+                                $response["response"] = "accountDidNotExist";
+                                $response["info"]["database_connection_details"]["database_username"] = $username;
+
+                                // send user data
+                                $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
+                                $response = getMedium($connection, $response, $table_user, $username, true, "s");
+                                $response = getUserInfo($connection, $response, $username, "s");
+                            } else {
+                                errorOccurred($connection, $response, __LINE__, "user insert failed");
+                            }
+                        }
                     }
                 }
             } else if ($action == "signout") {

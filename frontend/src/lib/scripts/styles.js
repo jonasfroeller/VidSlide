@@ -1,5 +1,5 @@
 export default class CSS_Styles {
-    static COMMENTS = {
+    static SMALL_ELEMENT = {
         AVATAR_SIZE: "w-[2.75rem]",
         FONT_PRIMARY: "text-lg",
         FONT_SECONDARY: "text-md text-primary-700 dark:text-primary-600",

@@ -1,6 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Components
+	import Main from '$component/Main.svelte';
 	import VideoData from '$component/VideoData.svelte';
 	import SearchSection from '$component/SearchSection.svelte';
 
@@ -10,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<meta property="og:url" content="https://rabbidly.com/en/" />
+	<meta property="og:url" content="https://svelte-kit-vid-slide.vercel.app/" />
 	<meta property="og:title" content="Search" />
 
 	<link
@@ -35,8 +36,8 @@
 	<title>Search</title>
 </svelte:head>
 
-<section id="search-body" class="flex justify-center pt-2 gap-6 flex-wrap">
+<Main css={'gap-6'}>
 	<SearchSection page={data.pathname} />
 
 	<VideoData page={data.pathname} />
-</section>
+</Main>

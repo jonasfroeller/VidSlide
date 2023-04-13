@@ -270,6 +270,10 @@ type RootTranslation = {
 			 * E​i​n​g​e​l​o​g​g​t​!
 			 */
 			loggedIn_success: string
+			/**
+			 * E​i​n​ ​n​e​u​e​r​ ​A​c​c​o​u​n​t​ ​w​u​r​d​e​ ​r​e​g​i​s​t​r​i​e​r​t​!
+			 */
+			registered__success: string
 		}
 	}
 	SearchSection: {
@@ -328,7 +332,7 @@ type RootTranslation = {
 				 */
 				title: string
 			}
-			acount_section: {
+			account_section: {
 				/**
 				 * A​c​c​o​u​n​t​ ​E​i​n​s​t​e​l​l​u​n​g​e​n​:
 				 */
@@ -611,6 +615,10 @@ export type TranslationFunctions = {
 			 * Eingeloggt!
 			 */
 			loggedIn_success: () => LocalizedString
+			/**
+			 * Ein neuer Account wurde registriert!
+			 */
+			registered__success: () => LocalizedString
 		}
 	}
 	SearchSection: {
@@ -669,7 +677,7 @@ export type TranslationFunctions = {
 				 */
 				title: () => LocalizedString
 			}
-			acount_section: {
+			account_section: {
 				/**
 				 * Account Einstellungen:
 				 */

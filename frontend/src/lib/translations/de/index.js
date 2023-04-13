@@ -89,7 +89,8 @@ const de = {
 			loggingIn_error: "Einloggen nicht erfolgreich!",
 			loggingIn_warning: "Eingabe invalide!",
 			loggingIn_info: "Du wirst in kürze eingeloggt!",
-			loggedIn_success: "Eingeloggt!"
+			loggedIn_success: "Eingeloggt!",
+			registered__success: "Ein neuer Account wurde registriert!"
 		}
 	},
 	SearchSection: {
@@ -112,7 +113,7 @@ const de = {
 			site_section: {
 				title: "Seiten Einstellungen:",
 			},
-			acount_section: {
+			account_section: {
 				title: "Account Einstellungen:",
 				description: "Beschreibung:",
 				username: "Username:",

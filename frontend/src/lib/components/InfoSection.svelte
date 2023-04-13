@@ -67,10 +67,13 @@
 					{#if $loginState}
 						<div id="write-comment" class="flex items-center gap-2 p-2 justify-center">
 							{#if $user?.USER_PROFILEPICTURE != undefined}
-								<Avatar class={CSS_Styles.COMMENTS.AVATAR_SIZE} src={$user?.USER_PROFILEPICTURE} />
+								<Avatar
+									class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
+									src={$user?.USER_PROFILEPICTURE}
+								/>
 							{:else}
 								<Avatar
-									class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+									class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
 									initials={$user?.USER_USERNAME?.charAt(0) ?? '??'}
 								/>
 							{/if}

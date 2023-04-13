@@ -4,6 +4,7 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Components
+	import Main from '$component/Main.svelte';
 	import UserData from '$component/UserData.svelte';
 	import SearchSection from '$component/SearchSection.svelte';
 
@@ -16,7 +17,7 @@
 </script>
 
 <svelte:head>
-	<meta property="og:url" content="https://rabbidly.com/en/" />
+	<meta property="og:url" content="https://svelte-kit-vid-slide.vercel.app/" />
 	<meta property="og:title" content="Account" />
 
 	<link
@@ -41,9 +42,7 @@
 	<title>Account</title>
 </svelte:head>
 
-<section id="account-body" class="flex justify-center pt-2 w-full">
-	<div class="flex flex-col w-fit">
-		<UserData page={data.pathname} />
-		<SearchSection display_variant={'horizontal'} />
-	</div>
-</section>
+<Main css={'flex-col'}>
+	<UserData page={data.pathname} />
+	<SearchSection display_variant={'horizontal'} />
+</Main>

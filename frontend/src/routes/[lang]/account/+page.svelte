@@ -12,10 +12,10 @@
 
 	/* --- LOGIC --- */
 	if (browser) {
-		goto(`/${$locale}/${$user?.USER_USERNAME ?? ''}`);
+		goto(`/${$locale}/account/${$user?.USER_USERNAME ?? ''}`);
 	}
 </script>
 
 <div class="flex justify-center items-center">
-	<h1>redirecting to /{$locale}/{$user?.USER_USERNAME ?? ''}...</h1>
+	<h1>redirecting to /{$locale}/account/{$user?.USER_USERNAME ?? ''}...</h1>
 </div>

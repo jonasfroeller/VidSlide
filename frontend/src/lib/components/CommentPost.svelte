@@ -30,13 +30,13 @@
 			{#if comment_avatar != null}
 				<Avatar
 					cursor="cursor-pointer"
-					class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+					class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
 					src={comment_avatar}
 				/>
 			{:else}
 				<Avatar
 					cursor="cursor-pointer"
-					class={CSS_Styles.COMMENTS.AVATAR_SIZE}
+					class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
 					initials={comment_username?.charAt(0)}
 				/>
 			{/if}
@@ -44,16 +44,17 @@
 		<p>
 			<a
 				href="/{$locale}/account/{comment_username}"
-				class="unstyled hover:underline {CSS_Styles.COMMENTS.FONT_PRIMARY}">{comment_username}</a
+				class="unstyled hover:underline {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
+				>{comment_username}</a
 			>
 			|
-			<span class={CSS_Styles.COMMENTS.FONT_TERTIARY}
+			<span class={CSS_Styles.SMALL_ELEMENT.FONT_TERTIARY}
 				>{$translation.CommentPost.dateTime(new Date(comment_date_time_posted))}</span
 			>
 		</p>
 	</div>
 	<div
-		class="{CSS_Styles.COMMENTS
+		class="{CSS_Styles.SMALL_ELEMENT
 			.FONT_SECONDARY} p-2 rounded-md bg-surface-200 dark:bg-surface-600 max-h-36"
 	>
 		{comment_text}
@@ -64,28 +65,30 @@
 				<button
 					type="button"
 					disabled={$loginState ? false : true}
-					class="btn btn-sm variant-ringed-secondary {CSS_Styles.COMMENTS.FONT_PRIMARY}"
+					class="btn btn-sm variant-ringed-secondary {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
 				>
 					{#if $user_comments_liked?.includes(comment_id)}
 						<iconify-icon icon="material-symbols:thumb-up-rounded" />
 					{:else}
 						<iconify-icon icon="material-symbols:thumb-up-outline-rounded" />
 					{/if}
-					<span class="text-center {CSS_Styles.COMMENTS.FONT_TERTIARY}">{comment_likes}</span>
+					<span class="text-center {CSS_Styles.SMALL_ELEMENT.FONT_TERTIARY}">{comment_likes}</span>
 				</button>
 			</div>
 			<div class="flex gap-1">
 				<button
 					type="button"
 					disabled={$loginState ? false : true}
-					class="btn btn-sm variant-ringed-secondary {CSS_Styles.COMMENTS.FONT_PRIMARY}"
+					class="btn btn-sm variant-ringed-secondary {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
 				>
 					{#if $user_comments_disliked?.includes(comment_id)}
 						<iconify-icon icon="material-symbols:thumb-up-rounded" />
 					{:else}
 						<iconify-icon icon="material-symbols:thumb-down-outline-rounded" />
 					{/if}
-					<span class="text-center {CSS_Styles.COMMENTS.FONT_TERTIARY}">{comment_dislikes}</span>
+					<span class="text-center {CSS_Styles.SMALL_ELEMENT.FONT_TERTIARY}"
+						>{comment_dislikes}</span
+					>
 				</button>
 			</div>
 		</div>

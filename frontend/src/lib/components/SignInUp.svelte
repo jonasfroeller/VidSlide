@@ -12,6 +12,7 @@
 	// Stores
 	import {
 		loginState,
+		jwt,
 		user,
 		user_stats,
 		user_subscribed,
@@ -97,36 +98,43 @@
 	let signInOrUp: number = 0;
 
 	/* -- Form Submit -- */
-	const onFormSubmit = (userMayExist: boolean): void => {
-		if ($modalStore[0]?.response) $modalStore[0]?.response(userData);
-		validateForm(true);
-
-		if (userMayExist) {
-			signIn(userData.username, userData.password).then((response) => {
-				// TODO: set user, user_following, user_social in store and change success message according to accountExisted
-				console.log(response);
-				$loginState = true;
-			});
-		} else {
-			signUp(userData.username, userData.password).then((response) => {
-				// TODO: set user, user_following, user_social in store and change success message according to accountExisted
-				console.log(response);
-				$loginState = true;
-			});
-		}
-	};
-
 	/* Database Connection */
 	async function signIn(username: string, password: string) {
 		toastStore.trigger(popups.loggingIn_info);
-		toastStore.trigger(popups.loggedIn_success);
 		return await Api.auth(username, password);
 	}
 
 	async function signUp(username: string, password: string) {
 		toastStore.trigger(popups.loggingIn_info);
-		toastStore.trigger(popups.loggedIn_success);
 		return await Api.auth(username, password);
+	}
+
+	const onFormSubmit = (userMayExist: boolean): void => {
+		if ($modalStore[0]?.response) $modalStore[0]?.response(userData);
+		validateForm(true);
+
+		/* loginState, user, user_stats, user_videos_liked, user_videos_disliked, user_comments_liked, user_comments_disliked, user_subscribed, user_subscribers, user_social. */
+		if (userMayExist) {
+			signIn(userData.username, userData.password).then((response) => {
+				setAccountVariables(response);
+			});
+		} else {
+			signUp(userData.username, userData.password).then((response) => {
+				setAccountVariables(response);
+			});
+		}
+	};
+
+	function setAccountVariables(response) {
+		if (response?.accountExisted) {
+			toastStore.trigger(popups.loggedIn_success);
+		} else {
+			toastStore.trigger(popups.registered_success);
+		}
+
+		$loginState = true;
+		$jwt = response?.token ?? null; // TODO: save in local storage
+		$user = response?.user ?? null; // TODO: save in local storage
 	}
 
 	/* -- Form Validation -- */
@@ -142,7 +150,7 @@
 
 			console.log(formattedError);
 
-			toastStore.trigger(popups.loggingIn_warning);
+			// toastStore.trigger(popups.loggingIn_warning);
 
 			username_error = formattedError.username?._errors[0] ?? 'null';
 			password_error = formattedError.password?._errors[0] ?? 'null';
@@ -206,8 +214,8 @@
 					{#if username_error != 'null'}
 						<p
 							class="text-center {username_error == 'undefined'
-								? 'text-warning-100'
-								: 'text-error-100'}"
+								? 'text-warning-800 dark:text-warning-100'
+								: 'text-error-800 dark:text-error-100'}"
 						>
 							{username_error == 'undefined' ? 'required' : username_error}
 						</p>
@@ -217,9 +225,9 @@
 					<span>{$translation.SignInUp.password()}</span>
 					<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 						<div
-							class="input-group-shim {username_error == 'undefined'
+							class="input-group-shim {password_error == 'undefined'
 								? 'input-warning'
-								: username_error == 'null'
+								: password_error == 'null'
 								? 'input-success'
 								: 'input-error'}"
 						>
@@ -242,8 +250,8 @@
 					{#if password_error != 'null'}
 						<p
 							class="text-center {password_error == 'undefined'
-								? 'text-warning-100'
-								: 'text-error-100'}"
+								? 'text-warning-800 dark:text-warning-100'
+								: 'text-error-800 dark:text-error-100'}"
 						>
 							{password_error == 'undefined' ? 'required' : password_error}
 						</p>
@@ -254,9 +262,9 @@
 						<span>{$translation.SignInUp.password_retype()}</span>
 						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 							<div
-								class="input-group-shim {username_error == 'undefined'
+								class="input-group-shim {password_confirm_error == 'undefined'
 									? 'input-warning'
-									: username_error == 'null'
+									: password_confirm_error == 'null'
 									? 'input-success'
 									: 'input-error'}"
 							>
@@ -279,8 +287,8 @@
 						{#if password_confirm_error != 'null'}
 							<p
 								class="text-center {password_confirm_error == 'undefined'
-									? 'text-warning-100'
-									: 'text-error-100'}"
+									? 'text-warning-800 dark:text-warning-100'
+									: 'text-error-800 dark:text-error-100'}"
 							>
 								{password_confirm_error == 'undefined' ? 'required' : password_confirm_error}
 							</p>
@@ -295,20 +303,20 @@
 		<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}
 			>{$translation.SignInUp.cancel()}</button
 		>
-		{#if signInOrUp == 1}
+		{#if signInOrUp == 0}
 			{#if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined')  || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
-				<button class="btn {parent.buttonPositive}" disabled>{$translation.SignInUp.signIn()}</button>
-			{:else}
-				<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(true)}
-					>{$translation.SignInUp.signIn()}</button
-				>
-			{/if}
-		{:else if username_error != 'null' || password_error != 'null' || password_confirm_error != 'null' || username_error.includes('undefined') || password_error.includes('undefined') || password_confirm_error.includes('undefined')}
 			<button class="btn {parent.buttonPositive}" disabled>{$translation.SignInUp.signUp()}</button>
-		{:else}
+			{:else}
 			<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(false)}
 				>{$translation.SignInUp.signUp()}</button
 			>
+			{/if}
+		{:else if username_error != 'null' || password_error != 'null' || username_error.includes('undefined') || password_error.includes('undefined') }
+		<button class="btn {parent.buttonPositive}" disabled>{$translation.SignInUp.signIn()}</button>
+		{:else} 
+		<button class="btn {parent.buttonPositive}" on:click={() => onFormSubmit(true)}
+			>{$translation.SignInUp.signIn()}</button
+		>
 		{/if}
 	</footer>
 </div>
