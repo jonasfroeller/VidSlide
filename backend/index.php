@@ -772,7 +772,7 @@ try {
             } else if ($medium == "comments") { // ?medium=comments [MEDIUM]
                 $response = getVideoInfo($connection, $response, "comments");
             } else if ($medium == "tags") { // ?medium=tags [MEDIUM]
-                $response = getVideoInfo($connection, $response, "tags");
+                $response = getVideoInfo($connection, $response, "tags"); // TODO: tags including text
             } else if ($medium == "feedback") { // ?medium=feedback [MEDIUM]
                 $response = getVideoInfo($connection, $response, "feedback");
             } else {
@@ -918,8 +918,8 @@ try {
                     $response["token"] = "invalid";
                 }
             } else if ($action == "comment") {
-            } else if ($action == "like") {
-            } else if ($action == "dislike") {
+            } else if ($action == "feedback") {
+            } else if ($action == "follow") {
             }
         }
     }
