@@ -75,25 +75,25 @@ function getJWT($connection, $response, $jwt, $publicKey)
 function checkIfIdExists($connection, $type, $id, $bind_type = "i")
 {
     if ($type == "user") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER WHERE VS_USER_ID = ?");
     } else if ($type == "user_username") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_USERNAME = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER WHERE USER_USERNAME = ?");
     } else if ($type == "video") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO WHERE VIDEO_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VS_VIDEO_ID = ?");
     } else if ($type == "video_userID") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO WHERE USER_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VS_USER_ID = ?");
     } else if ($type == "video_title") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO WHERE VIDEO_TITLE = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VIDEO_TITLE = ?");
     } else if ($type == "comments") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO_COMMENT WHERE VIDEO_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO_COMMENT WHERE VS_VIDEO_ID = ?");
     } else if ($type == "feedback_videoID") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO_FEEDBACK WHERE VIDEO_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO_FEEDBACK WHERE VS_VIDEO_ID = ?");
     } else if ($type == "tags_videoID") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO_HASHTAG WHERE VIDEO_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO_HASHTAG WHERE VS_VIDEO_ID = ?");
     } else if ($type == "tags_name") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VIDEO_HASHTAG WHERE HASHTAG_NAME = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME = ?");
     } else { // fallback
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM USER WHERE USER_ID = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER WHERE VS_USER_ID = ?");
     }
 
     mysqli_stmt_bind_param($id_exists, $bind_type, $id);
@@ -154,7 +154,7 @@ function getVideoInfo($connection, $response, $topic = "all")
                 $exists = checkIfIdExists($connection, "video_userID", $id);
 
                 if ($exists) {
-                    $query = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = (SELECT USER_ID FROM VIDEO WHERE VIDEO_ID = ?)');
+                    $query = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE VS_USER_ID = (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?)');
                     $response["data"]["user"] = getMedium($connection, $response, $query, $id, true, "i", true);
                 } else {
                     errorOccurred($connection, $response, __LINE__, "user not found");
@@ -165,7 +165,7 @@ function getVideoInfo($connection, $response, $topic = "all")
                 $exists = checkIfIdExists($connection, "feedback_videoID", $id);
 
                 if ($exists) {
-                    $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_FEEDBACK WHERE VIDEO_ID = ?');
+                    $query = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO_FEEDBACK WHERE VS_VIDEO_ID = ?');
                     $response["data"]["feedback"] = getMedium($connection, $response, $query, $id, true, "i", true);
                 } else {
                     errorOccurred($connection, $response, __LINE__, "feedback not found");
@@ -181,7 +181,7 @@ function getVideoInfo($connection, $response, $topic = "all")
                     $exists = checkIfIdExists($connection, "tags_name", $hashtag_includes, "s");
 
                     if ($exists) {
-                        $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?');
+                        $query = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?');
                         $response["data"]["tags"] = getMedium($connection, $response, $query, $hashtag_includes, true, "s", true);
                     } else {
                         errorOccurred($connection, $response, __LINE__, "hashtags not found");
@@ -190,7 +190,7 @@ function getVideoInfo($connection, $response, $topic = "all")
                     $exists = checkIfIdExists($connection, "tags_videoID", $id);
 
                     if ($exists) {
-                        $query = mysqli_prepare($connection, 'SELECT * FROM VIDEO_HASHTAG WHERE VIDEO_ID = ?');
+                        $query = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO_HASHTAG WHERE VS_VIDEO_ID = ?');
                         $response["data"]["tags"] = getMedium($connection, $response, $query, $id, true, "i", true);
                     } else {
                         errorOccurred($connection, $response, __LINE__, "hashtag not found");
@@ -203,12 +203,12 @@ function getVideoInfo($connection, $response, $topic = "all")
                 $exists_2 = checkIfIdExists($connection, "comments", $id);
 
                 if ($exists_1 && $exists_2) {
-                    $table_comment = mysqli_prepare($connection, 'SELECT vc.*, u.* FROM VIDEO_COMMENT vc JOIN USER u ON vc.USER_ID = u.USER_ID WHERE vc.VIDEO_ID = ?');
+                    $table_comment = mysqli_prepare($connection, 'SELECT vc.*, u.* FROM VS_VIDEO_COMMENT vc JOIN VS_USER u ON vc.VS_USER_ID = u.VS_USER_ID WHERE vc.VS_VIDEO_ID = ?');
                     $response["data"]["comments"] = getMedium($connection, $response, $table_comment, $id, true, "i", true);
 
                     foreach (json_decode($response["data"]["comments"], true) as $comment) {
                         $id = $comment["COMMENT_ID"];
-                        $table_comment_feedback = "SELECT * FROM COMMENT_FEEDBACK WHERE COMMENT_ID = $id";
+                        $table_comment_feedback = "SELECT * FROM VS_COMMENT_FEEDBACK WHERE COMMENT_ID = $id";
                         $response["data"]["comments_feedback"] = getMedium($connection, $response, $table_comment_feedback, null, false, "i", true);
                     }
                 } else {
@@ -226,16 +226,16 @@ function getVideoInfo($connection, $response, $topic = "all")
 function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
 {
     if ($bind_type == "s") {
-        $table_socials = mysqli_prepare($connection, 'SELECT USER_ID FROM USER WHERE USER_USERNAME = ?');
+        $table_socials = mysqli_prepare($connection, 'SELECT VS_USER_ID FROM VS_USER WHERE USER_USERNAME = ?');
         $user_id = json_decode(getMedium($connection, $response, $table_socials, $bind_var, true, "s", true), true);
 
-        $bind_var = $user_id[0]["USER_ID"];
+        $bind_var = $user_id[0]["VS_USER_ID"];
 
         // fetch more if fetched with username instead of id
-        $table_socials = mysqli_prepare($connection, 'SELECT * FROM USER_SOCIAL WHERE USER_ID = ?');
+        $table_socials = mysqli_prepare($connection, 'SELECT * FROM VS_USER_SOCIAL WHERE VS_USER_ID = ?');
         $response["data"]["socials"] = getMedium($connection, $response, $table_socials, $bind_var, true, "i", true);
 
-        $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
+        $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
         $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
 
         /* TODO:
@@ -247,7 +247,7 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
         */
     }
 
-    $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM USER WHERE USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
+    $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
     $response["data"]["subscribers"] = getMedium($connection, $response, $table_subscribers, $bind_var, true, "i", true);
 
     return $response;
@@ -363,7 +363,7 @@ if (!$connection) {
     // create guest user
     $guest_user_username = "guest";
     $guest_user_password = "420GUEST69";
-    $guest_user = "CREATE USER IF NOT EXISTS '$guest_user_username'@'%' IDENTIFIED WITH mysql_native_password BY '$guest_user_password'"; // with mysql_native_password to avoid PHP problems
+    $guest_user = "CREATE VS_USER IF NOT EXISTS '$guest_user_username'@'%' IDENTIFIED WITH mysql_native_password BY '$guest_user_password'"; // with mysql_native_password to avoid PHP problems
     $guest_user_query = mysqli_query($connection, $guest_user);
 
     if ($guest_user_query) {
@@ -413,8 +413,8 @@ if (!$connection) {
     // create tables
     array_push($response["log"], date('H:i:s') . ": looking for tables...");
 
-    $table_01 = "CREATE TABLE IF NOT EXISTS USER (
-        USER_ID INT AUTO_INCREMENT PRIMARY KEY,
+    $table_01 = "CREATE TABLE IF NOT EXISTS VS_USER (
+        VS_USER_ID INT AUTO_INCREMENT PRIMARY KEY,
         USER_USERNAME VARCHAR(25) NOT NULL,
         USER_PASSWORD VARCHAR(250) NOT NULL,
         USER_PROFILEPICTURE VARCHAR(100) DEFAULT NULL,
@@ -424,8 +424,8 @@ if (!$connection) {
         CONSTRAINT UNIQUE_USERNAME UNIQUE (USER_USERNAME)
     )";
 
-    $table_02 = "CREATE TABLE IF NOT EXISTS VIDEO (
-        VIDEO_ID INT AUTO_INCREMENT PRIMARY KEY,
+    $table_02 = "CREATE TABLE IF NOT EXISTS VS_VIDEO (
+        VS_VIDEO_ID INT AUTO_INCREMENT PRIMARY KEY,
         VIDEO_TITLE VARCHAR(25) NOT NULL,
         VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL,
         VIDEO_LOCATION VARCHAR(250) NOT NULL,
@@ -434,65 +434,65 @@ if (!$connection) {
         VIDEO_SHARES INT DEFAULT 0,
         VIDEO_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         VIDEO_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        USER_ID INT NOT NULL,
-        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID)
+        VS_USER_ID INT NOT NULL,
+        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID)
     )";
 
-    $table_03 = "CREATE TABLE IF NOT EXISTS USER_SOCIAL (
+    $table_03 = "CREATE TABLE IF NOT EXISTS VS_USER_SOCIAL (
         SOCIAL_ID INT AUTO_INCREMENT PRIMARY KEY,
         SOCIAL_PLATFORM VARCHAR(25) NOT NULL,
         SOCIAL_URL VARCHAR(250) NOT NULL,
-        USER_ID INT NOT NULL,
-        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID),
-        CONSTRAINT UNIQUE_SOCIAL UNIQUE (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID)
+        VS_USER_ID INT NOT NULL,
+        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID),
+        CONSTRAINT UNIQUE_SOCIAL UNIQUE (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID)
     )";
 
-    $table_04 = "CREATE TABLE IF NOT EXISTS USER_FOLLOWING (
+    $table_04 = "CREATE TABLE IF NOT EXISTS VS_USER_FOLLOWING (
         FOLLOWING_ID INT AUTO_INCREMENT PRIMARY KEY,
         FOLLOWING_SUBSCRIBER INT NOT NULL,
         FOLLOWING_SUBSCRIBED INT NOT NULL,
-        FOREIGN KEY (FOLLOWING_SUBSCRIBER) REFERENCES USER(USER_ID),
-        FOREIGN KEY (FOLLOWING_SUBSCRIBED) REFERENCES USER(USER_ID),
+        FOREIGN KEY (FOLLOWING_SUBSCRIBER) REFERENCES VS_USER(VS_USER_ID),
+        FOREIGN KEY (FOLLOWING_SUBSCRIBED) REFERENCES VS_USER(VS_USER_ID),
         CONSTRAINT UNIQUE_FOLLOWING UNIQUE (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED)
     )";
 
-    $table_05 = "CREATE TABLE IF NOT EXISTS VIDEO_FEEDBACK (
+    $table_05 = "CREATE TABLE IF NOT EXISTS VS_VIDEO_FEEDBACK (
         VIDEO_FEEDBACK_ID INT AUTO_INCREMENT PRIMARY KEY,
         VIDEO_FEEDBACK_TYPE ENUM('positive', 'negative') NOT NULL,
-        VIDEO_ID INT NOT NULL,
-        USER_ID INT NOT NULL,
-        FOREIGN KEY (VIDEO_ID) REFERENCES VIDEO(VIDEO_ID),
-        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID),
-        CONSTRAINT UNIQUE_VIDEO_FEEDBACK UNIQUE (VIDEO_ID, USER_ID)
+        VS_VIDEO_ID INT NOT NULL,
+        VS_USER_ID INT NOT NULL,
+        FOREIGN KEY (VS_VIDEO_ID) REFERENCES VS_VIDEO(VS_VIDEO_ID),
+        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID),
+        CONSTRAINT UNIQUE_VIDEO_FEEDBACK UNIQUE (VS_VIDEO_ID, VS_USER_ID)
     )";
 
-    $table_06 = "CREATE TABLE IF NOT EXISTS VIDEO_COMMENT (
+    $table_06 = "CREATE TABLE IF NOT EXISTS VS_VIDEO_COMMENT (
         COMMENT_ID INT AUTO_INCREMENT PRIMARY KEY,
         COMMENT_PARENT_ID INT DEFAULT NULL,
         COMMENT_MESSAGE VARCHAR(250) NOT NULL,
         COMMENT_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         COMMENT_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        VIDEO_ID INT NOT NULL,
-        USER_ID INT NOT NULL,
-        FOREIGN KEY (VIDEO_ID) REFERENCES VIDEO(VIDEO_ID),
-        FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID)
+        VS_VIDEO_ID INT NOT NULL,
+        VS_USER_ID INT NOT NULL,
+        FOREIGN KEY (VS_VIDEO_ID) REFERENCES VS_VIDEO(VS_VIDEO_ID),
+        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID)
     )";
 
-    $table_07 = "CREATE TABLE IF NOT EXISTS COMMENT_FEEDBACK (
+    $table_07 = "CREATE TABLE IF NOT EXISTS VS_COMMENT_FEEDBACK (
         COMMENT_FEEDBACK_ID INT AUTO_INCREMENT PRIMARY KEY,
         COMMENT_FEEDBACK_TYPE ENUM('positive', 'negative') NOT NULL,
         COMMENT_ID INT NOT NULL,
-        USER_ID INT NOT NULL,
-        FOREIGN KEY (COMMENT_ID) REFERENCES VIDEO_COMMENT(COMMENT_ID),
-        CONSTRAINT UNIQUE_COMMENT_FEEDBACK UNIQUE (COMMENT_ID, USER_ID)
+        VS_USER_ID INT NOT NULL,
+        FOREIGN KEY (COMMENT_ID) REFERENCES VS_VIDEO_COMMENT(COMMENT_ID),
+        CONSTRAINT UNIQUE_COMMENT_FEEDBACK UNIQUE (COMMENT_ID, VS_USER_ID)
     )";
 
-    $table_08 = "CREATE TABLE IF NOT EXISTS VIDEO_HASHTAG (
+    $table_08 = "CREATE TABLE IF NOT EXISTS VS_VIDEO_HASHTAG (
         HASHTAG_ID INT AUTO_INCREMENT PRIMARY KEY,
         HASHTAG_NAME VARCHAR(500) NOT NULL,
-        VIDEO_ID INT NOT NULL,
-        FOREIGN KEY (VIDEO_ID) REFERENCES VIDEO(VIDEO_ID),
-        CONSTRAINT UNIQUE_HASHTAG UNIQUE (VIDEO_ID, HASHTAG_NAME)
+        VS_VIDEO_ID INT NOT NULL,
+        FOREIGN KEY (VS_VIDEO_ID) REFERENCES VS_VIDEO(VS_VIDEO_ID),
+        CONSTRAINT UNIQUE_HASHTAG UNIQUE (VS_VIDEO_ID, HASHTAG_NAME)
     )";
 
     for ($i = 1; $i <= 8; $i++) {
@@ -505,51 +505,51 @@ if (!$connection) {
     }
 
     // create mock data
-    $user_count = "SELECT COUNT(*) as amount FROM USER"; // returns 0 => empty || IGNORE => ignores if UNIQUE
+    $user_count = "SELECT COUNT(*) as amount FROM VS_USER"; // returns 0 => empty || IGNORE => ignores if UNIQUE
     $user_count_query = mysqli_query($connection, $user_count);
     $video_count_fetched = mysqli_fetch_assoc($user_count_query);
     mysqli_free_result($user_count_query);
     if (intval($video_count_fetched["amount"]) == 0) {
-        $mock_data = "INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD) VALUES ('JohnDoe', 'password123');
-        INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('JaneDoe', 'password456', 'https://picsum.photos/50/50', 'Hi, I love coding!');
-        INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE) VALUES ('AlexSmith', 'password789', 'https://picsum.photos/50/50');
-        INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEDESCRIPTION) VALUES ('MeganTaylor', 'password111', 'I am a designer and love creating beautiful things!');
-        INSERT IGNORE INTO USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('SamJones', 'password222', 'https://picsum.photos/50/50', 'I am an entrepreneur and love building businesses!');
-        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 'vid_1.MP4', '25MB', 5);
-        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, USER_ID) VALUES ('My Home Movie', 'A fun family outing', 'vid_2.MP4', '100MB', 1);
-        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, USER_ID) VALUES ('Funny Cat Video', 'A hilarious compilation of cats being silly', 'vid_3.MP4', '50MB', 2);
-        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, USER_ID) VALUES ('My Vacation in Hawaii', 'A trip to remember', 'vid_4.MP4', '500MB', 3);
-        INSERT IGNORE INTO VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, USER_ID) VALUES ('My First Concert', 'My band is first gig', 'vid_5.MP4', '200MB', 4);
-        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Github', 'https://github.com/jonasfroeller', 1);
-        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Instagram', 'https://www.instagram.com/user2/', 2);
-        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('YouTube', 'https://www.youtube.com/user3/', 3); 
-        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('LinkedIn', 'https://www.linkedin.com/in/user4/', 4);
-        INSERT IGNORE INTO USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, USER_ID) VALUES ('Twitter', 'https://github.com/jonasfroeller', 5);
-        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 2);
-        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (3, 1);
-        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (2, 4);
-        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (4, 1);
-        INSERT IGNORE INTO USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (2, 1);
-        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('positive', 1, 4);
-        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('positive', 1, 2);
-        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('negative', 3, 4);
-        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('positive', 2, 5);
-        INSERT IGNORE INTO VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VIDEO_ID, USER_ID) VALUES ('negative', 4, 1);
-        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('Vlog', 1);
-        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('lustig', 1);
-        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('reisen', 2), ('Urlaub', 2);
-        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('musik', 3);
-        INSERT IGNORE INTO VIDEO_HASHTAG (HASHTAG_NAME, VIDEO_ID) VALUES ('kochen', 4), ('gesund', 4), ('friday', 4);
-        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES ('Tolles Video!', 1, 3);
-        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES ('Great video!', 1, 2);
-        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_PARENT_ID, COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES (1, 'Thanks for your comment!', 1, 1);
-        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES ('This video is amazing!', 4, 3);
-        INSERT IGNORE INTO VIDEO_COMMENT (COMMENT_PARENT_ID, COMMENT_MESSAGE, VIDEO_ID, USER_ID) VALUES (1, 'I completely agree!', 1, 2);
-        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('negative', 1, 1);
-        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('positive', 2, 1);
-        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('negative', 2, 3);
-        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('positive', 4, 2);
-        INSERT IGNORE INTO COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, USER_ID) VALUES ('negative', 3, 4);";
+        $mock_data = "INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD) VALUES ('JohnDoe', 'password123');
+        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('JaneDoe', 'password456', 'https://picsum.photos/50/50', 'Hi, I love coding!');
+        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE) VALUES ('AlexSmith', 'password789', 'https://picsum.photos/50/50');
+        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEDESCRIPTION) VALUES ('MeganTaylor', 'password111', 'I am a designer and love creating beautiful things!');
+        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('SamJones', 'password222', 'https://picsum.photos/50/50', 'I am an entrepreneur and love building businesses!');
+        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 'vid_1.MP4', '25MB', 5);
+        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('My Home Movie', 'A fun family outing', 'vid_2.MP4', '100MB', 1);
+        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('Funny Cat Video', 'A hilarious compilation of cats being silly', 'vid_3.MP4', '50MB', 2);
+        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('My Vacation in Hawaii', 'A trip to remember', 'vid_4.MP4', '500MB', 3);
+        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('My First Concert', 'My band is first gig', 'vid_5.MP4', '200MB', 4);
+        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('Github', 'https://github.com/jonasfroeller', 1);
+        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('Instagram', 'https://www.instagram.com/user2/', 2);
+        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('YouTube', 'https://www.youtube.com/user3/', 3); 
+        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('LinkedIn', 'https://www.linkedin.com/in/user4/', 4);
+        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('Twitter', 'https://github.com/jonasfroeller', 5);
+        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 2);
+        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (3, 1);
+        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (2, 4);
+        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (4, 1);
+        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (2, 1);
+        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('positive', 1, 4);
+        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('positive', 1, 2);
+        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('negative', 3, 4);
+        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('positive', 2, 5);
+        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('negative', 4, 1);
+        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('Vlog', 1);
+        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('lustig', 1);
+        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('reisen', 2), ('Urlaub', 2);
+        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('musik', 3);
+        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('kochen', 4), ('gesund', 4), ('friday', 4);
+        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES ('Tolles Video!', 1, 3);
+        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES ('Great video!', 1, 2);
+        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_PARENT_ID, COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES (1, 'Thanks for your comment!', 1, 1);
+        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES ('This video is amazing!', 4, 3);
+        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_PARENT_ID, COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES (1, 'I completely agree!', 1, 2);
+        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('negative', 1, 1);
+        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('positive', 2, 1);
+        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('negative', 2, 3);
+        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('positive', 4, 2);
+        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('negative', 3, 4);";
 
         mysqli_multi_query($connection, $mock_data);
         while (mysqli_next_result($connection)) {
@@ -632,7 +632,7 @@ try {
                                 $exists = checkIfIdExists($connection, "video", $videoID);
 
                                 if ($exists) {
-                                    $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = (SELECT USER_ID FROM VIDEO WHERE VIDEO_ID = ?)');
+                                    $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE VS_USER_ID = (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?)');
                                     $response = getMedium($connection, $response, $table_user, $videoID, true);
                                 } else {
                                     errorOccurred($connection, $response, __LINE__, "user not found");
@@ -651,7 +651,7 @@ try {
                             $exists = checkIfIdExists($connection, "user_username", $username, "s");
 
                             if ($exists) {
-                                $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
+                                $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE USER_USERNAME = ?');
                                 $response = getMedium($connection, $response, $table_user, $username, true, "s");
 
                                 $response = getUserInfo($connection, $response, $username, "s");
@@ -668,7 +668,7 @@ try {
                             $exists = checkIfIdExists($connection, "user", $userID);
 
                             if ($exists) {
-                                $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_ID = ?');
+                                $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE VS_USER_ID = ?');
                                 $response = getMedium($connection, $response, $table_user, $userID, true);
 
                                 $response = getUserInfo($connection, $response, $userID);
@@ -701,13 +701,13 @@ try {
                                 $exists = checkIfIdExists($connection, "video", $userID);
 
                                 if ($exists) {
-                                    $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE USER_ID = ? ORDER BY VIDEO_ID DESC');
+                                    $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_USER_ID = ? ORDER BY VS_VIDEO_ID DESC');
                                     $response = getMedium($connection, $response, $table_video, $userID, true);
 
                                     unset($_GET['medium_id']);
                                     $pulled_videos = json_decode($response["data"][0], true);
                                     foreach ($pulled_videos as $video) { // get multiple video infos at once
-                                        $_GET["id"] = $video["VIDEO_ID"];
+                                        $_GET["id"] = $video["VS_VIDEO_ID"];
                                         $response = getVideoInfo($connection, $response);
                                     }
                                 } else {
@@ -728,12 +728,12 @@ try {
                             $exists = checkIfIdExists($connection, "video_title", $title_includes, "s");
 
                             if ($exists) {
-                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_TITLE LIKE ?');
+                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VIDEO_TITLE LIKE ?');
                                 $response = getMedium($connection, $response, $table_video, $title_includes, true, "s");
 
                                 $pulled_videos = json_decode($response["data"][0], true);
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
-                                    $_GET["id"] = $video["VIDEO_ID"];
+                                    $_GET["id"] = $video["VS_VIDEO_ID"];
                                     $response = getVideoInfo($connection, $response);
                                 }
                             } else {
@@ -743,10 +743,10 @@ try {
                             errorOccurred($connection, $response, __LINE__, "medium_id param missing");
                         }
                     } else if ($id == "random") { // ?medium=video&id=random [ID]
-                        $table_video = "SELECT * FROM VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
+                        $table_video = "SELECT * FROM VS_VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
                         $response = getMedium($connection, $response, $table_video, $id, false);
 
-                        $_GET["id"] = json_decode($response["data"][0], true)[0]["VIDEO_ID"]; // set id to video_id instead of random
+                        $_GET["id"] = json_decode($response["data"][0], true)[0]["VS_VIDEO_ID"]; // set id to video_id instead of random
                         $response = getVideoInfo($connection, $response);
                     } else { // ?medium=video&id=? [ID]
                         $videoID = intval($id);
@@ -755,7 +755,7 @@ try {
                             $exists = checkIfIdExists($connection, "video", $videoID);
 
                             if ($exists) {
-                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VIDEO WHERE VIDEO_ID = ?');
+                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_VIDEO_ID = ?');
                                 $response = getMedium($connection, $response, $table_video, $videoID, true);
 
                                 $response = getVideoInfo($connection, $response);
@@ -827,7 +827,7 @@ try {
 
                         if ($exists) {
                             // send user data
-                            $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
+                            $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE USER_USERNAME = ?');
                             $response = getMedium($connection, $response, $table_user, $username, true, "s");
                             $response = getUserInfo($connection, $response, $username, "s");
 
@@ -841,7 +841,7 @@ try {
                                 errorOccurred($connection, $response, __LINE__, "invalid password");
                             }
                         } else {
-                            $table_user_insert = mysqli_prepare($connection, "INSERT INTO USER (USER_USERNAME, USER_PASSWORD) VALUES (?, ?)");
+                            $table_user_insert = mysqli_prepare($connection, "INSERT INTO VS_USER (USER_USERNAME, USER_PASSWORD) VALUES (?, ?)");
                             mysqli_stmt_bind_param($table_user_insert, 'ss', $username, $hashed_password);
                             mysqli_stmt_execute($table_user_insert);
 
@@ -855,7 +855,7 @@ try {
                                 $response["info"]["database_connection_details"]["database_username"] = $username;
 
                                 // send user data
-                                $table_user = mysqli_prepare($connection, 'SELECT * FROM USER WHERE USER_USERNAME = ?');
+                                $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE USER_USERNAME = ?');
                                 $response = getMedium($connection, $response, $table_user, $username, true, "s");
                                 $response = getUserInfo($connection, $response, $username, "s");
                             } else {
@@ -884,9 +884,9 @@ try {
                     VIDEO_SIZE VARCHAR(6) NOT NULL, // inserted on upload
                     VIDEO_VIEWS INT DEFAULT 0, // on pageload
                     VIDEO_SHARES INT DEFAULT 0, // on pageload
-                    USER_ID INT NOT NULL */
+                    VS_USER_ID INT NOT NULL */
 
-                    if (isset($_FILES["VIDEO_MEDIA"]) && isset($_POST["VIDEO_TITLE"])) { // USER_ID => wie mach ich das?
+                    if (isset($_FILES["VIDEO_MEDIA"]) && isset($_POST["VIDEO_TITLE"])) { // VS_USER_ID => wie mach ich das?
                         $video_media = $_FILES["VIDEO_MEDIA"];
                         $video_media_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]);
                         $video_media_tmp_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["tmp_name"]); // temp name on server
