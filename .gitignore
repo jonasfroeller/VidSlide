@@ -58,8 +58,6 @@
 **/dist
 **/build
 **/public
-**/public-default
-**/public-prefix
 
 # Other
 **/backend/media/**

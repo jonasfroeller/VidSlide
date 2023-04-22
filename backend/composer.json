@@ -1,6 +1,7 @@
 {
     "require": {
         "firebase/php-jwt": "^6.4",
-        "vlucas/phpdotenv": "^5.5"
+        "vlucas/phpdotenv": "^5.5",
+        "php-ffmpeg/php-ffmpeg": "^1.1"
     }
 }

@@ -18,12 +18,18 @@ header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorizatio
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // OPTIONS => get available methods
 header('Content-Type: application/json'); // return JSON
 
+// Authentication
 use Firebase\JWT\JWT;
 use Firebase\JWT\SignatureInvalidException;
 use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\Key;
+// Environment Variables
 use Dotenv\Dotenv;
+// Video Processing
+use FFMpeg\FFMpeg;
+use FFMpeg\Format\Video\X264;
+use FFMpeg\Coordinate\Dimension;
 
 require_once('./vendor/autoload.php');
 
@@ -360,226 +366,22 @@ $connection = mysqli_connect($host, $root, $pass, "", $port); // $connection = m
 if (!$connection) {
     errorOccurred($connection, $response, __LINE__, "connection error");
 } else {
-    // create guest user
     $guest_user_username = "guest";
     $guest_user_password = "420GUEST69";
-    $guest_user = "CREATE VS_USER IF NOT EXISTS '$guest_user_username'@'%' IDENTIFIED WITH mysql_native_password BY '$guest_user_password'"; // with mysql_native_password to avoid PHP problems
-    $guest_user_query = mysqli_query($connection, $guest_user);
-
-    if ($guest_user_query) {
-        array_push($response["log"], date('H:i:s') . ": vidslide guest user created/found " . "[$guest_user_query]");
-    } else {
-        errorOccurred($connection, $response, __LINE__, "couldn't create guest user");
+    if (isset($_GET["setup_db"]) && $_GET["setup_db"] === "true") { // ?setup_db=true SETUP DATABASE (first req?)
+        include("db_setup.php");
     }
-
-    // get privileges of guest user
-    $grantee = "guest'@'%";
-    $guest_user_privileges = "SELECT COUNT(*) as privileges FROM INFORMATION_SCHEMA.USER_PRIVILEGES WHERE GRANTEE = \"'guest'@'%'\" AND PRIVILEGE_TYPE = 'SELECT'";
-    $guest_user_privileges_query = mysqli_query($connection, $guest_user_privileges);
-    $guest_user_privileges_row = mysqli_fetch_assoc($guest_user_privileges_query);
-    $guest_user_privilege_count = $guest_user_privileges_row['privileges'];
-
-    if ($guest_user_privilege_count == 0) {
-        array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges fetched " . "[$guest_user_privilege_count]");
-
-        mysqli_free_result($guest_user_privileges_query);
-
-        // set guest user privileges => READ ONLY (SELECT)
-        $guest_user_grant_privileges = "GRANT SELECT ON *.* TO '$guest_user_username'@'%'";
-        $guest_user_grant_privileges_query = mysqli_query($connection, $guest_user_grant_privileges);
-
-        if ($guest_user_grant_privileges_query) {
-            array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges set " . "[$guest_user_grant_privileges_query]");
-        } else {
-            errorOccurred($connection, $response, __LINE__, "couldn't asign guest user privileges");
-        }
-    } else if ($guest_user_privilege_count == 1) {
-        array_push($response["log"], date('H:i:s') . ": vidslide guest user privileges fetched " . "[$guest_user_privilege_count]");
-    } else {
-        errorOccurred($connection, $response, __LINE__, "couldn't fetch guest user privileges");
-    }
-
-    // create database
-    $create_schema = "CREATE DATABASE IF NOT EXISTS $schema";
-    $schema_query = mysqli_query($connection, $create_schema);
-
-    if ($schema_query) {
-        array_push($response["log"], date('H:i:s') . ": vidslide database created/found " . "[$schema_query]");
-        mysqli_select_db($connection, $schema);
-    } else {
-        errorOccurred($connection, $response, __LINE__, "couldn't create database");
-    }
-
-    // create tables
-    array_push($response["log"], date('H:i:s') . ": looking for tables...");
-
-    $table_01 = "CREATE TABLE IF NOT EXISTS VS_USER (
-        VS_USER_ID INT AUTO_INCREMENT PRIMARY KEY,
-        USER_USERNAME VARCHAR(25) NOT NULL,
-        USER_PASSWORD VARCHAR(250) NOT NULL,
-        USER_PROFILEPICTURE VARCHAR(100) DEFAULT NULL,
-        USER_PROFILEDESCRIPTION VARCHAR(1000) DEFAULT NULL,
-        USER_DATETIMECREATED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        USER_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT UNIQUE_USERNAME UNIQUE (USER_USERNAME)
-    )";
-
-    $table_02 = "CREATE TABLE IF NOT EXISTS VS_VIDEO (
-        VS_VIDEO_ID INT AUTO_INCREMENT PRIMARY KEY,
-        VIDEO_TITLE VARCHAR(25) NOT NULL,
-        VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL,
-        VIDEO_LOCATION VARCHAR(250) NOT NULL,
-        VIDEO_SIZE VARCHAR(6) NOT NULL,
-        VIDEO_VIEWS INT DEFAULT 0,
-        VIDEO_SHARES INT DEFAULT 0,
-        VIDEO_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        VIDEO_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        VS_USER_ID INT NOT NULL,
-        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID)
-    )";
-
-    $table_03 = "CREATE TABLE IF NOT EXISTS VS_USER_SOCIAL (
-        SOCIAL_ID INT AUTO_INCREMENT PRIMARY KEY,
-        SOCIAL_PLATFORM VARCHAR(25) NOT NULL,
-        SOCIAL_URL VARCHAR(250) NOT NULL,
-        VS_USER_ID INT NOT NULL,
-        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID),
-        CONSTRAINT UNIQUE_SOCIAL UNIQUE (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID)
-    )";
-
-    $table_04 = "CREATE TABLE IF NOT EXISTS VS_USER_FOLLOWING (
-        FOLLOWING_ID INT AUTO_INCREMENT PRIMARY KEY,
-        FOLLOWING_SUBSCRIBER INT NOT NULL,
-        FOLLOWING_SUBSCRIBED INT NOT NULL,
-        FOREIGN KEY (FOLLOWING_SUBSCRIBER) REFERENCES VS_USER(VS_USER_ID),
-        FOREIGN KEY (FOLLOWING_SUBSCRIBED) REFERENCES VS_USER(VS_USER_ID),
-        CONSTRAINT UNIQUE_FOLLOWING UNIQUE (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED)
-    )";
-
-    $table_05 = "CREATE TABLE IF NOT EXISTS VS_VIDEO_FEEDBACK (
-        VIDEO_FEEDBACK_ID INT AUTO_INCREMENT PRIMARY KEY,
-        VIDEO_FEEDBACK_TYPE ENUM('positive', 'negative') NOT NULL,
-        VS_VIDEO_ID INT NOT NULL,
-        VS_USER_ID INT NOT NULL,
-        FOREIGN KEY (VS_VIDEO_ID) REFERENCES VS_VIDEO(VS_VIDEO_ID),
-        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID),
-        CONSTRAINT UNIQUE_VIDEO_FEEDBACK UNIQUE (VS_VIDEO_ID, VS_USER_ID)
-    )";
-
-    $table_06 = "CREATE TABLE IF NOT EXISTS VS_VIDEO_COMMENT (
-        COMMENT_ID INT AUTO_INCREMENT PRIMARY KEY,
-        COMMENT_PARENT_ID INT DEFAULT NULL,
-        COMMENT_MESSAGE VARCHAR(250) NOT NULL,
-        COMMENT_DATETIMEPOSTED TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        COMMENT_LASTUPDATE TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        VS_VIDEO_ID INT NOT NULL,
-        VS_USER_ID INT NOT NULL,
-        FOREIGN KEY (VS_VIDEO_ID) REFERENCES VS_VIDEO(VS_VIDEO_ID),
-        FOREIGN KEY (VS_USER_ID) REFERENCES VS_USER(VS_USER_ID)
-    )";
-
-    $table_07 = "CREATE TABLE IF NOT EXISTS VS_COMMENT_FEEDBACK (
-        COMMENT_FEEDBACK_ID INT AUTO_INCREMENT PRIMARY KEY,
-        COMMENT_FEEDBACK_TYPE ENUM('positive', 'negative') NOT NULL,
-        COMMENT_ID INT NOT NULL,
-        VS_USER_ID INT NOT NULL,
-        FOREIGN KEY (COMMENT_ID) REFERENCES VS_VIDEO_COMMENT(COMMENT_ID),
-        CONSTRAINT UNIQUE_COMMENT_FEEDBACK UNIQUE (COMMENT_ID, VS_USER_ID)
-    )";
-
-    $table_08 = "CREATE TABLE IF NOT EXISTS VS_VIDEO_HASHTAG (
-        HASHTAG_ID INT AUTO_INCREMENT PRIMARY KEY,
-        HASHTAG_NAME VARCHAR(500) NOT NULL,
-        VS_VIDEO_ID INT NOT NULL,
-        FOREIGN KEY (VS_VIDEO_ID) REFERENCES VS_VIDEO(VS_VIDEO_ID),
-        CONSTRAINT UNIQUE_HASHTAG UNIQUE (VS_VIDEO_ID, HASHTAG_NAME)
-    )";
-
-    for ($i = 1; $i <= 8; $i++) {
-        $table_create_query = mysqli_query($connection, ${"table_" . str_pad(strval($i), 2, "0", STR_PAD_LEFT)});
-        if ($table_create_query) {
-            array_push($response["log"], date('H:i:s') . ": table " . $i . " created/found");
-        } else {
-            errorOccurred($connection, $response, __LINE__, "couldn't create table " . $i);
-        }
-    }
-
-    // create mock data
-    $user_count = "SELECT COUNT(*) as amount FROM VS_USER"; // returns 0 => empty || IGNORE => ignores if UNIQUE
-    $user_count_query = mysqli_query($connection, $user_count);
-    $video_count_fetched = mysqli_fetch_assoc($user_count_query);
-    mysqli_free_result($user_count_query);
-    if (intval($video_count_fetched["amount"]) == 0) {
-        $mock_data = "INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD) VALUES ('JohnDoe', 'password123');
-        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('JaneDoe', 'password456', 'https://picsum.photos/50/50', 'Hi, I love coding!');
-        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE) VALUES ('AlexSmith', 'password789', 'https://picsum.photos/50/50');
-        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEDESCRIPTION) VALUES ('MeganTaylor', 'password111', 'I am a designer and love creating beautiful things!');
-        INSERT IGNORE INTO VS_USER (USER_USERNAME, USER_PASSWORD, USER_PROFILEPICTURE, USER_PROFILEDESCRIPTION) VALUES ('SamJones', 'password222', 'https://picsum.photos/50/50', 'I am an entrepreneur and love building businesses!');
-        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('Mein erster Vlog', 'Hier ist mein erster Vlog, den ich jemals gemacht habe!', 'vid_1.MP4', '25MB', 5);
-        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('My Home Movie', 'A fun family outing', 'vid_2.MP4', '100MB', 1);
-        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('Funny Cat Video', 'A hilarious compilation of cats being silly', 'vid_3.MP4', '50MB', 2);
-        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('My Vacation in Hawaii', 'A trip to remember', 'vid_4.MP4', '500MB', 3);
-        INSERT IGNORE INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('My First Concert', 'My band is first gig', 'vid_5.MP4', '200MB', 4);
-        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('Github', 'https://github.com/jonasfroeller', 1);
-        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('Instagram', 'https://www.instagram.com/user2/', 2);
-        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('YouTube', 'https://www.youtube.com/user3/', 3); 
-        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('LinkedIn', 'https://www.linkedin.com/in/user4/', 4);
-        INSERT IGNORE INTO VS_USER_SOCIAL (SOCIAL_PLATFORM, SOCIAL_URL, VS_USER_ID) VALUES ('Twitter', 'https://github.com/jonasfroeller', 5);
-        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (1, 2);
-        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (3, 1);
-        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (2, 4);
-        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (4, 1);
-        INSERT IGNORE INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (2, 1);
-        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('positive', 1, 4);
-        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('positive', 1, 2);
-        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('negative', 3, 4);
-        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('positive', 2, 5);
-        INSERT IGNORE INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES ('negative', 4, 1);
-        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('Vlog', 1);
-        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('lustig', 1);
-        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('reisen', 2), ('Urlaub', 2);
-        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('musik', 3);
-        INSERT IGNORE INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES ('kochen', 4), ('gesund', 4), ('friday', 4);
-        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES ('Tolles Video!', 1, 3);
-        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES ('Great video!', 1, 2);
-        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_PARENT_ID, COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES (1, 'Thanks for your comment!', 1, 1);
-        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES ('This video is amazing!', 4, 3);
-        INSERT IGNORE INTO VS_VIDEO_COMMENT (COMMENT_PARENT_ID, COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES (1, 'I completely agree!', 1, 2);
-        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('negative', 1, 1);
-        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('positive', 2, 1);
-        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('negative', 2, 3);
-        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('positive', 4, 2);
-        INSERT IGNORE INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES ('negative', 3, 4);";
-
-        mysqli_multi_query($connection, $mock_data);
-        while (mysqli_next_result($connection)) {
-        } // mysqli_multi_query is asyncronous!!! => causes out of sync problem if not awaited // don't allow ' in text or escape it! 
-
-        array_push($response["log"], date('H:i:s') . ": inserted mock data");
-    } else {
-        array_push($response["log"], date('H:i:s') . ": found mock data in database");
-    }
-
-    // check if server is alive
-    if (mysqli_ping($connection)) {
-        array_push($response["log"], date('H:i:s') . ": connection ok");
-    } else {
-        errorOccurred($connection, $response, __LINE__, "database ping failed");
-    }
-
-    array_push($response["log"], date('H:i:s') . ": finished database initialisation");
-    // export_database($connection);
 
     mysqli_close($connection);
-}
 
-// login as guest => READ ONLY
-$connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
-if (!$connection) {
-    errorOccurred($connection, $response, __LINE__, "reconnection as guest user couldn't be astablished");
-} else {
-    $response["info"]["database_connection_details"]["database_username"] = $guest_user_username;
-    array_push($response["log"], date('H:i:s') . ": logged in as read only guest");
+    // login as guest => READ ONLY
+    $connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
+    if (!$connection) {
+        errorOccurred($connection, $response, __LINE__, "reconnection as guest user couldn't be astablished");
+    } else {
+        $response["info"]["database_connection_details"]["database_username"] = $guest_user_username;
+        array_push($response["log"], date('H:i:s') . ": logged in as read only guest");
+    }
 }
 
 /* ---------- */
@@ -865,19 +667,21 @@ try {
                     }
                 }
             } else if ($action == "signout") {
-                $response["token"] = 'null';
+                $response["token"] = 'unset';
             } else if ($action == "video") {
                 if (!preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
                     $response["response"] = 'Token not found in request';
+                    $response["token"] = "invalid";
+                    errorOccurred($connection, $response, __LINE__, "jwt not found");
                 }
 
                 $jwt = $matches[1];
                 $publicKey = $_ENV['PUBLIC_KEY'];
-
                 $jwt_received = getJWT($connection, $response, $jwt, $publicKey);
-                $user = $jwt_received["username"];
 
-                if ($response["error"] == false) {
+                if ($jwt_received["username"]) {
+                    $user = $jwt_received["username"]; // SECURITY RISK?!? sql injection?
+
                     /*  VIDEO_TITLE VARCHAR(25) NOT NULL,
                     VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL, // NOT NEEDED
                     VIDEO_LOCATION VARCHAR(250) NOT NULL, // inserted on upload
@@ -886,36 +690,91 @@ try {
                     VIDEO_SHARES INT DEFAULT 0, // on pageload
                     VS_USER_ID INT NOT NULL */
 
-                    if (isset($_FILES["VIDEO_MEDIA"]) && isset($_POST["VIDEO_TITLE"])) { // VS_USER_ID => wie mach ich das?
+                    if (isset($_FILES["VIDEO_MEDIA"])) {
                         $video_media = $_FILES["VIDEO_MEDIA"];
-                        $video_media_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]);
+                        $video_media_name = pathinfo(mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]), PATHINFO_FILENAME);
                         $video_media_tmp_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["tmp_name"]); // temp name on server
                         $video_media_size = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["size"]); // in bytes
                         $video_media_type = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["type"]); // MIME-Typ
 
-                        $video_title = mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]);
+                        $supportet_formats = array(
+                            "AVI",
+                            "MP4",
+                            "MKV",
+                            "MOV",
+                            "WMV",
+                            "FLV",
+                            "MPEG",
+                            "WebM",
+                            "3GP"
+                        );
+
+                        $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]) : NULL;
                         $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_DESCRIPTION"]) : NULL;
 
-                        if ($_FILES["VIDEO_MEDIA"]["error"] == 0) { // TODO: SAVE IN DATABASE
-                            $media_video_path = "./media/video/";
-                            $media_video_filename = preg_replace('/[^A-Za-z0-9\-]/', '0', $video_title); // replaces every special char with 0
+                        if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supportet_formats))) { // TODO: SAVE IN DATABASE
+                            $media_video_path = "./media/video/uploaded/";
+
+                            if (!is_dir($media_video_path)) {
+                                mkdir($media_video_path);
+                            }
+
+                            $media_video_filename = preg_replace('/[^A-Za-z0-9\-\_]/', '0', $video_title); // replaces every special char with 0
                             $media_video_filename = preg_replace('/\s+/', '_', $media_video_filename); // replaces every SPACE with _
 
                             $files = scandir($media_video_path);
                             $files_in_folder = array_slice($files, 2); // removes "." and ".."
-                            $files_count = count($files) + 1; // Anzahl der Elemente in der Liste
+                            $files_count = count($files_in_folder) + 1; // count files
 
-                            move_uploaded_file($video_media_tmp_name, $media_video_path . $media_video_filename . "_$files_count" . $video_media_type);
+                            $uploaded_video_name = $media_video_filename . "_$files_count" . $video_media_type;
+                            $uploaded_video_path = $media_video_path . $uploaded_video_name;
+                            move_uploaded_file($video_media_tmp_name, $uploaded_video_path);
 
-                            /* INSERT INTO WHERE USER_USERNAME = $user */
+                            // Video Processing
+                            $media_video_compressed_path = "./media/video/compressed/";
+
+                            $ffmpegConfig = array(
+                                'ffmpeg.binaries'  => '/usr/local/bin/ffmpeg',
+                                'ffprobe.binaries' => '/usr/local/bin/ffprobe',
+                            );
+
+                            $ffmpeg = FFMpeg::create($ffmpegConfig);
+                            $format = new X264();
+                            $dimensions = new Dimension(1024, 576);
+
+                            try {
+                                $video = $ffmpeg->open($uploaded_video_path);
+                            } catch (InvalidArgumentException $e) {
+                                errorOccurred($connection, $response, __LINE__, $e->getMessage());
+                            }
+
+                            $video->filters()->resize($dimensions);
+
+                            try {
+                                $video->save($format, $media_video_compressed_path . $uploaded_video_name);
+                            } catch (RuntimeException $e) {
+                                errorOccurred($connection, $response, __LINE__, $e->getMessage());
+                            }
+
+                            mysqli_close($connection);
+                            $connection = mysqli_connect($host, $root, $pass, "", $port);
+                            mysqli_select_db($connection, $schema);
+
+                            if (!$connection) {
+                                errorOccurred($connection, $response, __LINE__, "connection error");
+                            } else {
+
+                                /* INSERT INTO WHERE USER_USERNAME = $user */
+                            }
                         }
                     } else {
-                        errorOccurred($connection, $response, __LINE__, "invalid jwt");
+                        errorOccurred($connection, $response, __LINE__, "video missing");
                     }
 
                     $response["token"] = "valid";
                 } else {
                     $response["token"] = "invalid";
+                    errorOccurred($connection, $response, __LINE__, "invalid jwt");
                 }
             } else if ($action == "comment") {
             } else if ($action == "feedback") {
@@ -935,6 +794,17 @@ try {
             } else if ($medium == "profile_description") {
             } else if ($medium == "profile_socials") {
             } else if ($medium == "profile_picture") {
+                if (isset($_FILES["IMAGE_MEDIA"])) {
+                    $media_image_path = "./media/image/uploaded/";
+                    $type = $_FILES["IMAGE_MEDIA"]["type"];
+                    if ($type == "jpg" || $type == "jpeg") {
+                        $image = imagecreatefromjpeg($media_image_path);
+                        imagejpeg(imagescale($image, $width, $height), $dest);
+                    } else {
+                        $image = imagecreatefrompng($dest);
+                        imagepng(imagescale($image, $width, $height), $dest);
+                    }
+                }
             } else if ($medium == "video_post_title") {
             } else if ($medium == "video_post_description") {
             } else if ($medium == "video_post_hashtags") {
@@ -963,16 +833,18 @@ try {
 /* ---------- */
 
 // CLEAN UP
-// Log Response
-$response["data"] = array_filter($response["data"], function ($index) { // remove empty arrays generated because the array is assoc and combines some arrays
+// unset($response["log"]);
+
+$response["data"] = array_filter($response["data"], function ($index) {
     $index = json_decode($index);
     return !empty($index);
 });
 
-echo json_encode($response);
 
 // Disconnect
-mysqli_close($connection);
+if (mysqli_close($connection)) {
+    echo json_encode($response);
+}
 
 /* ---------- */
 
