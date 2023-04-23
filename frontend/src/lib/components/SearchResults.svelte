@@ -11,7 +11,7 @@
 {$translation.SearchSection.search_option.videos_found(key)}
 <hr />
 <div id="results" class="flex gap-4 p-4 flex-wrap justify-center">
-	{#each [] as result, i (key)}
+	{#each { length: 1 } as result, i (key)}
 		<p>{result}</p>
 	{:else}
 		<p>no results</p>

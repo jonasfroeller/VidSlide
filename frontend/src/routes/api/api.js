@@ -1,6 +1,6 @@
 export default class Api {
     static baseURL = "http://localhost:8196";
-    static baseApiFile = "index.php";
+    static baseApiFile = "db_api.php";
     jwt = {};
     user = {};
 
@@ -58,15 +58,16 @@ export default class Api {
             const json_response = await response.json(); 
             // console.log(json_response);
             this.jwt = json_response["token"];
+            this.accountExisted = JSON.parse(json_response["data"][0])[0]?.response ?? false;
             this.user = JSON.parse(json_response["data"][0])[0];
             this.user.socials = JSON.parse(json_response["data"][0])[0]?.socials ?? null;
             this.user.subscribed = JSON.parse(json_response["data"][0])[0]?.subscribed ?? null;
             this.user.subscribers = JSON.parse(json_response["data"][0])[0]?.subscribers ?? null;
-            this.user.user_videos_liked = JSON.parse(json_response["data"][0])[0]?.user_videos_liked ?? null;
-            this.user.user_videos_disliked = JSON.parse(json_response["data"][0])[0]?.user_videos_disliked ?? null;
-            this.user.user_comments_liked = JSON.parse(json_response["data"][0])[0]?.user_videos_disliked ?? null;
-            this.user.user_comments_disliked = JSON.parse(json_response["data"][0])[0]?.user_videos_disliked ?? null;
-            this.user.user_stats = JSON.parse(json_response["data"][0])[0]?.user_stats ?? null;
+            this.user.user_videos_liked = JSON.parse(json_response["data"][0])[0]?.liked ?? null;
+            this.user.user_videos_disliked = JSON.parse(json_response["data"][0])[0]?.disliked ?? null;
+            this.user.user_comments_liked = JSON.parse(json_response["data"][0])[0]?.comments_liked ?? null;
+            this.user.user_comments_disliked = JSON.parse(json_response["data"][0])[0]?.comments_disliked ?? null;
+            this.user.user_stats = JSON.parse(json_response["data"][0])[0]?.stats ?? null; // videos, likes, views, shares
 
             return {
                 token: this.jwt, accountExisted: false, user: this.user

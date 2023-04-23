@@ -54,7 +54,7 @@
 	$: publisher_following = $user_subscribed?.includes(publisher);
 
 	/* --- LOGIC --- */
-	let video_path = 'http://localhost:8196/media/video/';
+	let video_path = 'http://localhost:8196/media/video/uploaded/';
 	$: video_name = '';
 	$: video_element_id = '';
 	onMount(async () => {
@@ -92,6 +92,8 @@
 		event: 'click',
 		target: 'view_followers'
 	};
+
+	console.log('publisher_followers', publisher_followers);
 </script>
 
 {#key $translation}
@@ -115,46 +117,45 @@
 						<a href="/{$locale}/account/{publisher}" class="unstyled hover:underline text-lg"
 							>{publisher}</a
 						>
-						{#key publisher_followers}
-							<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
-								<button use:popup={view_followers}
-									>{$translation.VideoSection.follower(publisher_followers?.length)}</button
-								>
-								<div
-									data-popup="view_followers"
-									class="z-[999] rounded-md bg-surface-500 p-2 overflow-auto max-h-96"
-								>
-									{#each publisher_followers as follower, i}
-										<div class="flex gap-2 items-center h-full divide-x">
-											<p>{i + 1}</p>
-											<div class="flex items-center p-2 gap-2">
-												<a href="/{$locale}/account/{follower?.USER_USERNAME}" class="transition">
-													{#if follower?.USER_PROFILEPICTURE != null}
-														<Avatar
-															src={follower?.USER_PROFILEPICTURE}
-															class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-														/>
-													{:else}
-														<Avatar
-															initials={follower?.USER_USERNAME?.charAt(0) ?? '??'}
-															class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-														/>
-													{/if}
-												</a>
-												<a
-													href="/{$locale}/account/{follower?.USER_USERNAME}"
-													class="unstyled hover:underline text-lg"
-												>
-													{follower?.USER_USERNAME}
-												</a>
-											</div>
+						<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
+							<button use:popup={view_followers}
+								>{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}</button
+							>
+							<div
+								data-popup="view_followers"
+								class="z-[999] rounded-md bg-surface-500 p-2 overflow-auto max-h-96"
+							>
+								{#each publisher_followers as follower, i}
+									<p>{i + 1}</p>
+									<div class="flex gap-2 items-center h-full divide-x">
+										<p>{i + 1}</p>
+										<div class="flex items-center p-2 gap-2">
+											<a href="/{$locale}/account/{follower?.USER_USERNAME}" class="transition">
+												{#if follower?.USER_PROFILEPICTURE != null}
+													<Avatar
+														src={follower?.USER_PROFILEPICTURE}
+														class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
+													/>
+												{:else}
+													<Avatar
+														initials={follower?.USER_USERNAME?.charAt(0) ?? '??'}
+														class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
+													/>
+												{/if}
+											</a>
+											<a
+												href="/{$locale}/account/{follower?.USER_USERNAME}"
+												class="unstyled hover:underline text-lg"
+											>
+												{follower?.USER_USERNAME}
+											</a>
 										</div>
-									{:else}
-										{$translation.VideoSection.follower(publisher_followers?.length)}
-									{/each}
-								</div>
+									</div>
+								{:else}
+									{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}
+								{/each}
 							</div>
-						{/key}
+						</div>
 					</div>
 				</div>
 				<button

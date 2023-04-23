@@ -89,7 +89,9 @@ function checkIfIdExists($connection, $type, $id, $bind_type = "i")
     } else if ($type == "video_userID") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VS_USER_ID = ?");
     } else if ($type == "video_title") {
-        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VIDEO_TITLE = ?");
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VIDEO_TITLE LIKE ?");
+    } else if ($type == "video_tag") {
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VS_VIDEO_ID IN (SELECT VS_VIDEO_ID FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?)");
     } else if ($type == "comments") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO_COMMENT WHERE VS_VIDEO_ID = ?");
     } else if ($type == "feedback_videoID") {
@@ -151,7 +153,7 @@ function getMedium($connection, $response, $table, $id = 0, $prepare = false, $b
 function getVideoInfo($connection, $response, $topic = "all")
 {
     if (isset($_GET["id"])) {
-        $escaped_id = mysqli_real_escape_string($connection, $_GET["id"]);
+        $escaped_id = mysqli_real_escape_string($connection, strval($_GET["id"]));
         $id = $escaped_id != "all" ? intval($escaped_id) : $escaped_id;
         if ($id != 0) { // 0 on failure 1 on non empty arrays :/
             $response["info"]["fetch_id"] = $id; // logging
@@ -180,7 +182,7 @@ function getVideoInfo($connection, $response, $topic = "all")
 
             if ($topic == "all" || $topic == "tags") {
                 if (isset($_GET["medium_id"])) {
-                    $hashtag = mysqli_real_escape_string($connection, $_GET["medium_id"]);
+                    $hashtag = mysqli_real_escape_string($connection, strval($_GET["medium_id"]));
                     $hashtag_includes = '%' . $hashtag . '%';
 
                     array_push($response["info"]["fetch_params"], array("medium_id" => $hashtag)); // logging
@@ -234,23 +236,37 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
     if ($bind_type == "s") {
         $table_socials = mysqli_prepare($connection, 'SELECT VS_USER_ID FROM VS_USER WHERE USER_USERNAME = ?');
         $user_id = json_decode(getMedium($connection, $response, $table_socials, $bind_var, true, "s", true), true);
-
         $bind_var = $user_id[0]["VS_USER_ID"];
 
         // fetch more if fetched with username instead of id
-        $table_socials = mysqli_prepare($connection, 'SELECT * FROM VS_USER_SOCIAL WHERE VS_USER_ID = ?');
+        $table_socials = mysqli_prepare($connection, 'SELECT SOCIAL_PLATFORM, SOCIAL_URL FROM VS_USER_SOCIAL WHERE VS_USER_ID = ?');
         $response["data"]["socials"] = getMedium($connection, $response, $table_socials, $bind_var, true, "i", true);
 
         $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
         $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
 
-        /* TODO:
-        export const user_stats = writable({}); // Videos, Views, Likes, Followers...
-        export const user_videos_liked = writable([]);
-        export const user_videos_disliked = writable([]);
-        export const user_comments_liked = writable([]);
-        export const user_comments_disliked = writable([]);
-        */
+        $table_liked = mysqli_prepare($connection, 'SELECT VS_VIDEO_ID FROM VS_VIDEO_FEEDBACK WHERE VIDEO_FEEDBACK_TYPE LIKE "positive" AND VS_USER_ID = ?');
+        $response["data"]["liked"] = getMedium($connection, $response, $table_liked, $bind_var, true, "i", true);
+
+        $table_liked = mysqli_prepare($connection, 'SELECT VS_VIDEO_ID FROM VS_VIDEO_FEEDBACK WHERE VIDEO_FEEDBACK_TYPE LIKE "negative" AND VS_USER_ID = ?');
+        $response["data"]["disliked"] = getMedium($connection, $response, $table_liked, $bind_var, true, "i", true);
+
+        $table_liked = mysqli_prepare($connection, 'SELECT COMMENT_ID FROM VS_COMMENT_FEEDBACK WHERE COMMENT_FEEDBACK_TYPE LIKE "positive" AND VS_USER_ID = ?');
+        $response["data"]["comments_liked"] = getMedium($connection, $response, $table_liked, $bind_var, true, "i", true);
+
+        $table_liked = mysqli_prepare($connection, 'SELECT COMMENT_ID FROM VS_COMMENT_FEEDBACK WHERE COMMENT_FEEDBACK_TYPE LIKE "negative" AND VS_USER_ID = ?');
+        $response["data"]["comments_disliked"] = getMedium($connection, $response, $table_liked, $bind_var, true, "i", true);
+
+        // stats
+        $table_videos = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_USER_ID = ?');
+        $response["data"]["stats"]["videos"] = getMedium($connection, $response, $table_videos, $bind_var, true, "i", true);
+
+        $table_likes = mysqli_prepare($connection, 'SELECT COUNT(*) AS total FROM VS_VIDEO_FEEDBACK WHERE VIDEO_FEEDBACK_TYPE = "positive" AND VS_USER_ID = ?');
+        $response["data"]["stats"]["likes"] = getMedium($connection, $response, $table_likes, $bind_var, true, "i", true);
+        $table_views = mysqli_prepare($connection, 'SELECT SUM(VIDEO_VIEWS) AS total FROM VS_VIDEO WHERE VS_USER_ID = ?');
+        $response["data"]["stats"]["views"] = getMedium($connection, $response, $table_views, $bind_var, true, "i", true);
+        $table_shares = mysqli_prepare($connection, 'SELECT SUM(VIDEO_SHARES) AS total FROM VS_VIDEO WHERE VS_USER_ID = ?');
+        $response["data"]["stats"]["shares"] = getMedium($connection, $response, $table_shares, $bind_var, true, "i", true);
     }
 
     $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
@@ -401,13 +417,13 @@ try {
     //     - medium_id=? [ID++] // all videos of user
     //   - id=title [ID]
     //     - medium_id=? [ID++] // all videos with title including text
+    //   - id=tag [ID]
+    //     - medium_id=? [ID++] // all videos with tag including text
     //   - id=random [ID]
     //   - id=? [ID] 
     // - medium=comments [MEDIUM]
     //   - id=? (video id) [ID] // get comments of video
     // - medium=tags [MEDIUM]
-    //   - id=all (video id) [ID] // get all tags
-    //     - medium_id=? [ID++] // get all tags that include text
     //   - id=? (video id) [ID] // get tags of video
     // - medium=feedback [MEDIUM]
     //   - id=? (video id) [ID] // get feedback of video
@@ -522,16 +538,37 @@ try {
                             errorOccurred($connection, $response, __LINE__, "medium_id param missing");
                         }
                     } else if ($id == "title") {
-                        if (isset($_GET["medium_id"])) { // ?medium=video&id=title&medium_id=1 [ID]
-                            $title = mysqli_real_escape_string($connection, $_GET["medium_id"]);
-                            $title_includes = '%' . $title . '%';
+                        if (isset($_GET["medium_id"])) { // ?medium=video&id=title&medium_id=? [ID]
+                            $title = mysqli_real_escape_string($connection, strval($_GET["medium_id"]));
+                            $title_includes = "%$title%";
 
-                            array_push($response["info"]["fetch_params"], array("medium_id" => $title)); // logging
                             $exists = checkIfIdExists($connection, "video_title", $title_includes, "s");
 
                             if ($exists) {
                                 $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VIDEO_TITLE LIKE ?');
                                 $response = getMedium($connection, $response, $table_video, $title_includes, true, "s");
+
+                                $pulled_videos = json_decode($response["data"][0], true);
+                                foreach ($pulled_videos as $video) { // get multiple video infos at once
+                                    $_GET["id"] = $video["VS_VIDEO_ID"];
+                                    $response = getVideoInfo($connection, $response);
+                                }
+                            } else {
+                                errorOccurred($connection, $response, __LINE__, "video not found");
+                            }
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "medium_id param missing");
+                        }
+                    } else if ($id == "tag") {
+                        if (isset($_GET["medium_id"])) { // ?medium=video&id=tag&medium_id=? [ID]
+                            $tag = mysqli_real_escape_string($connection, strval($_GET["medium_id"]));
+                            $tag_includes = "%$tag%";
+
+                            $exists = checkIfIdExists($connection, "video_tag", $tag_includes, "s");
+
+                            if ($exists) {
+                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_VIDEO_ID IN (SELECT VS_VIDEO_ID FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?)');
+                                $response = getMedium($connection, $response, $table_video, $tag_includes, true, "s");
 
                                 $pulled_videos = json_decode($response["data"][0], true);
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
@@ -574,7 +611,7 @@ try {
             } else if ($medium == "comments") { // ?medium=comments [MEDIUM]
                 $response = getVideoInfo($connection, $response, "comments");
             } else if ($medium == "tags") { // ?medium=tags [MEDIUM]
-                $response = getVideoInfo($connection, $response, "tags"); // TODO: tags including text
+                $response = getVideoInfo($connection, $response, "tags");
             } else if ($medium == "feedback") { // ?medium=feedback [MEDIUM]
                 $response = getVideoInfo($connection, $response, "feedback");
             } else {
@@ -584,6 +621,8 @@ try {
             errorOccurred($connection, $response, __LINE__, "medium param missing");
         }
     }
+
+    // TODO: Manage Authentication
 
     // POST-Options:
     // - action=auth [MEDIUM] // unsuffishient
@@ -603,7 +642,7 @@ try {
                 $privateKey = $_ENV['PRIVATE_KEY'];
                 $issuedAt   = new DateTimeImmutable();
                 $expire     = $issuedAt->modify('+60 seconds')->getTimestamp();
-                $serverName = "vidslide.com";
+                $serverName = "svelte-kit-vid-slide.vercel.app";
 
                 if (isset($_POST["username"]) && isset($_POST["password"])) {
                     $username = mysqli_real_escape_string($connection, $_POST["username"]);
@@ -680,15 +719,7 @@ try {
                 $jwt_received = getJWT($connection, $response, $jwt, $publicKey);
 
                 if ($jwt_received["username"]) {
-                    $user = $jwt_received["username"]; // SECURITY RISK?!? sql injection?
-
-                    /*  VIDEO_TITLE VARCHAR(25) NOT NULL,
-                    VIDEO_DESCRIPTION VARCHAR(500) DEFAULT NULL, // NOT NEEDED
-                    VIDEO_LOCATION VARCHAR(250) NOT NULL, // inserted on upload
-                    VIDEO_SIZE VARCHAR(6) NOT NULL, // inserted on upload
-                    VIDEO_VIEWS INT DEFAULT 0, // on pageload
-                    VIDEO_SHARES INT DEFAULT 0, // on pageload
-                    VS_USER_ID INT NOT NULL */
+                    $username = $jwt_received["username"];
 
                     if (isset($_FILES["VIDEO_MEDIA"])) {
                         $video_media = $_FILES["VIDEO_MEDIA"];
@@ -697,7 +728,7 @@ try {
                         $video_media_size = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["size"]); // in bytes
                         $video_media_type = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["type"]); // MIME-Typ
 
-                        $supportet_formats = array(
+                        $supportet_video_formats = array(
                             "AVI",
                             "MP4",
                             "MKV",
@@ -709,10 +740,10 @@ try {
                             "3GP"
                         );
 
-                        $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]) : NULL;
-                        $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_DESCRIPTION"]) : NULL;
+                        $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]) : "";
+                        $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_DESCRIPTION"]) : "";
 
-                        if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supportet_formats))) { // TODO: SAVE IN DATABASE
+                        if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supportet_video_formats))) {
                             $media_video_path = "./media/video/uploaded/";
 
                             if (!is_dir($media_video_path)) {
@@ -763,8 +794,25 @@ try {
                             if (!$connection) {
                                 errorOccurred($connection, $response, __LINE__, "connection error");
                             } else {
+                                $exists = checkIfIdExists($connection, "user_username", $username, "s");
 
-                                /* INSERT INTO WHERE USER_USERNAME = $user */
+                                if ($exists) {
+                                    $user_id = json_decode(getUserInfo($connection, $response, $username, "s")["data"][0], true)[0]["VS_USER_ID"];
+
+                                    $table_video_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('?', '?', '?', '?', ?)");
+                                    mysqli_stmt_bind_param($table_video_insert, 'ssssi', $video_title, $video_description, $uploaded_video_name, $video_media_size, $user_id);
+                                    mysqli_stmt_execute($table_video_insert);
+
+                                    if (mysqli_affected_rows($connection) > 0) {
+                                        array_push($response["log"], date('H:i:s') . ": inserted new video: " . $username);
+
+                                        mysqli_stmt_close($table_video_insert);
+                                    } else {
+                                        errorOccurred($connection, $response, __LINE__, "video insert failed");
+                                    }
+                                } else {
+                                    errorOccurred($connection, $response, __LINE__, "user doesn't exist");
+                                }
                             }
                         }
                     } else {
@@ -794,15 +842,50 @@ try {
             } else if ($medium == "profile_description") {
             } else if ($medium == "profile_socials") {
             } else if ($medium == "profile_picture") {
-                if (isset($_FILES["IMAGE_MEDIA"])) {
+                if (isset($_FILES["IMAGE_MEDIA"])) { // TODO: Database Save
+                    $supportet_image_formats = array(
+                        'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi',
+                        'png',
+                        'bmp', "dib",
+                        'webp',
+                        'gif'
+                    );
+                    $width = 50;
+                    $height = 50;
+
                     $media_image_path = "./media/image/uploaded/";
                     $type = $_FILES["IMAGE_MEDIA"]["type"];
-                    if ($type == "jpg" || $type == "jpeg") {
-                        $image = imagecreatefromjpeg($media_image_path);
-                        imagejpeg(imagescale($image, $width, $height), $dest);
-                    } else {
-                        $image = imagecreatefrompng($dest);
-                        imagepng(imagescale($image, $width, $height), $dest);
+                    if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supportet_image_formats))) {
+                        switch ($type) {
+                            case 'jpg':
+                            case 'jpeg':
+                            case 'jpe':
+                            case 'jif':
+                            case 'jfif':
+                            case 'jfi':
+                                $image = imagecreatefromjpeg($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                imagejpeg(imagescale($image, $width, $height), $media_image_path);
+                                break;
+                            case 'png':
+                                $image = imagecreatefrompng($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                imagepng(imagescale($image, $width, $height), $media_image_path);
+                                break;
+                            case 'gif':
+                                $image = imagecreatefromgif($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                imagegif(imagescale($image, $width, $height), $media_image_path);
+                                break;
+                            case 'bmp':
+                            case 'dib':
+                                $image = imagecreatefrombmp($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                imagebmp(imagescale($image, $width, $height), $media_image_path);
+                                break;
+                            case 'webp':
+                                $image = imagecreatefromwebp($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                imagewebp(imagescale($image, $width, $height), $media_image_path);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             } else if ($medium == "video_post_title") {
