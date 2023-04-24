@@ -28,7 +28,7 @@ jobs:
           done
           for file in dist/*.html; do
             name=$(basename "$file" .html)
-            sed -i -e '1s/^/<meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="stylesheet" href="./github-markdown.css">\n/' "dist/$name.html"
+            sed -i -e '1s|^|<meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="stylesheet" href="./github-markdown.css">\n|' "dist/$name.html"
           done
 
       - name: Deploy 🚀
