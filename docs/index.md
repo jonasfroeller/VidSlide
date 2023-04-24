@@ -1,10 +1,10 @@
+<body class="markdown-body">
+
 # VidSlide Docs-Index
 
-<article class="markdown-body">
+* [README](https://github.com/jonasfroeller/SvelteKit_VidSlide#info)
+  * [Frontend](https://github.com/jonasfroeller/SvelteKit_VidSlide#setup-frontend)
+  * [Backend](https://github.com/jonasfroeller/SvelteKit_VidSlide#setup-database--backend-api)
+  * [Database](https://github.com/jonasfroeller/SvelteKit_VidSlide#setup-database--backend-api)
 
-* [README](../README.md)
-  * [Frontend](../README.md#setup-frontend)
-  * [Backend](../README.md#setup-database--backend-api)
-  * [Database](../README.md#setup-database--backend-api)
-
-</article>
+</body>
