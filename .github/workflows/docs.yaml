@@ -20,6 +20,8 @@ jobs:
       - name: Install and Build 🔧
         run: |
           mkdir dist
+          cp docs/*.css dist/
+          cp -r docs/img/ dist/img/
           for file in docs/*.md; do
             name=$(basename "$file" .md)
             pandoc "$file" -o "dist/$name.html"
