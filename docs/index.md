@@ -1,8 +1,5 @@
 # VidSlide Docs-Index
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="./github-markdown.css">
-
 <article class="markdown-body">
 
 * [README](../README.md)

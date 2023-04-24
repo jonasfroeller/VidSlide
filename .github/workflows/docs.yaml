@@ -25,6 +25,7 @@ jobs:
           for file in docs/*.md; do
             name=$(basename "$file" .md)
             pandoc "$file" -o "dist/$name.html"
+            sed -i '' '1s/^/<meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="stylesheet" href="./github-markdown.css">\n/' "dist/$name.html"
           done
 
       - name: Deploy 🚀
