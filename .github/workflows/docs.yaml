@@ -20,7 +20,7 @@ jobs:
       - name: Install and Build 🔧
         run: |
           mkdir dist
-          touch dist/.nojekyll
+          touch .nojekyll
           cp docs/*.css dist/
           cp -r docs/img/ dist/img/
           for file in docs/*.md; do
