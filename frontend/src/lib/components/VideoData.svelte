@@ -57,7 +57,7 @@
 			userSubscribers = JSON.parse(userSubscribers);
 			return userSubscribers;
 		} else {
-			return 0;
+			return [];
 		}
 	}
 
@@ -123,9 +123,9 @@
 		publisher_followers = await getUserFollowers(current_video_id);
 	});
 
-	$: publisher_followers = null;
-	$: current_video_likes = null;
-	$: current_video_dislikes = null;
+	$: publisher_followers = [];
+	$: current_video_likes = [];
+	$: current_video_dislikes = [];
 
 	$: current_video = null;
 	$: current_video_id = 0;
