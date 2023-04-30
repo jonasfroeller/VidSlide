@@ -1,0 +1,12 @@
+.markdown-body {
+    box-sizing: border-box !important;
+    min-width: 200px !important;
+    max-width: 980px !important;
+    padding: 45px !important;
+}
+
+@media (max-width: 767px) {
+    .markdown-body {
+        padding: 15px !important;
+    }
+}
