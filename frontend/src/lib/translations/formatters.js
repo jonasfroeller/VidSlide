@@ -15,9 +15,9 @@ import { date } from 'typesafe-i18n/formatters';
 export const initFormatters = (locale) => {
 	/** @type { Formatters } */
 	const formatters = {
-		commentDate: date(locale, { dateStyle: "short", timeStyle: "medium" }),
-		videoDate: date(locale, { dateStyle: "medium", timeStyle: "medium" }),
-	}
+		commentDate: date(locale, { dateStyle: 'short', timeStyle: 'medium' }),
+		videoDate: date(locale, { dateStyle: 'medium', timeStyle: 'medium' })
+	};
 
-	return formatters
-}
+	return formatters;
+};

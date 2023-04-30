@@ -3,7 +3,7 @@
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// Components
-	import SearchResults from '$component/SearchResults.svelte';
+	import VideoData from '$component/VideoData.svelte';
 
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
@@ -26,7 +26,7 @@
 	>
 		<div
 			id="search-bar"
-			class="input-group self-end input-group-divider grid-cols-[auto_1fr_auto] h-fit w-fit"
+			class="input-group self-start input-group-divider grid-cols-[auto_1fr_auto] h-fit w-full"
 		>
 			<div class="input-group-shim">
 				<iconify-icon class="cursor-pointer" icon="material-symbols:search-rounded" />
@@ -39,10 +39,7 @@
 			/>
 			<button class="variant-soft-secondary">{$translation.SearchSection.search()}</button>
 		</div>
-		<div
-			id="search-config"
-			class="flex {display_variant == 'vertical' ? 'flex-col' : ''} items-center gap-4"
-		>
+		<div id="search-config" class="flex {display_variant == 'vertical' ? 'flex-col' : ''} gap-4">
 			<div class="w-full">
 				{$translation.SearchSection.search_option.subject()}
 				<hr />
@@ -75,8 +72,9 @@
 						bind:group={sort}
 						name="justify"
 						active={'variant-ghost-tertiary'}
-						value={'date'}>{$translation.SearchSection.search_option.date()}</RadioItem
-					>
+						value={'date'}
+						>{$translation.SearchSection.search_option.date()}
+					</RadioItem>
 					<RadioItem
 						bind:group={sort}
 						name="justify"
@@ -101,7 +99,7 @@
 	</div>
 	<div>
 		{#key search}
-			<SearchResults {subject} {sort} {search} />
+			<VideoData page={'search'} isResultVideo={true} {subject} {sort} {search} />
 		{/key}
 	</div>
 </div>

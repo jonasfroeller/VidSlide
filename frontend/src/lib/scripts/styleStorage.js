@@ -20,7 +20,7 @@ export default class styleCfg {
 		if (browser) {
 			cfg = fillStyleObject(cfg);
 			document.documentElement.classList.add(cfg.theme);
-			document.documentElement.classList.remove(cfg.theme == "dark" ? "light" : "dark"); 
+			document.documentElement.classList.remove(cfg.theme == 'dark' ? 'light' : 'dark');
 			localStore.save('VidSlide-config', cfg);
 		}
 	}
@@ -29,7 +29,8 @@ export default class styleCfg {
 		if (browser) {
 			let cfg = await localStore.load('VidSlide-config');
 
-			if (cfg != null && cfg != undefined && cfg != "") { // prevent cannot get property of undefined
+			if (cfg != null && cfg != undefined && cfg != '') {
+				// prevent cannot get property of undefined
 				cfg = fillStyleObject(cfg);
 			} else {
 				cfg = {

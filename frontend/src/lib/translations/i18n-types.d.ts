@@ -319,7 +319,7 @@ type RootTranslation = {
 			 */
 			dislikes: string
 			/**
-			 * {​{​e​i​n​ ​V​i​d​e​o​ ​g​e​f​u​n​d​e​n​}​}
+			 * {​{​k​e​i​n​e​ ​V​i​d​e​o​s​ ​g​e​f​u​n​d​e​n​|​e​i​n​ ​V​i​d​e​o​ ​g​e​f​u​n​d​e​n​|​?​?​ ​V​i​d​e​o​s​ ​g​e​f​u​n​d​e​n​}​}
 			 */
 			videos_found: string
 		}
@@ -664,9 +664,9 @@ export type TranslationFunctions = {
 			 */
 			dislikes: () => LocalizedString
 			/**
-			 * {{ein Video gefunden}}
+			 * {{keine Videos gefunden|ein Video gefunden|?? Videos gefunden}}
 			 */
-			videos_found: (arg: { keine Videos gefunden: number | string | boolean }) => LocalizedString
+			videos_found: (arg0: number | string | boolean) => LocalizedString
 		}
 	}
 	pages: {

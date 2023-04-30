@@ -9,13 +9,18 @@
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+
+	// Translation
+	import translation from '$translation/i18n-svelte'; // translations
+	import { disableCache } from 'iconify-icon';
 
 	// Slots
 	export let page;
 	export let isResultVideo = false;
-	export let searchSubject = '';
-	export let sortBy = '';
-	export let search = '';
+	export let searchSubject = null;
+	export let sortBy = null;
+	export let search = null;
 
 	/* --- LOGIC --- */
 	// - medium=video [MEDIUM] // gets videos and video info
@@ -25,7 +30,7 @@
 	//     - medium_id=? [ID++] // all videos with title including text
 	//   - id=random [ID]
 	//   - id=? [ID]
-	async function fetchVideo(id: number, id_specification = '') {
+	async function fetchVideo(id: number | string, id_specification = '') {
 		if (id <= 0) {
 			id = 'random';
 		}
@@ -63,7 +68,7 @@
 
 	function formatVideo(video: JSON) {
 		let formattet_object;
-		formattet_object = current_video.data;
+		formattet_object = video.data;
 		formattet_object['video'] = JSON.parse(formattet_object[0])[0];
 		delete formattet_object['0'];
 		formattet_object['user'] = JSON.parse(formattet_object['user'])[0];
@@ -78,8 +83,13 @@
 				(f) => f.VIDEO_FEEDBACK_TYPE === 'negative'
 			);
 
-			current_video_likes = likes;
-			current_video_dislikes = dislikes;
+			if (!isResultVideo) {
+				current_video_likes = likes;
+				current_video_dislikes = dislikes;
+			} else {
+				current_video_likes.push(likes);
+				current_video_dislikes.push(dislikes);
+			}
 		}
 		if (formattet_object && formattet_object.comments) {
 			if (formattet_object && formattet_object.comments_feedback) {
@@ -112,15 +122,19 @@
 			formattet_object.comments = comments;
 		}
 
-		current_video_id = formattet_object?.user?.USER_ID;
+		current_video_id = formattet_object?.user?.VS_USER_ID;
 
 		return formattet_object;
 	}
 
 	onMount(async () => {
-		current_video = await fetchVideo(0); // 0 => rndm
-		current_video = formatVideo(current_video);
-		publisher_followers = await getUserFollowers(current_video_id);
+		if (!isResultVideo) {
+			current_video = await fetchVideo(0); // 0 => rndm
+			current_video = formatVideo(current_video);
+			publisher_followers = await getUserFollowers(current_video_id);
+		} else {
+			fetchMultipleVideos();
+		}
 	});
 
 	$: publisher_followers = [];
@@ -129,6 +143,26 @@
 
 	$: current_video = null;
 	$: current_video_id = 0;
+
+	async function fetchMultipleVideos() {
+		let searched_videos = await fetchVideo(searchSubject, search);
+
+		current_video = [];
+		let amount = JSON.parse(searched_videos.data[0]).length;
+		let videos = JSON.parse(searched_videos.data[0]);
+
+		for (let i = 0; i < amount; i++) {
+			let video = JSON.parse(JSON.stringify(searched_videos));
+			video.data[0] = [JSON.parse(JSON.stringify(videos[i]))]; // TODO: fix wrong likes, dislikes, followers (api and frontend)
+
+			video.data[0] = JSON.stringify(video.data[0]);
+			current_video.push(formatVideo(video));
+		}
+
+		// publisher_followers = await getUserFollowers(current_video_id);
+
+		return current_video;
+	}
 </script>
 
 <svelte:window on:keydown={fetchNextVideo} />
@@ -146,48 +180,32 @@
 	{/if}
 
 	{#if isResultVideo}
-		<div id="search-result" class="flex flex-col gap-2 divide-y">
-			<p>one Video found:</p>
-			<div id="video-results" class="flex gap-2 justify-center">
-				<VideoSection
-					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
-					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
-					publisher_followers={publisher_followers ?? []}
-					video={current_video?.video?.VIDEO_LOCATION ?? null}
-					video_id={current_video?.video?.VIDEO_ID ?? 1}
-					video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
-					video_likes={current_video_likes?.length ?? 0}
-					video_dislikes={current_video_dislikes?.length ?? 0}
-					video_tags={current_video?.tags ?? []}
-					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
-					display_variant={'small'}
-				/>
-				<VideoSection
-					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
-					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
-					publisher_followers={publisher_followers ?? []}
-					video={current_video?.video?.VIDEO_LOCATION ?? null}
-					video_id={current_video?.video?.VIDEO_ID ?? 1}
-					video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
-					video_likes={current_video_likes?.length ?? 0}
-					video_dislikes={current_video_dislikes?.length ?? 0}
-					video_tags={current_video?.tags ?? []}
-					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
-					display_variant={'small'}
-				/>
-				<VideoSection
-					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
-					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
-					publisher_followers={publisher_followers ?? []}
-					video={current_video?.video?.VIDEO_LOCATION ?? null}
-					video_id={current_video?.video?.VIDEO_ID ?? 1}
-					video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
-					video_likes={current_video_likes?.length ?? 0}
-					video_dislikes={current_video_dislikes?.length ?? 0}
-					video_tags={current_video?.tags ?? []}
-					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
-					display_variant={'small'}
-				/>
+		<div id="results" class="flex flex-col gap-2 flex-wrap justify-center">
+			<p>
+				{$translation.SearchSection.search_option.videos_found(current_video?.length ?? 0)}:
+			</p>
+			<hr />
+			<div id="video-results" class="flex flex-col gap-2 justify-center">
+				{#if current_video != null}
+					{#each current_video as result, i}
+						<VideoSection
+							publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
+							publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
+							publisher_followers={publisher_followers ?? []}
+							video={result?.video?.VIDEO_LOCATION ?? null}
+							video_id={result?.video?.VS_VIDEO_ID ?? 0}
+							video_views={result?.video?.VIDEO_VIEWS ?? 0}
+							video_likes={current_video_likes[i]?.length ?? 0}
+							video_dislikes={current_video_dislikes[i]?.length ?? 0}
+							video_comments={result?.comments?.length ?? 0}
+							display_variant={'small'}
+						/>
+					{:else}
+						<p>no results</p>
+					{/each}
+				{:else}
+					<p>no results</p>
+				{/if}
 			</div>
 		</div>
 	{:else}
@@ -196,7 +214,7 @@
 			publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
 			publisher_followers={publisher_followers ?? []}
 			video={current_video?.video?.VIDEO_LOCATION ?? null}
-			video_id={current_video?.video?.VIDEO_ID ?? 1}
+			video_id={current_video?.video?.VS_VIDEO_ID ?? 0}
 			video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
 			video_likes={current_video_likes?.length ?? 0}
 			video_dislikes={current_video_dislikes?.length ?? 0}

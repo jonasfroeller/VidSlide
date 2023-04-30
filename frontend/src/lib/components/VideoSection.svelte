@@ -55,14 +55,7 @@
 
 	/* --- LOGIC --- */
 	let video_path = 'http://localhost:8196/media/video/uploaded/';
-	$: video_name = '';
-	$: video_element_id = '';
-	onMount(async () => {
-		video_name = video?.includes('_') ? video?.split('_') : video;
-		video_element_id = video_name?.length
-			? 'video_' + video_name[video_name?.length - 1]?.replace(/.mp4/i, '')
-			: video_name;
-	});
+	$: video_element_id = 'vid_' + video_id;
 
 	$: play_button_state = false;
 	$: sound_button_state = false;
@@ -92,8 +85,6 @@
 		event: 'click',
 		target: 'view_followers'
 	};
-
-	console.log('publisher_followers', publisher_followers);
 </script>
 
 {#key $translation}
@@ -126,7 +117,6 @@
 								class="z-[999] rounded-md bg-surface-500 p-2 overflow-auto max-h-96"
 							>
 								{#each publisher_followers as follower, i}
-									<p>{i + 1}</p>
 									<div class="flex gap-2 items-center h-full divide-x">
 										<p>{i + 1}</p>
 										<div class="flex items-center p-2 gap-2">
@@ -276,13 +266,13 @@
 	</div>
 {:else if display_variant == 'small'}
 	{#if publisher == $user?.USER_USERNAME}
-		<div class="video-result flex flex-col items-center relative">
+		<div class="video-result flex flex-col items-center gap-2 relative">
 			<p class="text-center">{video_title}</p>
 			<div class="absolute right-0 flex gap-2">
 				<iconify-icon icon="ic:round-edit" />
 				<iconify-icon icon="mdi:delete" />
 			</div>
-			<div class="aspect-9-16 relative border border-gray-500 rounded-md mb-2">
+			<div class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2">
 				<!-- 1920/6 -->
 				<div class="absolute w-full flex justify-between p-2">
 					{#if play_button_state}
@@ -347,11 +337,11 @@
 			</div>
 		</div>
 	{:else}
-		<div class="video-result flex flex-col items-center">
+		<div class="video-result flex flex-col items-center gap-2">
 			<div class="divide-y">
-				<div class="flex items-center">
+				<div class="flex items-center gap-1 mb-1">
 					<a class="unstyled" href="/">
-						<Avatar class="scale-75" initials={publisher.charAt(0)} />
+						<Avatar class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE} initials={publisher.charAt(0)} />
 					</a>
 					<div class="flex flex-col">
 						<div class="text-xs truncate">{publisher}</div>
@@ -374,11 +364,13 @@
 				</div>
 				<p class="text-center truncate">{video_title}</p>
 			</div>
-			<div class="aspect-9-16 relative border border-gray-500 rounded-md mb-2 overflow-hidden">
+			<div
+				class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2 overflow-hidden"
+			>
 				<!-- 1920/6 -->
 				<!-- svelte-ignore a11y-media-has-caption -->
 				<video
-					id={video_id}
+					id={video_element_id}
 					class="video absolute inset-0 w-full h-full"
 					title={video}
 					aria-label={video}
@@ -463,6 +455,11 @@
 
 	.aspect-9-16 {
 		height: 640px;
+		aspect-ratio: 9/16;
+	}
+
+	.aspect-9-16-small {
+		height: 320px;
 		aspect-ratio: 9/16;
 	}
 </style>

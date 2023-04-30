@@ -199,7 +199,7 @@
 						rows="4"
 						placeholder="your profile description..."
 					/>
-					<button class="btn btn-sm variant-soft-secondary w-full"
+					<button class="btn btn-sm variant-ringed-secondary w-full"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>

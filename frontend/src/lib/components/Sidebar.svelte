@@ -69,12 +69,12 @@
 						href="/{$locale}/account"
 						data-sveltekit-preload-data="hover"
 						type="button"
-						class="btn text-3xl rounded-lg w-full flex justify-start {route === '/account'
+						class="btn text-3xl rounded-lg w-full flex justify-start {route?.includes('account')
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>
 						<span>
-							{#if route === '/account'}
+							{#if route?.includes('account')}
 								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
 							{:else}
 								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account-outline" />
@@ -168,12 +168,12 @@
 						href="/{$locale}/account"
 						data-sveltekit-preload-data="hover"
 						type="button"
-						class="btn-icon text-3xl rounded-lg w-fit max-w-full {route === '/account'
+						class="btn-icon text-3xl rounded-lg w-fit max-w-full {route?.includes('account')
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>
 						<span>
-							{#if route === '/account'}
+							{#if route?.includes('account')}
 								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
 							{:else}
 								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account-outline" />

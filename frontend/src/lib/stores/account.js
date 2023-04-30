@@ -5,20 +5,20 @@ export const jwt = writable(null);
 export const loginState = writable(false);
 
 export const user = writable({
-    USER_ID: null,
-    USER_USERNAME: null,
-    USER_PROFILEPICTURE: null,
-    USER_PROFILEDESCRIPTION: null,
-    USER_DATETIMECREATED: null,
-    USER_LASTUPDATE: null,
-    user_stats: null,
-    videos_liked: null,
-    videos_disliked: null,
-    comments_liked: null,
-    comments_disliked: null,
-    subscribed: null,
-    subscribers: null,
-    user_social: null,
+	VS_USER_ID: null,
+	USER_USERNAME: null,
+	USER_PROFILEPICTURE: null,
+	USER_PROFILEDESCRIPTION: null,
+	USER_DATETIMECREATED: null,
+	USER_LASTUPDATE: null,
+	user_stats: null,
+	videos_liked: null,
+	videos_disliked: null,
+	comments_liked: null,
+	comments_disliked: null,
+	subscribed: null,
+	subscribers: null,
+	user_social: null
 });
 
 export const user_stats = derived(user, ($user) => $user.user_stats); // Videos, Views, Likes, Followers...
