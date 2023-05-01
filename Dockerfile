@@ -40,6 +40,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Composer Dependencies JWT (Authentication), DOTENV (Environment Variables), FFMPEG (Video Processing)
 RUN composer require firebase/php-jwt vlucas/phpdotenv php-ffmpeg/php-ffmpeg
 
+RUN a2enmod rewrite
+RUN service apache2 restart
+
 # Sources:
 # https://getcomposer.org/download/ // Composer: Dependency Management
 # https://github.com/firebase/php-jwt // JWT: Authentication
