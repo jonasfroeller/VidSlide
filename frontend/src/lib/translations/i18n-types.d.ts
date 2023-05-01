@@ -186,9 +186,10 @@ type RootTranslation = {
 		 */
 		views: string
 		/**
-		 * B​e​i​g​e​t​r​e​t​e​n​ ​a​m
+		 * B​e​i​g​e​t​r​e​t​e​n​ ​a​m​ ​{​0​|​}
+		 * @param {unknown} 0
 		 */
-		joined: string
+		joined: RequiredParams<'0|'>
 		/**
 		 * B​e​a​r​b​e​i​t​e​n
 		 */
@@ -531,9 +532,9 @@ export type TranslationFunctions = {
 		 */
 		views: (arg0: number | string | boolean) => LocalizedString
 		/**
-		 * Beigetreten am
+		 * Beigetreten am {0|}
 		 */
-		joined: () => LocalizedString
+		joined: (arg0: unknown) => LocalizedString
 		/**
 		 * Bearbeiten
 		 */

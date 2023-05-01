@@ -62,7 +62,7 @@ const de = {
 		follower: '{{ keine Follower | ein Follower | ?? Follower }}',
 		likes: '{{ keine Likes | ein Like | ?? Likes }}',
 		views: '{{ keine Views | ein View | ?? Views }}',
-		joined: 'Beigetreten am',
+		joined: 'Beigetreten am {0|}',
 		edit: 'Bearbeiten',
 		post: 'Posten',
 		follow: 'Folgen',

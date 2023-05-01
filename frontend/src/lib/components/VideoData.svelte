@@ -28,6 +28,8 @@
 	//     - medium_id=? [ID++] // all videos of user
 	//   - id=title [ID]
 	//     - medium_id=? [ID++] // all videos with title including text
+	//   - id=tag [ID]
+	//     - medium_id=? [ID++] // all videos with tag including text
 	//   - id=random [ID]
 	//   - id=? [ID]
 	async function fetchVideo(id: number | string, id_specification = '') {

@@ -1,10 +1,14 @@
-<script>
+<script lang="ts">
 	/* --- INIT --- */
+	// Backend Api
+	import Api from '$api/api';
+
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
@@ -23,27 +27,75 @@
 	export let page;
 
 	/* --- LOGIC --- */
+	// - medium=user [MEDIUM]
+	//   - id=video [ID] // unsuffishient
+	//     - medium_id=? [ID++] // creator of video
+	//   - id=username [ID]
+	//     - medium_id=? [ID++] // username of user
+	//   - id=? [ID]
+	async function fetchUser(id_specification = '') {
+		let response = await Api.get('user', 'username', id_specification);
+		return response;
+	}
+
+	function formatUser(user: JSON) {
+		let formattet_object = user?.data;
+		formattet_object['user'] = JSON.parse(formattet_object[0])[0];
+		delete formattet_object['0'];
+
+		formattet_object['socials'] = JSON.parse(formattet_object['socials']);
+		formattet_object['stats']['likes'] = JSON.parse(formattet_object['stats']['likes']);
+		formattet_object['stats']['shares'] = JSON.parse(formattet_object['stats']['shares']);
+		formattet_object['stats']['videos'] = JSON.parse(formattet_object['stats']['videos']);
+		formattet_object['stats']['views'] = JSON.parse(formattet_object['stats']['views']);
+
+		formattet_object['subscribed'] = JSON.parse(formattet_object['subscribed']);
+		formattet_object['subscribers'] = JSON.parse(formattet_object['subscribers']);
+
+		return formattet_object;
+	}
+
 	onMount(async () => {
-		const boxes = document.querySelectorAll('.social-media-site');
-		if (boxes) {
+		let user = await fetchUser('SamJones');
+		current_user = formatUser(user);
+
+		current_user_socials = {};
+		current_user_socials['instagram'] = current_user?.socials.find(
+			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'instagram'
+		);
+		current_user_socials['youtube'] = current_user?.socials.find(
+			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'youtube'
+		);
+		current_user_socials['tiktok'] = current_user?.socials.find(
+			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'tiktok'
+		);
+		current_user_socials['twitter'] = current_user?.socials.find(
+			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'twitter'
+		);
+
+		if (browser) {
+			console.log($user);
+		}
+
+		const socials = document.querySelectorAll('.social-media-site');
+		if (socials) {
 			let maxBoxWidth = 0;
 
-			// Schritt 1: das breiteste Element finden und die Breite speichern
-			boxes.forEach((box) => {
+			socials.forEach((box) => {
 				const boxWidth = box.offsetWidth;
 				if (boxWidth > maxBoxWidth) {
 					maxBoxWidth = boxWidth;
 				}
 			});
 
-			// Schritt 2: die Breite des breitesten Elements auf alle anderen übertragen
-			boxes.forEach((box) => {
+			socials.forEach((box) => {
 				box.style.width = maxBoxWidth + 'px';
 			});
 		}
 	});
 
-	// TODO: fetch and parse data
+	$: current_user = null;
+	$: current_user_socials = null;
 </script>
 
 {#if page.includes('account')}
@@ -51,23 +103,25 @@
 		<!-- 1080/3 -->
 		<div class="flex items-center gap-2">
 			<a class="unstyled" href="/">
-				<Avatar initials={$user?.USER_USERNAME?.charAt(0) ?? '??'} />
+				<Avatar initials={current_user?.user?.USER_USERNAME?.charAt(0) ?? '??'} />
 			</a>
 			<div class="flex flex-col">
-				<div id="username" class="text-lg">{$user?.USER_USERNAME ?? '??'}</div>
-				<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500 flex">
+				<div id="username" class="text-lg">{current_user?.user?.USER_USERNAME ?? '??'}</div>
+				<div id="stats" class="text-md text-primary-700 dark:text-primary-500 flex">
 					<p class="unstyled">
-						{$translation.UserData.follower($user_subscribers?.length ?? 0)}&nbsp;
-					</p>
-					|
-					<p class="unstyled">&nbsp;{$translation.UserData.views($user_stats?.VIEWS ?? 0)}&nbsp;</p>
-					|
-					<p class="unstyled">
-						&nbsp;{$translation.UserData.videos($user_stats?.VIDEOS ?? 0)}&nbsp;
+						{$translation.UserData.follower(current_user?.stats?.views?.length ?? 0)}&nbsp;
 					</p>
 					|
 					<p class="unstyled">
-						&nbsp;{$translation.UserData.joined($user?.USER_DATETIMECREATED ?? 0)}
+						&nbsp;{$translation.UserData.views(current_user?.stats?.views?.length ?? 0)}&nbsp;
+					</p>
+					|
+					<p class="unstyled">
+						&nbsp;{$translation.UserData.videos(current_user?.stats?.videos?.length ?? 0)}&nbsp;
+					</p>
+					|
+					<p class="unstyled">
+						&nbsp;{$translation.UserData.joined(current_user?.user?.USER_DATETIMECREATED)}
 					</p>
 				</div>
 			</div>
@@ -91,25 +145,38 @@
 	<div id="user-description" class="flex justify-between p-2">
 		<div class="flex flex-col">
 			<div class="textbox p-2">
-				{$user?.USER_PROFILEPICTURE ?? '??'}
+				{current_user?.user?.USER_PROFILEDESCRIPTION ?? 'no description...'}
 			</div>
 			<button class="btn variant-ringed hover:variant-filled h-1/2 w-fit" type="button">
 				{$translation.UserData.more()}
 			</button>
 		</div>
 		<div id="user-socials" class="flex gap-2 pl-2 pt-2 h-min">
-			<a href="/" class="transition"
-				><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:instagram" /></a
-			>
-			<a href="/" class="transition"
-				><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:youtube" /></a
-			>
-			<a href="/" class="transition"
-				><iconify-icon class="cursor-pointer" width="30" height="30" icon="ic:baseline-tiktok" /></a
-			>
-			<a href="/" class="transition"
-				><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:twitter" /></a
-			>
+			{#if current_user_socials?.instagram}
+				<a href={current_user_socials.instagram.SOCIAL_URL} class="transition"
+					><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:instagram" /></a
+				>
+			{/if}
+			{#if current_user_socials?.youtube}
+				<a href={current_user_socials.youtube.SOCIAL_URL} class="transition"
+					><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:youtube" /></a
+				>
+			{/if}
+			{#if current_user_socials?.tiktok}
+				<a href={current_user_socials.tiktok.SOCIAL_URL} class="transition"
+					><iconify-icon
+						class="cursor-pointer"
+						width="30"
+						height="30"
+						icon="ic:baseline-tiktok"
+					/></a
+				>
+			{/if}
+			{#if current_user_socials?.twitter}
+				<a href={current_user_socials.twitter.SOCIAL_URL} class="transition"
+					><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:twitter" /></a
+				>
+			{/if}
 		</div>
 	</div>
 	<hr />
@@ -122,7 +189,13 @@
 					<label class="label">
 						<span>{$translation.pages.settings.account_section.username()}</span>
 						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-							<input disabled class="input p-2" type="text" placeholder="jonesis" />
+							<input
+								disabled
+								class="input p-2"
+								type="text"
+								placeholder={$user?.USER_USERNAME ?? '??'}
+								value={$user?.USER_USERNAME ?? '??'}
+							/>
 							<button class="variant-soft-secondary"
 								>{$translation.pages.settings.account_section.edit()}</button
 							>
@@ -131,7 +204,13 @@
 					<label class="label">
 						<span>{$translation.pages.settings.account_section.password()}</span>
 						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-							<input disabled class="input p-2" type="password" placeholder="●●●●●●●●" />
+							<input
+								disabled
+								class="input p-2"
+								type="password"
+								placeholder="●●●●●●●●"
+								value="●●●●●●●●"
+							/>
 							<button class="variant-soft-secondary"
 								>{$translation.pages.settings.account_section.edit()}</button
 							>
@@ -197,7 +276,8 @@
 						disabled
 						class="textarea p-2 w-96"
 						rows="4"
-						placeholder="your profile description..."
+						placeholder={$user?.USER_PROFILEDESCRIPTION ?? 'no descroption...'}
+						value={$user?.USER_PROFILEDESCRIPTION ?? 'no descroption...'}
 					/>
 					<button class="btn btn-sm variant-ringed-secondary w-full"
 						>{$translation.pages.settings.account_section.edit()}</button

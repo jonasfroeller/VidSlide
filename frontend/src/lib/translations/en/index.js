@@ -62,7 +62,7 @@ const en = {
 		follower: '{{ no Followers | one Follower | ?? Followers }}',
 		likes: '{{ no Likes | one Like | ?? Likes }}',
 		views: '{{ no Views | one View | ?? Views }}',
-		joined: 'Joined on',
+		joined: 'Joined on {0|}',
 		edit: 'Edit',
 		post: 'Post',
 		follow: 'Follow',
