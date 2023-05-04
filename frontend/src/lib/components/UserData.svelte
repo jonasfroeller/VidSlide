@@ -99,7 +99,7 @@
 </script>
 
 {#if page.includes('account')}
-	<div id="user-info" class="flex justify-between items-center w-full pb-2">
+	<div id="user-info" class="flex flex-wrap justify-between gap-4 items-center w-full pb-2">
 		<!-- 1080/3 -->
 		<div class="flex items-center gap-2">
 			<a class="unstyled" href="/">
@@ -185,10 +185,10 @@
 		<h3>{$translation.pages.settings.account_section.title()}</h3>
 		<div class="flex flex-col flex-wrap gap-8 divide-y">
 			<div id="account" class="flex flex-col p-2">
-				<div class="flex gap-2">
+				<div class="flex flex-col md:flex-row gap-2">
 					<label class="label">
 						<span>{$translation.pages.settings.account_section.username()}</span>
-						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+						<div class="input-group input-group-divider grid-cols-[1fr_auto]">
 							<input
 								disabled
 								class="input p-2"
@@ -203,7 +203,7 @@
 					</label>
 					<label class="label">
 						<span>{$translation.pages.settings.account_section.password()}</span>
-						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+						<div class="input-group input-group-divider grid-cols-[1fr_auto]">
 							<input
 								disabled
 								class="input p-2"
@@ -220,51 +220,39 @@
 			</div>
 			<div id="socials" class="flex flex-col gap-2 p-2">
 				<h4>{$translation.pages.settings.account_section.socials()}</h4>
-				<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim">https://www.instagram.com/</div>
-					<input
-						disabled
-						class="outline-none text-center p-2"
-						type="text"
-						placeholder="@your_username"
-					/>
-					<button class="variant-soft-secondary"
+				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
+					<div class="social-media-site input-group-shim text-center md:text-left">
+						https://www.instagram.com/
+					</div>
+					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
+					<button class="variant-soft-secondary text-center md:text-left"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>
-				<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim">https://www.youtube.com/</div>
-					<input
-						disabled
-						class="outline-none text-center p-2"
-						type="text"
-						placeholder="@your_username"
-					/>
-					<button class="variant-soft-secondary"
+				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
+					<div class="social-media-site input-group-shim text-center md:text-left">
+						https://www.youtube.com/
+					</div>
+					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
+					<button class="variant-soft-secondary text-center md:text-left"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>
-				<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim">https://www.twitter.com/</div>
-					<input
-						disabled
-						class="outline-none text-center p-2"
-						type="text"
-						placeholder="@your_username"
-					/>
-					<button class="variant-soft-secondary"
+				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
+					<div class="social-media-site input-group-shim text-center md:text-left">
+						https://www.twitter.com/
+					</div>
+					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
+					<button class="variant-soft-secondary text-center md:text-left"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>
-				<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim">https://www.tiktok.com/</div>
-					<input
-						disabled
-						class="outline-none text-center p-2"
-						type="text"
-						placeholder="@your_username"
-					/>
-					<button class="variant-soft-secondary"
+				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
+					<div class="social-media-site input-group-shim text-center md:text-left">
+						https://www.tiktok.com/
+					</div>
+					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
+					<button class="variant-soft-secondary text-center md:text-left"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>
@@ -274,7 +262,7 @@
 					<h4>{$translation.pages.settings.account_section.description()}</h4>
 					<textarea
 						disabled
-						class="textarea p-2 w-96"
+						class="textarea p-2 w-96 max-w-[50vw]"
 						rows="4"
 						placeholder={$user?.USER_PROFILEDESCRIPTION ?? 'no descroption...'}
 						value={$user?.USER_PROFILEDESCRIPTION ?? 'no descroption...'}

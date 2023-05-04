@@ -45,7 +45,7 @@
 
 <Main css={'flex-col divide-y'}>
 	<h3>{$translation.pages.settings.site_section.title()}</h3>
-	<div class="flex gap-4 pt-4 pb-4">
+	<div class="flex flex-col md:flex-row gap-4 pt-4 pb-4">
 		<ThemeSelect />
 		<LangSelect />
 	</div>

@@ -22,13 +22,15 @@
 		id="search-section"
 		class="flex {display_variant == 'vertical'
 			? 'flex-col'
-			: ''} items-center justify-between gap-4 pt-4 pb-4"
+			: 'flex-col xl:flex-row'} items-center justify-between gap-4 pt-4 pb-4"
 	>
 		<div
 			id="search-bar"
-			class="input-group self-start input-group-divider grid-cols-[auto_1fr_auto] h-fit w-full"
+			class="input-group {display_variant == 'vertical'
+				? 'items-center'
+				: 'items-start'} input-group-divider grid-cols-[auto_1fr_auto] h-fit w-max"
 		>
-			<div class="input-group-shim">
+			<div class="input-group-shim h-full">
 				<iconify-icon class="cursor-pointer" icon="material-symbols:search-rounded" />
 			</div>
 			<input
@@ -37,9 +39,12 @@
 				placeholder="{$translation.SearchSection.search()}..."
 				bind:value={search}
 			/>
-			<button class="variant-soft-secondary">{$translation.SearchSection.search()}</button>
+			<button class="variant-soft-secondary h-full">{$translation.SearchSection.search()}</button>
 		</div>
-		<div id="search-config" class="flex {display_variant == 'vertical' ? 'flex-col' : ''} gap-4">
+		<div
+			id="search-config"
+			class="flex {display_variant == 'vertical' ? 'flex-col' : 'flex-col lg:flex-row'} gap-4"
+		>
 			<div class="w-full">
 				{$translation.SearchSection.search_option.subject()}
 				<hr />

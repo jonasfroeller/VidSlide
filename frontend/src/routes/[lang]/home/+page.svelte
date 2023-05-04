@@ -37,6 +37,6 @@
 	<title>Home</title>
 </svelte:head>
 
-<Main css={'gap-6'}>
+<Main css={'gap-6 justify-center flex-wrap'}>
 	<VideoData page={data.pathname} />
 </Main>
