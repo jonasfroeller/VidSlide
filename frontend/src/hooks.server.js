@@ -11,7 +11,7 @@ export const handle = async ({ event, resolve }) => {
 
 		return new Response(null, {
 			status: 302,
-			headers: { Location: `/${locale}/home` } // TODO: redirect to last visited
+			headers: { Location: `/${locale}/home` }
 		});
 	}
 

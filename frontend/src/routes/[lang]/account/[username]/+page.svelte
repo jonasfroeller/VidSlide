@@ -17,7 +17,7 @@
 </script>
 
 <svelte:head>
-	<meta property="og:url" content="https://svelte-kit-vid-slide.vercel.app/" />
+	<meta property="og:url" content="https://svelte-kit-vid-slide.vercel.app/account" />
 	<meta property="og:title" content="Account" />
 
 	<link

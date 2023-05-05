@@ -89,11 +89,10 @@
 				type="button"
 				class="btn-icon variant-glass-tertiary variant-ringed-tertiary ml-[-1.3rem] fixed top-2/4 translate-y-[-50%] text-2xl"
 			>
-				{#if sidebarVariant === 'large'}
-					<iconify-icon class="cursor-pointer flex items-center" icon="mdi:keyboard-arrow-left" />
-				{:else}
-					<iconify-icon class="cursor-pointer flex items-center" icon="mdi:keyboard-arrow-right" />
-				{/if}
+				<iconify-icon
+					class="cursor-pointer flex items-center"
+					icon={sidebarVariant === 'large' ? 'mdi:keyboard-arrow-left' : 'mdi:keyboard-arrow-right'}
+				/>
 			</button>
 		</div>
 		<!-- divider -->
