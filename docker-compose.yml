@@ -5,7 +5,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./
-    image: php:8.1.17-apache
+    image: jonasfroeller/vidslide-backend:latest
     restart: always
     ports:
       - "8196:80"
