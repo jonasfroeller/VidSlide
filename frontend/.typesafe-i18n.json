@@ -1,7 +1,7 @@
 {
-	"baseLocale": "de",
-	"adapter": "svelte",
-	"outputFormat": "JavaScript",
-	"outputPath": "./src/lib/translations",
-	"$schema": "https://unpkg.com/typesafe-i18n@5.24.2/schema/typesafe-i18n.json"
+   "baseLocale": "de",
+   "adapter": "svelte",
+   "outputFormat": "JavaScript",
+   "outputPath": "./src/lib/translations",
+   "$schema": "https://unpkg.com/typesafe-i18n@5.24.3/schema/typesafe-i18n.json"
 }

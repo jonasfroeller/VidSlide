@@ -6,9 +6,6 @@
 	// Backend Api
 	import Api from '$api/api';
 
-	// Translation
-	import translation from '$translation/i18n-svelte';
-
 	// Stores
 	import {
 		loginState,
@@ -19,6 +16,10 @@
 		user_subscribers,
 		user_social
 	} from '$store/account';
+
+	// Translation
+	import translation from '$translation/i18n-svelte';
+	import { locale } from '$translation/i18n-svelte';
 
 	// Form Validation
 	import { z } from 'zod';
@@ -45,7 +46,40 @@
 	$: password_confirm_error = 'undefined';
 
 	/* -- Form Validation Schema -- */
-	const userDataSchema = z.object({
+	const userDataSchemaGerman = z.object({
+		username: z
+			.string({ required_error: 'Benutzername ist erforderlich' })
+			.trim()
+			.min(2, { message: 'Der Benutzername muss mindestens 2 Zeichen lang sein' })
+			.max(25, { message: 'Der Benutzername darf maximal 25 Zeichen lang sein' })
+			.regex(RegExp('^(?=.*[A-Za-z])(?!.*[-_]{2})[A-Za-z0-9_-]*$'), {
+				message:
+					'Mindestens 1 Buchstabe, Zahlen sind ebenfalls erlaubt. Bindestrich (-) und Unterstrich (_) sind erlaubt, dürfen aber nicht direkt aufeinander folgen.'
+			}),
+		password: z
+			.string({ required_error: 'Passwort ist erforderlich' })
+			.trim()
+			.min(8)
+			.max(25)
+			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
+				message:
+					'Mindestens 1 Symbol/Sonderzeichen aus: ?!#@$%&*, mindestens 1 Zahl, mindestens 1 Großbuchstabe, mindestens 1 Kleinbuchstabe.'
+			}),
+		password_confirmation: z
+			.string({ required_error: 'Passwort-Wiederholung ist erforderlich' })
+			.trim()
+			.min(8)
+			.max(25)
+			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
+				message:
+					'Mindestens 1 Symbol/Sonderzeichen aus: ?!#@$%&*, mindestens 1 Zahl, mindestens 1 Großbuchstabe, mindestens 1 Kleinbuchstabe.'
+			})
+			.refine(() => userData.password === passwordConfirmation, {
+				message: 'Das wiederholte Passwort muss mit dem Passwort übereinstimmen'
+			})
+	});
+
+	const userDataSchemaEnglish = z.object({
 		username: z
 			.string({ required_error: 'username is required' })
 			.trim()
@@ -78,6 +112,8 @@
 			}) /* min 1 symbol/special char, 1 digit, 1 uppercase char, 1 lowercase char */
 	});
 
+	$: userDataSchema = $locale === 'de' ? userDataSchemaGerman : userDataSchemaEnglish;
+
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
 
@@ -109,32 +145,33 @@
 		return await Api.auth(username, password);
 	}
 
-	const onFormSubmit = (userMayExist: boolean): void => {
-		if ($modalStore[0]?.response) $modalStore[0]?.response(userData);
+	const onFormSubmit = async function (userMayExist: boolean) {
+		if ($modalStore[0]?.response) {
+			$modalStore[0]?.response(userData);
+		}
+
 		validateForm(true);
 
 		/* loginState, user, user_stats, user_videos_liked, user_videos_disliked, user_comments_liked, user_comments_disliked, user_subscribed, user_subscribers, user_social. */
 		if (userMayExist) {
-			signIn(userData.username, userData.password).then((response) => {
-				setAccountVariables(response);
-			});
+			let response = signIn(userData.username, userData.password);
+			setAccountVariables(response);
 		} else {
-			signUp(userData.username, userData.password).then((response) => {
-				setAccountVariables(response);
-			});
+			let response = signUp(userData.username, userData.password);
+			setAccountVariables(response);
 		}
 	};
 
-	function setAccountVariables(response) {
+	function setAccountVariables(response: any) {
+		$loginState = true;
+		// $jwt = response?.token ?? null; // TODO: save in local storage
+		// $user = response?.user ?? null; // TODO: save in local storage
+
 		if (response?.accountExisted) {
 			toastStore.trigger(popups.loggedIn_success);
 		} else {
 			toastStore.trigger(popups.registered_success);
 		}
-
-		$loginState = true;
-		$jwt = response?.token ?? null; // TODO: save in local storage
-		$user = response?.user ?? null; // TODO: save in local storage
 	}
 
 	/* -- Form Validation -- */

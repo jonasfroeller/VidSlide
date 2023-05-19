@@ -58,7 +58,7 @@
 		background: 'variant-ghost-success'
 	};
 
-	let message_registered_success = $translation.Popups.toast.registered__success();
+	let message_registered_success = $translation.Popups.toast.registered_success();
 	export const registered_success: ToastSettings = {
 		message: message_registered_success,
 		background: 'variant-ghost-success'

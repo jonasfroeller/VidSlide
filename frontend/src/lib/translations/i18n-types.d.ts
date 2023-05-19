@@ -274,7 +274,7 @@ type RootTranslation = {
 			/**
 			 * E​i​n​ ​n​e​u​e​r​ ​A​c​c​o​u​n​t​ ​w​u​r​d​e​ ​r​e​g​i​s​t​r​i​e​r​t​!
 			 */
-			registered__success: string
+			registered_success: string
 		}
 	}
 	SearchSection: {
@@ -619,7 +619,7 @@ export type TranslationFunctions = {
 			/**
 			 * Ein neuer Account wurde registriert!
 			 */
-			registered__success: () => LocalizedString
+			registered_success: () => LocalizedString
 		}
 	}
 	SearchSection: {

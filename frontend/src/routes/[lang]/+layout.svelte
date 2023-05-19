@@ -9,6 +9,7 @@
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	// CSS-Framework/Library
 	import '@skeletonlabs/skeleton/styles/all.css';
@@ -52,6 +53,24 @@
 		}
 	};
 
+	// Responsiveness for Sidebar
+	function handleResize() {
+		if (window.innerWidth <= 750) {
+			sidebarVariant = 'small';
+
+			const element = document.querySelector('#resize-sidebar');
+			element.classList.add('hidden');
+		} else {
+			const element = document.querySelector('#resize-sidebar');
+			element.classList.remove('hidden');
+		}
+	}
+
+	if (browser) {
+		handleResize();
+		window.addEventListener('resize', handleResize);
+	}
+
 	/* --- LOGGING --- */
 	onMount(async () => {
 		console.log(new Date().toLocaleString());
@@ -86,8 +105,9 @@
 				on:click={() => {
 					sidebarVariant === 'large' ? (sidebarVariant = 'small') : (sidebarVariant = 'large');
 				}}
+				id="resize-sidebar"
 				type="button"
-				class="btn-icon variant-glass-tertiary variant-ringed-tertiary ml-[-1.3rem] fixed top-2/4 translate-y-[-50%] text-2xl"
+				class="btn-icon variant-glass-tertiary variant-ringed-tertiary ml-[-1.3rem] fixed top-2/4 translate-y-[-50%] text-2xl z-[999]"
 			>
 				<iconify-icon
 					class="cursor-pointer flex items-center"

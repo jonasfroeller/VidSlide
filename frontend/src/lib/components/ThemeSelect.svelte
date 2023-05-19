@@ -36,7 +36,7 @@
 <select
 	class="select outlined text-md rounded-lg {variant === 'large'
 		? 'w-full'
-		: 'w-[6rem]'} variant-ringed cursor-pointer"
+		: 'w-[2rem]'} variant-ringed cursor-pointer"
 	bind:value={$themeState}
 	on:change={() => {
 		toastStore.trigger(popups.configSaved_success);

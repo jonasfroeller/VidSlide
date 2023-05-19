@@ -90,7 +90,7 @@ const en = {
 			loggingIn_warning: 'Input invalid!',
 			loggingIn_info: 'Logging you in!',
 			loggedIn_success: 'Logged in!',
-			registered__success: 'Registered new account!'
+			registered_success: 'Registered new account!'
 		}
 	},
 	SearchSection: {

@@ -132,7 +132,7 @@
 						? 'variant-ghost-tertiary'
 						: 'variant-ringed-secondary'}"
 				>
-					<span>
+					<span class="p-2">
 						{#if route === '/home' || route === ''}
 							<iconify-icon class="cursor-pointer flex items-center" icon="material-symbols:home" />
 						{:else}
@@ -153,7 +153,7 @@
 						? 'variant-ghost-tertiary'
 						: 'variant-ringed-secondary'}"
 				>
-					<span>
+					<span class="p-2">
 						{#if route === '/search'}
 							<iconify-icon class="cursor-pointer flex items-center" icon="mdi:search-web" />
 						{:else}
@@ -172,7 +172,7 @@
 							? 'variant-ghost-tertiary'
 							: 'variant-ringed-secondary'}"
 					>
-						<span>
+						<span class="p-2">
 							{#if route?.includes('account')}
 								<iconify-icon class="cursor-pointer flex items-center" icon="mdi:account" />
 							{:else}
@@ -191,7 +191,7 @@
 						? 'variant-ghost-tertiary'
 						: 'variant-ringed-secondary'}"
 				>
-					<span>
+					<span class="p-2">
 						{#if route === '/settings'}
 							<iconify-icon
 								class="cursor-pointer flex items-center"

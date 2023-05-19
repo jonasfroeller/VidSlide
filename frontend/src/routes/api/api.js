@@ -68,7 +68,7 @@ export default class Api {
 			const json_response = await response.json();
 			// console.log(json_response);
 			this.jwt = json_response['token'];
-			this.accountExisted = JSON.parse(json_response['data'][0])[0]?.response ?? false;
+			this.accountExisted = JSON.parse(json_response['data'][0])[0]?.response == "accountExisted" ? true : false;
 			this.user = JSON.parse(json_response['data'][0])[0];
 			this.user.socials = JSON.parse(json_response['data'][0])[0]?.socials ?? null;
 			this.user.subscribed = JSON.parse(json_response['data'][0])[0]?.subscribed ?? null;
