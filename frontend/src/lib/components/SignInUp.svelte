@@ -203,6 +203,10 @@
 		}
 	}
 
+	$: usernamePlaceholder = $locale === 'de' ? 'Username eingeben...' : 'Enter username...';
+	$: passwordPlaceholder = $locale === 'de' ? 'Passwort eingeben...' : 'Enter password...';
+	$: passwordConfirmationPlaceholder = $locale === 'de' ? 'Passwort erneut eingeben...' : 'Enter password again...'; // prettier-ignore
+
 	onMount(async () => {
 		validateForm(); // validate on load to work with test values
 	});
@@ -245,7 +249,7 @@
 							id="username"
 							bind:value={userData.username}
 							on:input={() => validateForm()}
-							placeholder="Enter username..."
+							placeholder={usernamePlaceholder}
 						/>
 					</div>
 					{#if username_error != 'null'}
@@ -281,7 +285,7 @@
 							id="password"
 							bind:value={userData.password}
 							on:input={() => validateForm()}
-							placeholder="Enter password..."
+							placeholder={passwordPlaceholder}
 						/>
 					</div>
 					{#if password_error != 'null'}
@@ -318,7 +322,7 @@
 								id="password-retype"
 								bind:value={passwordConfirmation}
 								on:input={() => validateForm(false)}
-								placeholder="Enter password again..."
+								placeholder={passwordConfirmationPlaceholder}
 							/>
 						</div>
 						{#if password_confirm_error != 'null'}
