@@ -28,7 +28,7 @@
 {/key}
 
 <header class="flex justify-end gap-2 text-lg">
-	<button type="button" class="btn variant-ringed" on:click={openLoginModal}>
+	<button type="button" class="btn variant-ringed" name="login-btn" on:click={openLoginModal}>
 		{#if !$loginState}
 			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:login-variant" />
 			<span>{$translation.Header.logIn()}</span>

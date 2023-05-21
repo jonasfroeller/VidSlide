@@ -37,6 +37,7 @@
 	class="select outlined text-md rounded-lg {variant === 'large'
 		? 'w-full'
 		: 'w-[2rem]'} variant-ringed cursor-pointer"
+	name="theme"
 	bind:value={$themeState}
 	on:change={() => {
 		toastStore.trigger(popups.configSaved_success);

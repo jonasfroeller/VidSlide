@@ -87,6 +87,7 @@
 	class="select text-md rounded-lg {variant === 'large'
 		? 'w-full'
 		: 'w-[2rem]'} max-w-full variant-ringed cursor-pointer"
+	name="lang"
 	bind:value={$langState}
 	on:change={() => {
 		toastStore.trigger(popups.configSaved_success);

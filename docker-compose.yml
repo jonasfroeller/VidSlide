@@ -19,18 +19,10 @@ services:
     ports:
       - "3196:3306"
     volumes:
-      - /var/lib/vidslide_database:/var/lib/mysql # /var/lib/vidslide_database:/var/lib/mysql # change /var/lib/vidslidedb to other path if WSL2 is not installed and windows is your OS
+      - /var/lib/vidslide_database:/var/lib/mysql # don't forget to change this bind-mount path to fit your preferences!
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # || env_file: database.env
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # set (Windows) | export (Linux) in commandline || env_file: database.env
 
 # INFO:
-# RUN ON LINUX for the bind-mount to work with WSL2 path (navigate to folder: /mnt/disk/<path>): sudo docker-compose up --build -d
-# LOGIN DATABASE ON CONTAINER: mysql -u root -p <schema> => asks for password set in vidslide-db.environment.MYSQL_ROOT_PASSWORD
-
-#  alternative to ./backend/media
-#  vidslide-media:
-#    image: busybox:1.34.1-glibc
-#    command: tail -f /dev/null
-#    restart: always
-#    volumes:
-#      - /var/lib/vidslide_storage:/data
+# If you are using Windows and want to save the files in WSL2: navigate to folder => cd /mnt/<disk_name>/<path> && sudo docker-compose up --build -d
+# LOGIN the "vidslide-db" database in the container console: mysql -u root -p <schema> (asks for password set in vidslide-db.environment.MYSQL_ROOT_PASSWORD)
