@@ -1,6 +1,7 @@
 # VidSlide
 
 ![Vercel](https://therealsujitk-vercel-badge.vercel.app/?app=svelte-kit-vid-slide)
+[![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 ## Info  
 
