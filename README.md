@@ -51,7 +51,7 @@ VidSlide is a TikTok, Instagram Reels and YouTube Reels inspired app. Post, edit
 
 #### Update Frontend Dependencies
 
-`npm install` <span style="color:green">// displays current, wanted and latest version of dep  
+`npm outdated` <span style="color:green">// displays current, wanted and latest version of dep  
 `npm update` <span style="color:green">// updates deps to wanted version (never major versions (could break things))  
 
 ### Setup Database & Backend API

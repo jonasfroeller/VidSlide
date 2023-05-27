@@ -33,7 +33,8 @@
 		"coverage": "vitest run --coverage",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
-		"typesafe-i18n": "typesafe-i18n"
+		"typesafe-i18n": "typesafe-i18n",
+		"commit": "cz"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.33.0",
@@ -44,6 +45,8 @@
 		"@tailwindcss/forms": "^0.5.3",
 		"@types/node": "^18.16.13",
 		"autoprefixer": "^10.4.14",
+		"commitizen": "^4.3.0",
+		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^8.40.0",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-svelte3": "^4.0.0",
@@ -67,5 +70,10 @@
 		"iconify-icon": "^1.0.7",
 		"typesafe-i18n": "^5.24.3",
 		"zod": "^3.21.4"
+	},
+	"config": {
+		"commitizen": {
+			"path": "cz-conventional-changelog"
+		}
 	}
 }
