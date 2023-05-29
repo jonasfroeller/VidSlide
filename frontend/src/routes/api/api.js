@@ -82,8 +82,8 @@ export default class Api {
 			this.user.user_stats = JSON.parse(json_response['data'][0])[0]?.stats ?? null; // videos, likes, views, shares
 
 			return {
-				token: this.jwt,
 				accountExisted: false,
+				token: this.jwt,
 				user: this.user
 			};
 		} else {

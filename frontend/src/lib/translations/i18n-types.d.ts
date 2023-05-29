@@ -14,6 +14,16 @@ export type Translation = RootTranslation
 export type Translations = RootTranslation
 
 type RootTranslation = {
+	Error: {
+		/**
+		 * g​e​s​u​c​h​t​e​r​ ​P​f​a​d
+		 */
+		query: string
+		/**
+		 * z​u​r​ü​c​k​ ​z​u​r​ ​S​t​a​r​t​s​e​i​t​e
+		 */
+		back: string
+	}
 	LangSelect: {
 		/**
 		 * S​p​r​a​c​h​e
@@ -364,6 +374,16 @@ type RootTranslation = {
 }
 
 export type TranslationFunctions = {
+	Error: {
+		/**
+		 * gesuchter Pfad
+		 */
+		query: () => LocalizedString
+		/**
+		 * zurück zur Startseite
+		 */
+		back: () => LocalizedString
+	}
 	LangSelect: {
 		/**
 		 * Sprache

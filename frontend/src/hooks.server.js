@@ -1,7 +1,11 @@
 import { detectLocale } from '$translation/i18n-util';
 import { initAcceptLanguageHeaderDetector } from 'typesafe-i18n/detectors';
 
-/** @type { import('@sveltejs/kit').Handle } */
+/**
+ * @param {import('@sveltejs/kit').Handle} param0
+ * @returns {Promise<Response>}
+ */
+
 export const handle = async ({ event, resolve }) => {
 	// read language slug
 	let [, lang] = event.url.pathname.split('/'); // ip||domain/[lang]
@@ -16,7 +20,7 @@ export const handle = async ({ event, resolve }) => {
 	}
 
 	// replace html lang attribute with correct language
-	// @ts-ignore
+	
 	return resolve(event, { transformPageChunk: ({ html }) => html.replace('%lang%', lang) });
 };
 

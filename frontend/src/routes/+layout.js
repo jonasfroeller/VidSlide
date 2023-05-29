@@ -19,7 +19,6 @@ export const load = async ({ url, params }) => {
 
 	// redirect to base locale if language is not present
 	if (!locales.includes(lang)) {
-		// @ts-ignore
 		throw redirect(302, replaceLocaleInUrl(url.pathname, baseLocale));
 	}
 

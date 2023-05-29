@@ -7,15 +7,7 @@
 	import Api from '$api/api';
 
 	// Stores
-	import {
-		loginState,
-		jwt,
-		user,
-		user_stats,
-		user_subscribed,
-		user_subscribers,
-		user_social
-	} from '$store/account';
+	import { loginState, jwt, user } from '$store/account';
 
 	// Translation
 	import translation from '$translation/i18n-svelte';
@@ -121,6 +113,8 @@
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import { toastStore, modalStore } from '@skeletonlabs/skeleton';
 
+	$: toasts = toastStore;
+
 	// Components
 	import Popups from '$component/Popups.svelte';
 	let popups; // popups in Popups.svelte
@@ -152,26 +146,25 @@
 
 		validateForm(true);
 
-		/* loginState, user, user_stats, user_videos_liked, user_videos_disliked, user_comments_liked, user_comments_disliked, user_subscribed, user_subscribers, user_social. */
 		if (userMayExist) {
 			let response = signIn(userData.username, userData.password);
-			setAccountVariables(response);
+			let result = setAccountVariables(response);
+			result ? toasts.trigger(popups.loggedIn_success) : toasts.trigger(popups.registered_success);
 		} else {
 			let response = signUp(userData.username, userData.password);
-			setAccountVariables(response);
+			let result = setAccountVariables(response);
+			result ? toasts.trigger(popups.loggedIn_success) : toasts.trigger(popups.registered_success);
 		}
 	};
 
-	function setAccountVariables(response: any) {
-		$loginState = true;
-		// $jwt = response?.token ?? null; // TODO: save in local storage
-		// $user = response?.user ?? null; // TODO: save in local storage
+	async function setAccountVariables(response: any) {
+		const result = await response;
 
-		if (response?.accountExisted) {
-			toastStore.trigger(popups.loggedIn_success);
-		} else {
-			toastStore.trigger(popups.registered_success);
-		}
+		$loginState = true;
+		$jwt = result?.token ?? null;
+		$user = result?.user ?? null;
+
+		return result?.accountExisted ?? false;
 	}
 
 	/* -- Form Validation -- */

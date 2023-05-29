@@ -3,7 +3,7 @@
 	// Translation
 	import translation from '$translation/i18n-svelte';
 	import { setLocale } from '$translation/i18n-svelte';
-	import type { PageData } from './$types';
+	import type { PageData } from './[lang]/$types';
 	export let data: PageData;
 	setLocale(data.locale);
 

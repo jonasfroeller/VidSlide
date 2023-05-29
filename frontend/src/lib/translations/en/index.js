@@ -6,6 +6,10 @@
 
 /** @type { Translation } */
 const en = {
+	Error: {
+		query: "searched path",
+		back: "back home"
+	},
 	LangSelect: {
 		lang: 'Language'
 	},

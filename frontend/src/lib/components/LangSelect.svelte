@@ -39,7 +39,6 @@
 	const switchLocale = async (newLocale, updateHistoryState = true) => {
 		// save to locale storage
 		$config = await styleCfg.load();
-		// @ts-ignore
 		$config.language = newLocale;
 		await styleCfg.save($config);
 
@@ -49,7 +48,6 @@
 		// select locale
 		setLocale(newLocale);
 		// update `lang` attribute
-		// @ts-ignore
 		document.querySelector('html').setAttribute('lang', newLocale);
 		if (updateHistoryState) {
 			// update url to reflect locale changes

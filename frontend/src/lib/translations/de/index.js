@@ -6,6 +6,10 @@
 
 /** @type { BaseTranslation } */
 const de = {
+	Error: {
+		query: "gesuchter Pfad",
+		back: "zurück zur Startseite"
+	},
 	LangSelect: {
 		lang: 'Sprache'
 	},
