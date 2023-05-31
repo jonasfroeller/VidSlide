@@ -475,6 +475,9 @@ if (!$connection) {
 
     // login as guest => READ ONLY
     $connection = mysqli_connect($host, $guest_user_username, $guest_user_password, $schema, $port);
+
+    // export_database($connection);
+
     if (!$connection) {
         errorOccurred($connection, $response, __LINE__, "reconnection as guest user couldn't be established", true);
     } else {
@@ -723,12 +726,17 @@ try {
     }
 
     // POST-Options:
-    // - action=auth [MEDIUM] // insufficient
+    // - action=auth [ACTION] // insufficient
     //   - username=?&password=? [ID] // => auth token if password for user is valid or account doesn't exist (will be created)
-    // - action=signout [MEDIUM]  
-    // - action=video [MEDIUM] 
+    // - action=signout [ACTION]  
+    // - action=video [ACTION] 
     //   - HTTP_AUTHORIZATION=?&VIDEO_MEDIA=?&VIDEO_TITLE=?&VIDEO_DESCRIPTION=?
-    // TODO: Documentation (function description of video, comment, feedback, follow)
+    // - action=comment [ACTION]
+    //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?&VS_USER_ID=?(&COMMENT_PARENT_ID=?)
+    // - action=feedback [ACTION]
+    //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?&VS_USER_ID=?
+    // - action=follow [ACTION]
+    //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBER=?&FOLLOWING_SUBSCRIBED=?
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
         if (isset($_POST["action"])) {
@@ -956,6 +964,15 @@ try {
     }
 
     // PUT-Options:
+    // - medium=profile_username [MEDIUM]
+    // - medium=profile_password [MEDIUM]
+    // - medium=profile_description [MEDIUM]
+    // - medium=profile_socials [MEDIUM]
+    // - medium=profile_picture [MEDIUM]
+    // - medium=video_post_title [MEDIUM]
+    // - medium=video_post_description [MEDIUM]
+    // - medium=video_post_hashtags [MEDIUM]
+    // - medium=comment_post_text [MEDIUM]
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
         if (isset($_POST["medium"])) {
@@ -1107,6 +1124,10 @@ try {
     }
 
     // DELETE-Options:
+    // - medium=all [MEDIUM]
+    // - medium=account [MEDIUM]
+    // - medium=video [MEDIUM]
+    // - medium=comment [MEDIUM]
     if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
         if (isset($_POST["medium"])) {
