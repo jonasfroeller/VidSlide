@@ -126,7 +126,7 @@ async function post(action, options) {
 // GET-API-Tests
 describe('api-fetch-GET', () => {
   // - medium=video [MEDIUM] // gets videos and video info
-  //   - id=all [ID] // insufficient
+  //   - id=all [ID]
   //     - medium_id=? [ID++] // all videos of user
   //   - id=title [ID]
   //     - medium_id=? [ID++] // all videos with title including text
@@ -178,11 +178,11 @@ describe('api-fetch-GET', () => {
   })
 
   // - medium=user [MEDIUM]
-  //   - id=video [ID] 
+  //   - id=video [ID]
   //     - medium_id=? [ID++] // creator of video
   //   - id=username [ID]
   //     - medium_id=? [ID++] // username of user
-  //   - id=? [ID]
+  //   - id=? [ID] 
   it('get user by video', async () => {
     const id = "video";
     const medium_id = 1;
@@ -208,7 +208,7 @@ describe('api-fetch-GET', () => {
 
   // - medium=comments [MEDIUM]
   //   - id=? (video id) [ID] // get comments of video
-  // - medium=tag [MEDIUM]
+  // - medium=tags [MEDIUM] 
   //   - id=? (video id) [ID] // get tags of video
   // - medium=feedback [MEDIUM]
   //   - id=? (video id) [ID] // get feedback of video
@@ -234,6 +234,17 @@ describe('api-fetch-GET', () => {
 
 // POST-API-Tests
 describe('api-fetch-POST', () => {
+  // - action=auth [ACTION]
+  //   - username=?&password=? [ID] // => auth token if password for user is valid or account doesn't exist (will be created)
+  // - action=video [ACTION] 
+  //   - HTTP_AUTHORIZATION=?&VIDEO_MEDIA=?&VIDEO_TITLE=?&VIDEO_DESCRIPTION=?
+  // - action=comment [ACTION]
+  //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?&VS_USER_ID=?(&COMMENT_PARENT_ID=?)
+  // - action=feedback [ACTION]
+  //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?&VS_USER_ID=?
+  // - action=follow [ACTION]
+  //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBER=?&FOLLOWING_SUBSCRIBED=?
+  // - action=signout [ACTION]  
   it('authenticate user', async () => {
     const response = await auth('Jonesisfroellerix', "Password2$");
     expect(response.token).toBeDefined();
@@ -264,7 +275,7 @@ describe('api-fetch-POST', () => {
     Object.defineProperty(fileInput, 'files', {
       value: [file],
       writable: false
-    });   
+    });
 
     options.set("VIDEO_MEDIA", fileInput.files[0]);
     options.set("VIDEO_TITLE", "Test Video");
@@ -272,8 +283,68 @@ describe('api-fetch-POST', () => {
     const response = await post("video", options);
     expect(response.token).toBe("valid");
   })
-  it('signout user', async () => {
+  it('post comment', async () => { // (&COMMENT_PARENT_ID=?) // TODO
+    const options = new Map();
+    options.set("COMMENT_MESSAGE", "Amazing!");
+    options.set("VS_VIDEO_ID", 1);
+    options.set("VS_USER_ID", 1);
+
+    const response = await post("comment", options);
+    expect(response.token).toBe("valid");
+  })
+  it('post feedback', async () => { // TODO
+    const options = new Map();
+    options.set("VIDEO_FEEDBACK_TYPE", "positive");
+    options.set("VS_VIDEO_ID", 1);
+    options.set("VS_USER_ID", 1);
+
+    const response = await post("feedback", options);
+    expect(response.token).toBe("valid");
+  })
+  it('post follow', async () => { // TODO
+    const options = new Map();
+    options.set("FOLLOWING_SUBSCRIBER", 1);
+    options.set("FOLLOWING_SUBSCRIBED", 1);
+
+    const response = await post("follow", options);
+    expect(response.token).toBe("valid");
+  })
+  it('signout user', async () => { // TODO
     const response = await post("signout", []);
     expect(response.token).toBe("unset");
   })
+})
+
+// PUT-API-Tests
+describe('api-fetch-PUT', () => { // TODO
+  // - medium=profile_username [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_USERNAME=?
+  // - medium=profile_password [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PASSWORD=?
+  // - medium=profile_description [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEDESCRIPTION=?
+  // - medium=profile_socials [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&VS_USER_SOCIAL=? (array of VS_USER_SOCIAL Objects)
+  // - medium=profile_picture [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEPICTURE=?
+  // - medium=video_post_title [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_TITLE=?
+  // - medium=video_post_description [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_DESCRIPTION=?
+  // - medium=video_post_hashtags [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VS_VIDEO_COMMENT=? (array of VS_VIDEO_COMMENT Objects)
+  // - medium=comment_post_text [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?&COMMENT_MESSAGE=?
+})
+
+// DELETE-API-Tests
+describe('api-fetch-DELETE', () => { // TODO
+  // - medium=all [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
+  // - medium=account [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
+  // - medium=video [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?
+  // - medium=comment [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?
 })

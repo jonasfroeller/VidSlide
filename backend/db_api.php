@@ -37,7 +37,10 @@ require_once('./vendor/autoload.php');
 
 // FUNCTIONS
 // GENERAL FUNCTIONS
-// on error
+
+/**
+ * Returns errors. Fatal Errors will exit the script.
+ */
 function errorOccurred($connection, $response, $line, $message = null, $fatal = false)
 {
     if ($response["error"] != null) {
@@ -58,14 +61,19 @@ function errorOccurred($connection, $response, $line, $message = null, $fatal = 
 }
 
 // VALIDATION FUNCTIONS
-// sends token to client
+
+/**
+ * Returns JWT for client.
+ */
 function sendJWT($payload, $privateKey)
 {
     $jwt = JWT::encode($payload, $privateKey, 'RS256');
     return $jwt;
 }
 
-// gets and validates token from client
+/**
+ * Gets and validates JWT from client request. Returns its data as JSON.
+ */
 function getJWT($connection, $response, $jwt, $publicKey)
 {
     try {
@@ -87,6 +95,10 @@ function getJWT($connection, $response, $jwt, $publicKey)
 }
 
 // DATABASE FUNCTIONS
+
+/**
+ * Looks for a medium in the database. Returns true if it exists, false otherwise.
+ */
 function checkIfIdExists($connection, $type, $id, $bind_type = "i")
 {
     if ($type == "user") {
@@ -124,7 +136,9 @@ function checkIfIdExists($connection, $type, $id, $bind_type = "i")
     return $result[0]["count"] != 0;
 }
 
-// gets data from database
+/**
+ * Gets a medium from the database. 
+ */
 function getMedium($connection, $response, $table, $id = 0, $prepare = false, $bind_type = "i", $onlyRes = false)
 {
     if ($prepare) {
@@ -161,6 +175,11 @@ function getMedium($connection, $response, $table, $id = 0, $prepare = false, $b
     }
 }
 
+/**
+ * Gets further information including 
+ * user, feedback, tags, comments, comment_feedback 
+ * about a video from the database.
+ */
 function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
 {
     if (isset($_GET["id"])) {
@@ -314,6 +333,11 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
     }
 }
 
+/**
+ * Gets further information including 
+ * socials, subscribed, liked, disliked, comments_liked, comments_disliked, videos, total likes, views and shares 
+ * about a user from the database.
+ */
 function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
 {
     if ($bind_type == "s") {
@@ -358,7 +382,9 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
     return $response;
 }
 
-// exports data from database
+/**
+ * Exports data from database to ./database-backups/backup_[timestamp].sql.
+ */
 function export_database($connection)
 {
     // read tables
@@ -827,7 +853,7 @@ try {
                         $video_media = $_FILES["VIDEO_MEDIA"];
                         $video_media_name = pathinfo(mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]), PATHINFO_FILENAME);
                         $video_media_tmp_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["tmp_name"]); // temp name on server
-                        $video_media_size = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["size"]); // in bytes
+                        $video_media_size = mysqli_real_escape_string($connection, strval($_FILES["VIDEO_MEDIA"]["size"])); // in bytes
                         $video_media_type = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["type"]); // MIME-Typ
 
                         $supported_video_formats = array(
@@ -965,14 +991,23 @@ try {
 
     // PUT-Options:
     // - medium=profile_username [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_USERNAME=?
     // - medium=profile_password [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PASSWORD=?
     // - medium=profile_description [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEDESCRIPTION=?
     // - medium=profile_socials [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&VS_USER_SOCIAL=? (array of VS_USER_SOCIAL Objects)
     // - medium=profile_picture [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEPICTURE=?
     // - medium=video_post_title [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_TITLE=?
     // - medium=video_post_description [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_DESCRIPTION=?
     // - medium=video_post_hashtags [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VS_VIDEO_COMMENT=? (array of VS_VIDEO_COMMENT Objects)
     // - medium=comment_post_text [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?&COMMENT_MESSAGE=?
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
         if (isset($_POST["medium"])) {
@@ -1125,9 +1160,13 @@ try {
 
     // DELETE-Options:
     // - medium=all [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
     // - medium=account [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
     // - medium=video [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?
     // - medium=comment [MEDIUM]
+    //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?
     if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
         if (isset($_POST["medium"])) {
