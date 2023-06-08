@@ -10,20 +10,18 @@
 	// Stores
 	import { user } from '$store/account';
 
+	$: redirectURL = `/${$locale}/${`${
+		$user?.data?.USER_USERNAME != undefined || $user?.data?.USER_USERNAME != null ? 'account/' : ''
+	}${$user?.data?.USER_USERNAME ?? 'home'}`}`;
+
 	/* --- LOGIC --- */
 	if (browser) {
-		goto(
-			`/${$locale}/${`${
-				$user.USER_USERNAME != undefined || $user.USER_USERNAME != null ? 'account/' : ''
-			}${$user?.USER_USERNAME ?? 'home'}`}`
-		);
+		goto(redirectURL);
 	}
 </script>
 
 <div class="flex justify-center items-center">
 	<h1>
-		redirecting to {`/${$locale}/${`${
-			$user.USER_USERNAME != undefined || $user.USER_USERNAME != null ? 'account/' : ''
-		}${$user?.USER_USERNAME ?? 'home'}`}`}...
+		redirecting to {redirectURL}...
 	</h1>
 </div>

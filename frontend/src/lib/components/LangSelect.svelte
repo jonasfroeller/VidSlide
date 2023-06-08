@@ -81,23 +81,28 @@
 
 <svelte:window on:popstate={handlePopStateEvent} />
 
-<select
-	class="select text-md rounded-lg {variant === 'large'
-		? 'w-full'
-		: 'w-[2rem]'} max-w-full variant-ringed cursor-pointer"
-	name="lang"
-	bind:value={$langState}
-	on:change={() => {
-		toastStore.trigger(popups.configSaved_success);
-		$config.language = $langState;
-		styleCfg.save($config);
-		switchLocale($langState);
-	}}
->
-	<option disabled selected>{$translation.LangSelect.lang()}</option>
-	{#each locales as l}
-		<option value={l}>
-			{l}
-		</option>
-	{/each}
-</select>
+<div class="relative {variant === 'large' ? 'w-full' : 'w-[2rem]'} max-w-full">
+	<select
+		class="select text-md rounded-lg variant-ringed cursor-pointer"
+		name="lang"
+		bind:value={$langState}
+		on:change={() => {
+			toastStore.trigger(popups.configSaved_success);
+			$config.language = $langState;
+			styleCfg.save($config);
+			switchLocale($langState);
+		}}
+	>
+		<option disabled selected>{$translation.LangSelect.lang()}</option>
+		{#each locales as l}
+			<option value={l}>
+				{l}
+			</option>
+		{/each}
+	</select>
+	{#if variant !== 'large'}
+		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+			<iconify-icon class="cursor-pointer flex items-center" icon="material-symbols:language" />
+		</div>
+	{/if}
+</div>

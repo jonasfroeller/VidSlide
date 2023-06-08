@@ -17,20 +17,20 @@
 	} from '$store/account';
 
 	// CSS-Framework/Library
-	import { Avatar } from '@skeletonlabs/skeleton';
 	import { clipboard } from '@skeletonlabs/skeleton';
 	import { toastStore } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
 
 	// CSS
-	import CSS_Styles from '$script/styles';
+	import { CSS_Styles } from '$script/styles';
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
 	// Components
+	import Avatar from '$component/Avatar.svelte';
 	import Popups from '$component/Popups.svelte';
 	let popups; // popups in Popups.svelte
 
@@ -99,14 +99,18 @@
 				<div id="video-info" class="flex items-center gap-2">
 					<a href="/{$locale}/account/{publisher}" class="transition">
 						{#if publisher_avatar != null}
-							<Avatar src={publisher_avatar} />
+							<Avatar
+								size="medium"
+								comment_avatar={publisher_avatar}
+								comment_username={publisher}
+							/>
 						{:else}
-							<Avatar initials={publisher?.charAt(0) ?? '??'} />
+							<Avatar size="medium" comment_username={publisher} />
 						{/if}
 					</a>
 					<div id="video-publisher-info" class="flex flex-col">
 						<a href="/{$locale}/account/{publisher}" class="unstyled hover:underline text-lg"
-							>{publisher}</a
+							>{publisher} | {video_id}</a
 						>
 						<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
 							<button use:popup={view_followers}
@@ -123,14 +127,11 @@
 											<a href="/{$locale}/account/{follower?.USER_USERNAME}" class="transition">
 												{#if follower?.USER_PROFILEPICTURE != null}
 													<Avatar
-														src={follower?.USER_PROFILEPICTURE}
-														class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
+														comment_username={follower?.USER_USERNAME}
+														comment_avatar={follower?.USER_PROFILEPICTURE}
 													/>
 												{:else}
-													<Avatar
-														initials={follower?.USER_USERNAME?.charAt(0) ?? '??'}
-														class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-													/>
+													<Avatar comment_username={follower?.USER_USERNAME} />
 												{/if}
 											</a>
 											<a
@@ -265,7 +266,7 @@
 		</div>
 	</div>
 {:else if display_variant == 'small'}
-	{#if publisher == $user?.USER_USERNAME}
+	{#if publisher == user?.data?.USER_USERNAME}
 		<div class="video-result flex flex-col items-center gap-2 relative">
 			<p class="text-center">{video_title}</p>
 			<div class="absolute right-0 flex gap-2">
@@ -341,7 +342,7 @@
 			<div class="divide-y">
 				<div class="flex items-center gap-1 mb-1">
 					<a class="unstyled" href="/">
-						<Avatar class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE} initials={publisher.charAt(0)} />
+						<Avatar comment_username={publisher} />
 					</a>
 					<div class="flex flex-col">
 						<div class="text-xs truncate">{publisher}</div>

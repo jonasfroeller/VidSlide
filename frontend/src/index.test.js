@@ -63,22 +63,23 @@ async function auth(username, password) {
     });
 
     if (response.status >= 200 && response.status <= 299) {
-			// console.log(response.text());
 			const json_response = await response.data;
-			// console.log(json_response);
-			jwt = json_response['token'];
-			accountExisted = JSON.parse(json_response['data'][0])[0]?.response == "accountExisted" ? true : false;
-			user = JSON.parse(json_response['data'][0])[0];
-			user.socials = JSON.parse(json_response['data'][0])[0]?.socials ?? null;
-			user.subscribed = JSON.parse(json_response['data'][0])[0]?.subscribed ?? null;
-			user.subscribers = JSON.parse(json_response['data'][0])[0]?.subscribers ?? null;
-			user.user_videos_liked = JSON.parse(json_response['data'][0])[0]?.liked ?? null;
-			user.user_videos_disliked = JSON.parse(json_response['data'][0])[0]?.disliked ?? null;
-			user.user_comments_liked =
-				JSON.parse(json_response['data'][0])[0]?.comments_liked ?? null;
-			user.user_comments_disliked =
-				JSON.parse(json_response['data'][0])[0]?.comments_disliked ?? null;
-			user.user_stats = JSON.parse(json_response['data'][0])[0]?.stats ?? null; // videos, likes, views, shares
+			this.jwt = json_response['token'];
+			this.accountExisted = json_response["response"] == "accountExisted" ? true : false;
+			this.user.data = JSON.parse(json_response['data'][0])[0];
+			this.user.socials = JSON.parse(json_response['data']?.socials) ?? [];
+			this.user.subscribed = JSON.parse(json_response['data']?.subscribed) ?? [];
+			this.user.subscribers = JSON.parse(json_response['data']?.subscribers) ?? [];
+			this.user.user_videos_liked = JSON.parse(json_response['data']?.liked) ?? [];
+			this.user.user_videos_disliked = JSON.parse(json_response['data']?.disliked) ?? [];
+			this.user.user_comments_liked =
+				JSON.parse(json_response['data']?.comments_liked) ?? [];
+			this.user.user_comments_disliked =
+				JSON.parse(json_response['data']?.comments_disliked) ?? [];
+			this.user.user_stats.videos = JSON.parse(json_response['data']?.stats?.videos) ?? [];
+			this.user.user_stats.likes = JSON.parse(json_response['data']?.stats?.likes) ?? [];
+			this.user.user_stats.views = JSON.parse(json_response['data']?.stats?.views) ?? [];
+			this.user.user_stats.shares = JSON.parse(json_response['data']?.stats?.shares) ?? [];
 
 			return {
 				accountExisted: accountExisted,

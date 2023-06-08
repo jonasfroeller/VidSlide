@@ -113,11 +113,9 @@
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import { toastStore, modalStore } from '@skeletonlabs/skeleton';
 
-	$: toasts = toastStore;
-
 	// Components
 	import Popups from '$component/Popups.svelte';
-	let popups; // popups in Popups.svelte
+	let popups: Popups; // popups in Popups.svelte
 
 	/* --- LOGIC --- */
 	/* Form */
@@ -139,36 +137,38 @@
 		return await Api.auth(username, password);
 	}
 
-	const onFormSubmit = async function (userMayExist: boolean) {
-		if ($modalStore[0]?.response) {
-			$modalStore[0]?.response(userData);
-		}
-
-		validateForm(true);
-
+	async function onFormSubmit(userMayExist: boolean) {
+		let response;
 		if (userMayExist) {
-			let response = signIn(userData.username, userData.password);
-			let result = setAccountVariables(response);
-			result ? toasts.trigger(popups.loggedIn_success) : toasts.trigger(popups.registered_success);
+			response = await signIn(userData.username, userData.password);
 		} else {
-			let response = signUp(userData.username, userData.password);
-			let result = setAccountVariables(response);
-			result ? toasts.trigger(popups.loggedIn_success) : toasts.trigger(popups.registered_success);
+			response = await signUp(userData.username, userData.password);
 		}
-	};
 
-	async function setAccountVariables(response: any) {
-		const result = await response;
+		let status = await setAccountVariables(response);
 
-		$loginState = true;
-		$jwt = result?.token ?? null;
-		$user = result?.user ?? null;
+		if (status) {
+			toastStore.trigger(popups.loggedIn_success);
+			$loginState = true;
+			setTimeout(() => modalStore.close(), 200);
+		} else if (status == false) {
+			toastStore.trigger(popups.registered_success);
+			$loginState = true;
+			setTimeout(() => modalStore.close(), 200);
+		} else {
+			toastStore.trigger(popups.failed_to_authenticate);
+		}
+	}
 
-		return result?.accountExisted ?? false;
+	async function setAccountVariables(response: Promise) {
+		$jwt = response?.token ?? null;
+		$user = response?.user ?? null;
+
+		return response?.accountExisted ?? null;
 	}
 
 	/* -- Form Validation -- */
-	function validateForm(close = false) {
+	async function validateForm(close = false) {
 		let inputParseResult = userDataSchema.safeParse({
 			username: userData.username,
 			password: userData.password,
@@ -178,7 +178,7 @@
 		if (!inputParseResult.success) {
 			let formattedError = inputParseResult.error.format();
 
-			console.log(formattedError);
+			// console.log(formattedError);
 
 			// toastStore.trigger(popups.loggingIn_warning);
 

@@ -4,8 +4,8 @@
 	import translation from '$translation/i18n-svelte'; // translations
 	import { locale } from '$translation/i18n-svelte';
 
-	// CSS-Framework/Library
-	import { Avatar } from '@skeletonlabs/skeleton';
+	// Components
+	import Avatar from '$component/Avatar.svelte';
 
 	// Stores
 	import { loginState, user_comments_liked, user_comments_disliked } from '$store/account';
@@ -21,24 +21,16 @@
 	export let comment_replies = 0;
 
 	// CSS
-	import CSS_Styles from '$script/styles';
+	import { CSS_Styles } from '$script/styles';
 </script>
 
 <div class="flex flex-col">
 	<div class="flex items-center p-2 pl-0 gap-2">
 		<a href="/{$locale}/account/{comment_username}" class="transition">
 			{#if comment_avatar != null}
-				<Avatar
-					cursor="cursor-pointer"
-					class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-					src={comment_avatar}
-				/>
+				<Avatar {comment_avatar} {comment_username} />
 			{:else}
-				<Avatar
-					cursor="cursor-pointer"
-					class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-					initials={comment_username?.charAt(0)}
-				/>
+				<Avatar {comment_username} />
 			{/if}
 		</a>
 		<p>

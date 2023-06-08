@@ -8,9 +8,6 @@
 	import UserData from '$component/UserData.svelte';
 	import SearchSection from '$component/SearchSection.svelte';
 
-	// CSS-Framework/Library
-	import { Avatar } from '@skeletonlabs/skeleton';
-
 	// LoadData
 	import type { PageData } from './$types';
 	export let data: PageData;
@@ -42,7 +39,7 @@
 	<title>Account</title>
 </svelte:head>
 
-<Main css={'flex-col'}>
+<Main css={'flex-col'} key={data.pathname}>
 	<UserData page={data.pathname} />
 	<SearchSection display_variant={'horizontal'} />
 </Main>

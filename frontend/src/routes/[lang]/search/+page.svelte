@@ -36,8 +36,8 @@
 	<title>Search</title>
 </svelte:head>
 
-<Main css={'gap-6 justify-center flex-wrap'}>
-	<SearchSection page={data.pathname} />
+<Main css={'gap-6 justify-center flex-wrap'} key={data.pathname}>
+	<SearchSection />
 
 	<VideoData page={data.pathname} />
 </Main>

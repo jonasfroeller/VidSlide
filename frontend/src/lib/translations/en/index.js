@@ -70,7 +70,9 @@ const en = {
 		edit: 'Edit',
 		post: 'Post',
 		follow: 'Follow',
-		more: 'Read more '
+		more: 'Read more ',
+		no_description: 'No Description!',
+		upload_avatar: 'Upload Avatar',
 	},
 	Popups: {
 		modal: {
@@ -88,13 +90,16 @@ const en = {
 		toast: {
 			configSaved_success: 'Config saved!',
 			copiedURL_toClipboard_success: 'Successfully copied URL to clipboard!',
+			copiedUsername_toClipboard_success: 'Successfully copied username to clipboard!',
 			loggedOut_success: 'You are now logged out!',
 			loggingOut_info: 'Logging you out!',
 			loggingIn_error: "Couldn't log in!",
 			loggingIn_warning: 'Input invalid!',
 			loggingIn_info: 'Logging you in!',
 			loggedIn_success: 'Logged in!',
-			registered_success: 'Registered new account!'
+			registered_success: 'Registered new account!',
+			failed_to_fetch_video: 'Couldn\'t fetch video!',
+			failed_to_authenticate: 'Couldn\'t authenticate!',
 		}
 	},
 	SearchSection: {
@@ -112,6 +117,9 @@ const en = {
 			videos_found: '{{ no Videos found | one Video found | ?? Videos found }}'
 		}
 	},
+	global: {
+		loading: 'loading...'
+	},
 	pages: {
 		settings: {
 			site_section: {
@@ -123,7 +131,9 @@ const en = {
 				username: 'Username:',
 				password: 'Password:',
 				socials: 'Social Media:',
-				edit: 'Edit'
+				avatar: "Profile Picture:",
+				edit: 'Edit',
+				delete_account: 'Delete Account'
 			}
 		}
 	}

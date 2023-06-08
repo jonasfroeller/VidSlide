@@ -6,7 +6,6 @@
 	import VideoData from '$component/VideoData.svelte';
 
 	// CSS-Framework/Library
-	import { Avatar } from '@skeletonlabs/skeleton';
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 
 	/* --- LOGIC --- */
@@ -17,7 +16,7 @@
 	export let display_variant = 'vertical';
 </script>
 
-<div>
+<div id="search-slot">
 	<div
 		id="search-section"
 		class="flex {display_variant == 'vertical'
@@ -59,7 +58,7 @@
 						bind:group={subject}
 						name="justify"
 						active={'variant-ghost-tertiary'}
-						value={'category'}>{$translation.SearchSection.search_option.category()}</RadioItem
+						value={'tag'}>{$translation.SearchSection.search_option.category()}</RadioItem
 					>
 					<RadioItem
 						bind:group={subject}
@@ -102,9 +101,17 @@
 			</div>
 		</div>
 	</div>
-	<div>
-		{#key search}
-			<VideoData page={'search'} isResultVideo={true} {subject} {sort} {search} />
+	{#key subject}
+		{#key sort}
+			{#key search}
+				<VideoData
+					page={'search'}
+					isResultVideo={true}
+					searchSubject={subject}
+					sortBy={sort}
+					searchedText={search}
+				/>
+			{/key}
 		{/key}
-	</div>
+	{/key}
 </div>

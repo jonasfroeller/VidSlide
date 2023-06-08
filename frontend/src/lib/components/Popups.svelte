@@ -104,6 +104,28 @@
 		background: 'variant-ghost-success'
 	};
 
+	// copyUsername
+	let message_copiedUsernameToClipboard_success =
+		$translation.Popups.toast.copiedUsername_toClipboard_success();
+	export const copiedUsername_toClipboard_success: ToastSettings = {
+		message: message_copiedUsernameToClipboard_success,
+		background: 'variant-ghost-success'
+	};
+
+	// videoFetchFail
+	let message_failed_to_fetch_video = $translation.Popups.toast.failed_to_fetch_video();
+	export const failed_to_fetch_video: ToastSettings = {
+		message: message_failed_to_fetch_video,
+		background: 'variant-ghost-error'
+	};
+
+	// authFail
+	let message_failed_to_authenticate = $translation.Popups.toast.failed_to_authenticate();
+	export const failed_to_authenticate: ToastSettings = {
+		message: message_failed_to_authenticate,
+		background: 'variant-ghost-error'
+	};
+
 	// Popup Functions
 	function signOut() {
 		toastStore.trigger(loggingOut_info);

@@ -1,10 +1,8 @@
-// @ts-nocheck
 import localStore from '$script/localStorage';
 import { browser } from '$app/environment';
 
 function fillStyleObject(cfg) {
 	if (browser) {
-		// wegen document.referrer
 		if (cfg.language == null || cfg.language == undefined || cfg.language == '') {
 			cfg.language = (navigator.language || navigator.userLanguage).includes('de') ? 'de' : 'en';
 		}
@@ -18,19 +16,26 @@ function fillStyleObject(cfg) {
 export default class styleCfg {
 	static async save(cfg) {
 		if (browser) {
+			// fill missing parameters in config
 			cfg = fillStyleObject(cfg);
+
+			// update document properties
 			document.documentElement.classList.add(cfg.theme);
 			document.documentElement.classList.remove(cfg.theme == 'dark' ? 'light' : 'dark');
+			document.documentElement.lang = cfg.language;
+
+			// save cfg to local storage
 			localStore.save('VidSlide-config', cfg);
 		}
 	}
 
 	static async load() {
 		if (browser) {
+			// load cfg from local storage
 			let cfg = await localStore.load('VidSlide-config');
 
+			// set cfg to default values if not set
 			if (cfg != null && cfg != undefined && cfg != '') {
-				// prevent cannot get property of undefined
 				cfg = fillStyleObject(cfg);
 			} else {
 				cfg = {
@@ -39,8 +44,10 @@ export default class styleCfg {
 				};
 			}
 
+			// update document properties
 			document.documentElement.classList.add(cfg.theme);
 			document.documentElement.lang = cfg.language;
+
 			return cfg;
 		}
 	}

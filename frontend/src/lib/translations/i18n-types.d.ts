@@ -216,6 +216,14 @@ type RootTranslation = {
 		 * M​e​h​r​ ​l​e​s​e​n
 		 */
 		more: string
+		/**
+		 * K​e​i​n​e​ ​B​e​s​c​h​r​e​i​b​u​n​g​!
+		 */
+		no_description: string
+		/**
+		 * P​r​o​f​i​l​b​i​l​d​ ​h​o​c​h​l​a​d​e​n
+		 */
+		upload_avatar: string
 	}
 	Popups: {
 		modal: {
@@ -258,6 +266,10 @@ type RootTranslation = {
 			 */
 			copiedURL_toClipboard_success: string
 			/**
+			 * U​s​e​r​n​a​m​e​ ​e​r​f​o​l​g​r​e​i​c​h​ ​k​o​p​i​e​r​t​!
+			 */
+			copiedUsername_toClipboard_success: string
+			/**
 			 * D​u​ ​w​u​r​d​e​s​t​ ​a​u​s​g​e​l​o​g​g​t​!
 			 */
 			loggedOut_success: string
@@ -285,6 +297,14 @@ type RootTranslation = {
 			 * E​i​n​ ​n​e​u​e​r​ ​A​c​c​o​u​n​t​ ​w​u​r​d​e​ ​r​e​g​i​s​t​r​i​e​r​t​!
 			 */
 			registered_success: string
+			/**
+			 * V​i​d​e​o​ ​k​o​n​n​t​e​ ​n​i​c​h​t​ ​g​e​l​a​d​e​n​ ​w​e​r​d​e​n​!
+			 */
+			failed_to_fetch_video: string
+			/**
+			 * A​u​t​h​e​n​t​i​f​i​z​i​e​r​u​n​g​ ​f​e​h​l​g​e​s​c​h​l​a​g​e​n​!
+			 */
+			failed_to_authenticate: string
 		}
 	}
 	SearchSection: {
@@ -335,6 +355,12 @@ type RootTranslation = {
 			videos_found: string
 		}
 	}
+	global: {
+		/**
+		 * l​a​d​e​n​.​.​.
+		 */
+		loading: string
+	}
 	pages: {
 		settings: {
 			site_section: {
@@ -365,9 +391,17 @@ type RootTranslation = {
 				 */
 				socials: string
 				/**
+				 * P​r​o​f​i​l​ ​B​i​l​d​:
+				 */
+				avatar: string
+				/**
 				 * B​e​a​r​b​e​i​t​e​n
 				 */
 				edit: string
+				/**
+				 * A​c​c​o​u​n​t​ ​l​ö​s​c​h​e​n
+				 */
+				delete_account: string
 			}
 		}
 	}
@@ -571,6 +605,14 @@ export type TranslationFunctions = {
 		 * Mehr lesen
 		 */
 		more: () => LocalizedString
+		/**
+		 * Keine Beschreibung!
+		 */
+		no_description: () => LocalizedString
+		/**
+		 * Profilbild hochladen
+		 */
+		upload_avatar: () => LocalizedString
 	}
 	Popups: {
 		modal: {
@@ -613,6 +655,10 @@ export type TranslationFunctions = {
 			 */
 			copiedURL_toClipboard_success: () => LocalizedString
 			/**
+			 * Username erfolgreich kopiert!
+			 */
+			copiedUsername_toClipboard_success: () => LocalizedString
+			/**
 			 * Du wurdest ausgeloggt!
 			 */
 			loggedOut_success: () => LocalizedString
@@ -640,6 +686,14 @@ export type TranslationFunctions = {
 			 * Ein neuer Account wurde registriert!
 			 */
 			registered_success: () => LocalizedString
+			/**
+			 * Video konnte nicht geladen werden!
+			 */
+			failed_to_fetch_video: () => LocalizedString
+			/**
+			 * Authentifizierung fehlgeschlagen!
+			 */
+			failed_to_authenticate: () => LocalizedString
 		}
 	}
 	SearchSection: {
@@ -690,6 +744,12 @@ export type TranslationFunctions = {
 			videos_found: (arg0: number | string | boolean) => LocalizedString
 		}
 	}
+	global: {
+		/**
+		 * laden...
+		 */
+		loading: () => LocalizedString
+	}
 	pages: {
 		settings: {
 			site_section: {
@@ -720,9 +780,17 @@ export type TranslationFunctions = {
 				 */
 				socials: () => LocalizedString
 				/**
+				 * Profil Bild:
+				 */
+				avatar: () => LocalizedString
+				/**
 				 * Bearbeiten
 				 */
 				edit: () => LocalizedString
+				/**
+				 * Account löschen
+				 */
+				delete_account: () => LocalizedString
 			}
 		}
 	}

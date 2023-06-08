@@ -10,7 +10,7 @@
 	import ThemeSelect from '$component/ThemeSelect.svelte';
 
 	// Stores
-	import { user } from '$store/account';
+	import { loginState, user } from '$store/account';
 
 	/* --- LOGIC --- */
 	export let variant = 'large';
@@ -63,10 +63,10 @@
 					<span>{$translation.Sidebar.search()}</span>
 				</a>
 			</li>
-			{#if $user?.USER_USERNAME}
+			{#if $loginState}
 				<li>
 					<a
-						href="/{$locale}/account"
+						href="/{$locale}/account/{$user?.data?.USER_USERNAME}"
 						data-sveltekit-preload-data="hover"
 						type="button"
 						class="btn text-3xl rounded-lg w-full flex justify-start {route?.includes('account')
@@ -162,10 +162,10 @@
 					</span>
 				</a>
 			</li>
-			{#if $user?.USER_USERNAME}
+			{#if $loginState}
 				<li class="flex justify-center">
 					<a
-						href="/{$locale}/account"
+						href="/{$locale}/account/{$user?.data?.USER_USERNAME}"
 						data-sveltekit-preload-data="hover"
 						type="button"
 						class="btn-icon text-3xl rounded-lg w-fit max-w-full {route?.includes('account')

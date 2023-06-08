@@ -29,7 +29,6 @@
 	import 'iconify-icon';
 
 	// Components
-	import PageTransition from '$component/PageTransition.svelte';
 	import Header from '$component/Header.svelte';
 	import Sidebar from '$component/Sidebar.svelte';
 	import Popups from '$component/Popups.svelte';
@@ -118,9 +117,7 @@
 		<!-- divider -->
 		<div class="p-8 w-full">
 			<Header bind:openLoginModal />
-			<PageTransition key={data.pathname}>
-				<slot />
-			</PageTransition>
+			<slot />
 		</div>
 	</section>
 	<!-- ---- / ---- -->

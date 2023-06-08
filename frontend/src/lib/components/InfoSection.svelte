@@ -7,17 +7,14 @@
 	import { loginState, user } from '$store/account';
 
 	// CSS-Framework/Library
-	import { Avatar } from '@skeletonlabs/skeleton';
 	import { ProgressBar } from '@skeletonlabs/skeleton';
-
-	// CSS
-	import CSS_Styles from '$script/styles';
 
 	/* Form Trigger */
 	import { modalStore } from '@skeletonlabs/skeleton';
 
 	// Components
 	import CommentPost from '$component/CommentPost.svelte';
+	import Avatar from '$component/Avatar.svelte';
 	import Popups from '$component/Popups.svelte';
 	let popups; // popups in Popups.svelte
 
@@ -34,6 +31,9 @@
 	};
 
 	$: selectedBox = true; // true if comments are selected
+
+	$: this_user_avatar = $user?.data?.USER_PROFILEPICTURE;
+	$: this_user_username = $user?.data?.USER_USERNAME ?? '??';
 </script>
 
 {#key $translation}
@@ -66,16 +66,14 @@
 					<h3>{$translation.InfoSection.comments_amount(video_comments?.length)}</h3>
 					{#if $loginState}
 						<div id="write-comment" class="flex items-center gap-2 p-2 justify-center">
-							{#if $user?.USER_PROFILEPICTURE != undefined}
+							{#if this_user_avatar != undefined}
 								<Avatar
-									class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-									src={$user?.USER_PROFILEPICTURE}
+									size="medium"
+									comment_avatar={this_user_avatar}
+									comment_username={this_user_username}
 								/>
 							{:else}
-								<Avatar
-									class={CSS_Styles.SMALL_ELEMENT.AVATAR_SIZE}
-									initials={$user?.USER_USERNAME?.charAt(0) ?? '??'}
-								/>
+								<Avatar size="medium" comment_username={this_user_username} />
 							{/if}
 							<textarea
 								class="textarea outline-none hover:outline-none input p-2 w-fit resize-none"

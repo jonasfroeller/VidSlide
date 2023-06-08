@@ -34,7 +34,7 @@
 			<span>{$translation.Header.logIn()}</span>
 		{:else}
 			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:logout-variant" />
-			<span>{$translation.Header.logOut($user?.USER_USERNAME ?? '')}</span>
+			<span>{$translation.Header.logOut($user?.data?.USER_USERNAME ?? '')}</span>
 		{/if}
 	</button>
 </header>
