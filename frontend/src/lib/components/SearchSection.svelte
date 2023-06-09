@@ -8,6 +8,9 @@
 	// CSS-Framework/Library
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 
+	// Scripts
+	import { searchedVideos } from '$store/searchedVideos';
+
 	/* --- LOGIC --- */
 	let subject: string = 'username';
 	let sort: string = 'date';
@@ -19,7 +22,7 @@
 <div
 	id="search-slot"
 	class="max-h-[44rem] {display_variant === 'vertical'
-		? 'max-w-sm'
+		? 'max-w-md'
 		: 'max-w-full'} overflow-y-auto rounded-lg"
 >
 	<div
@@ -42,6 +45,7 @@
 				type="search"
 				placeholder="{$translation.SearchSection.search()}..."
 				bind:value={search}
+				on:change={searchedVideos.set([])}
 			/>
 			<button class="variant-soft-secondary h-full">{$translation.SearchSection.search()}</button>
 		</div>
@@ -54,18 +58,22 @@
 				<hr />
 				<RadioGroup>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={subject}
 						name="justify"
 						active={'variant-ghost-tertiary'}
-						value={'username'}>{$translation.SearchSection.search_option.username()}</RadioItem
-					>
+						value={'username'}
+						>{$translation.SearchSection.search_option.username()}
+					</RadioItem>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={subject}
 						name="justify"
 						active={'variant-ghost-tertiary'}
 						value={'tag'}>{$translation.SearchSection.search_option.category()}</RadioItem
 					>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={subject}
 						name="justify"
 						active={'variant-ghost-tertiary'}
@@ -78,6 +86,7 @@
 				<hr />
 				<RadioGroup>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={sort}
 						name="justify"
 						active={'variant-ghost-tertiary'}
@@ -85,18 +94,21 @@
 						>{$translation.SearchSection.search_option.date()}
 					</RadioItem>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={sort}
 						name="justify"
 						active={'variant-ghost-tertiary'}
 						value={'views'}>{$translation.SearchSection.search_option.views()}</RadioItem
 					>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={sort}
 						name="justify"
 						active={'variant-ghost-tertiary'}
 						value={'likes'}>{$translation.SearchSection.search_option.likes()}</RadioItem
 					>
 					<RadioItem
+						on:change={searchedVideos.set([])}
 						bind:group={sort}
 						name="justify"
 						active={'variant-ghost-tertiary'}

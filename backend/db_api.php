@@ -182,11 +182,10 @@ function getMedium($connection, $response, $table, $id = 0, $prepare = false, $b
  * user, feedback, tags, comments, comment_feedback 
  * about a video from the database.
  */
-function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
+function getVideoInfo($connection, $response, $topic = "all", $bulk = false, $search_id = null)
 {
     if (isset($_GET["id"])) {
-        $escaped_id = mysqli_real_escape_string($connection, strval($_GET["id"]));
-        $id = $escaped_id != "all" ? intval($escaped_id) : $escaped_id;
+        $id = intval(mysqli_real_escape_string($connection, strval($_GET["id"])));
         if ($id != 0) { // 0 on failure 1 on non empty arrays :/
             $response["info"]["fetch_id"] = $id; // logging
 
@@ -219,6 +218,12 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
                     $query = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE VS_USER_ID = (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?)');
                     if ($bulk) {
                         $user = getMedium($connection, $response, $query, $id, true, "i", true);
+
+                        $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED IN (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?))');
+
+                        $user = json_decode($user, true);
+                        $user[0]["subscribers"] = getMedium($connection, $response, $table_subscribers, $id, true, "i", true);
+
                         array_push($response["data"]["user"], $user);
                     } else {
                         $response["data"]["user"] = getMedium($connection, $response, $query, $id, true, "i", true);
@@ -232,9 +237,10 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
                 $exists = checkIfIdExists($connection, "feedback_videoID", $id);
 
                 if ($exists) {
-                    $query = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO_FEEDBACK WHERE VS_VIDEO_ID = ?');
+                    $query = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE, VIDEO_FEEDBACK_ID, VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID FROM VS_VIDEO_FEEDBACK, VS_USER WHERE VS_VIDEO_FEEDBACK.VS_USER_ID = VS_USER.VS_USER_ID AND VS_VIDEO_ID = ?');
                     if ($bulk) {
                         $feedback = getMedium($connection, $response, $query, $id, true, "i", true);
+
                         array_push($response["data"]["feedback"], $feedback);
                     } else {
                         $response["data"]["feedback"] = getMedium($connection, $response, $query, $id, true, "i", true);
@@ -244,8 +250,8 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
                 }
             }
 
-            if ($topic == "all" || $topic == "tags") { // TODO: Why not fetched?
-                if (isset($_GET["medium_id"])) {
+            if ($topic == "all" || $topic == "tags") {
+                if (isset($_GET["medium_id"]) && ($search_id != "username" && $search_id != "tag" && $search_id != "title")) {
                     $hashtag = mysqli_real_escape_string($connection, strval($_GET["medium_id"]));
                     $hashtag_includes = '%' . $hashtag . '%';
 
@@ -642,7 +648,7 @@ try {
                                     $pulled_videos = json_decode($response["data"][0], true);
                                     foreach ($pulled_videos as $video) { // get multiple video infos at once
                                         $_GET["id"] = $video["VS_VIDEO_ID"];
-                                        $response = getVideoInfo($connection, $response, "all", true);
+                                        $response = getVideoInfo($connection, $response, "all", true, $video["VS_VIDEO_ID"]);
                                     }
                                 } else {
                                     $response = errorOccurred($connection, $response, __LINE__, "videos of user not found");
@@ -667,7 +673,7 @@ try {
                                 $pulled_videos = json_decode($response["data"][0], true);
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
                                     $_GET["id"] = $video["VS_VIDEO_ID"];
-                                    $response = getVideoInfo($connection, $response, "all", true);
+                                    $response = getVideoInfo($connection, $response, "all", true, "title");
                                 }
                             } else {
                                 $response = errorOccurred($connection, $response, __LINE__, "video not found");
@@ -689,7 +695,7 @@ try {
                                 $pulled_videos = json_decode($response["data"][0], true);
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
                                     $_GET["id"] = $video["VS_VIDEO_ID"];
-                                    $response = getVideoInfo($connection, $response, "all", true);
+                                    $response = getVideoInfo($connection, $response, "all", true, "tag");
                                 }
                             } else {
                                 $response = errorOccurred($connection, $response, __LINE__, "video not found");
@@ -711,7 +717,7 @@ try {
                                 $pulled_videos = json_decode($response["data"][0], true);
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
                                     $_GET["id"] = $video["VS_VIDEO_ID"];
-                                    $response = getVideoInfo($connection, $response, "all", true);
+                                    $response = getVideoInfo($connection, $response, "all", true, "username");
                                 }
                             } else {
                                 $response = errorOccurred($connection, $response, __LINE__, "video not found");

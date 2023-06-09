@@ -10,6 +10,9 @@
 	import Popups from '$component/Popups.svelte';
 	let popups; // popups in Popups.svelte
 
+	// Scripts
+	import { searchedVideos, filter, filteredVideos } from '$store/searchedVideos';
+
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -55,32 +58,32 @@
 	}
 
 	async function fetchMultipleVideos() {
-		let searched_videos = await fetchVideo(searchSubject, searchedText); // sortBy
-		result_videos = [];
+		let fetched_videos = await fetchVideo(searchSubject, searchedText); // sortBy
+		let formatted_videos = [];
 
-		if (searched_videos?.data[0] || searched_videos?.data?.stats?.videos) {
+		if (fetched_videos?.data[0] || fetched_videos?.data?.stats?.videos) {
 			let amount = 0;
 			let videos = [];
 			let user = [];
 			let feedback = [];
 			let tags = [];
 
-			amount = JSON.parse(searched_videos.data[0]).length;
-			videos = JSON.parse(searched_videos.data[0]);
+			amount = JSON.parse(fetched_videos.data[0]).length;
+			videos = JSON.parse(fetched_videos.data[0]);
 
-			for (let i = 0; i < searched_videos.data.user.length; i++) {
-				user.push(searched_videos.data.user[i]);
+			for (let i = 0; i < fetched_videos.data.user.length; i++) {
+				user.push(fetched_videos.data.user[i]);
 			}
 
-			if (searched_videos.data.feedback) {
-				for (let i = 0; i < searched_videos.data.feedback.length; i++) {
-					feedback.push(JSON.parse(searched_videos.data.feedback[i]));
+			if (fetched_videos.data.feedback) {
+				for (let i = 0; i < fetched_videos.data.feedback.length; i++) {
+					feedback.push(JSON.parse(fetched_videos.data.feedback[i]));
 				}
 			}
 
-			if (searched_videos.data.tags) {
-				for (let i = 0; i < searched_videos.data.tags.length; i++) {
-					tags.push(JSON.parse(searched_videos.data.tags[i]));
+			if (fetched_videos.data.tags) {
+				for (let i = 0; i < fetched_videos.data.tags.length; i++) {
+					tags.push(JSON.parse(fetched_videos.data.tags[i]));
 				}
 			}
 
@@ -110,10 +113,10 @@
 					}
 				}
 
-				result_videos.push(await formatVideo(video));
+				formatted_videos.push(await formatVideo(video));
 			}
 
-			publisher_followers = [];
+			$searchedVideos = formatted_videos;
 		}
 	}
 
@@ -122,9 +125,11 @@
 		if (event.keyCode === 38 || event.keyCode === 37) {
 			let video = await fetchVideo(current_video_id);
 			current_video = await formatVideo(video);
+			current_video_publisher_followers = await getUserFollowers(current_video?.user?.VS_USER_ID);
 		} else if (event.keyCode === 40 || event.keyCode === 39) {
 			let video = await fetchVideo(current_video_id);
 			current_video = await formatVideo(video);
+			current_video_publisher_followers = await getUserFollowers(current_video?.user?.VS_USER_ID);
 		} // ArrowDown && ArrowRight
 	}
 
@@ -220,7 +225,7 @@
 
 			if (video) {
 				current_video = await formatVideo(video);
-				publisher_followers = await getUserFollowers(current_video_id);
+				current_video_publisher_followers = await getUserFollowers(current_video?.user?.VS_USER_ID);
 			} else {
 				toastStore.trigger(popups.failed_to_fetch_video);
 			}
@@ -229,14 +234,15 @@
 		}
 	});
 
-	$: publisher_followers = [];
+	// CURRENT VIDEO
+	$: current_video = null;
+	$: current_video_id = current_video?.user?.VS_USER_ID;
+	$: current_video_publisher_followers = [];
 	$: current_video_likes = [];
 	$: current_video_dislikes = [];
 
-	$: current_video = null;
-	$: current_video_id = current_video?.user?.VS_USER_ID;
-
-	$: result_videos = [];
+	// SEARCHED VIDEOS
+	$filter = sortBy;
 </script>
 
 {#key $translation}
@@ -245,66 +251,77 @@
 
 <svelte:window on:keydown={fetchNextVideo} />
 
-{#if current_video != null || result_videos != null}
-	{#key current_video_id}
-		{#if page.includes('home')}
-			<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
-				<InfoSection
-					video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
-					video_description={current_video?.video?.VIDEO_DESCRIPTION ?? 'description loading...'}
-					video_date_time_posted={current_video?.video?.VIDEO_DATETIMEPOSTED ??
-						'date and time loading...'}
-					video_tags={current_video?.tags ?? []}
-					video_comments={current_video?.comments ?? []}
-				/>
-			</PostTransition>
-		{/if}
+{#if page.includes('home') && current_video}
+	<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
+		<InfoSection
+			video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
+			video_description={current_video?.video?.VIDEO_DESCRIPTION ?? 'description loading...'}
+			video_date_time_posted={current_video?.video?.VIDEO_DATETIMEPOSTED ??
+				'date and time loading...'}
+			video_tags={current_video?.tags ?? []}
+			video_comments={current_video?.comments ?? []}
+		/>
+	</PostTransition>
+{/if}
 
-		{#if isResultVideo}
-			<div id="results" class="flex flex-col gap-2 flex-wrap justify-center">
-				<p>
-					{$translation.SearchSection.search_option.videos_found(result_videos?.length ?? 0)}:
-				</p>
-				<hr />
-				<div id="video-results" class="flex flex-wrap gap-2 justify-center overflow-y-auto">
-					{#if searchedText != ''}
-						{#each result_videos as result, i}
-							<VideoSection
-								publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
-								publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
-								publisher_followers={publisher_followers ?? []}
-								video={result?.video?.VIDEO_LOCATION ?? null}
-								video_id={result?.video?.VS_VIDEO_ID ?? 0}
-								video_views={result?.video?.VIDEO_VIEWS ?? 0}
-								video_likes={current_video_likes[i]?.length ?? 0}
-								video_dislikes={current_video_dislikes[i]?.length ?? 0}
-								display_variant={'small'}
-							/>
-						{:else}
-							<p>no results</p>
-						{/each}
-					{:else}
-						<p>no input</p>
-					{/if}
-				</div>
-			</div>
-		{:else}
-			<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
-				<VideoSection
-					publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
-					publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
-					publisher_followers={publisher_followers ?? []}
-					video={current_video?.video?.VIDEO_LOCATION ?? null}
-					video_id={current_video?.video?.VS_VIDEO_ID ?? 0}
-					video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
-					video_likes={current_video_likes?.length ?? 0}
-					video_dislikes={current_video_dislikes?.length ?? 0}
-					video_comments={current_video?.comments?.length ?? 0}
-					display_variant={'default'}
-				/>
-			</PostTransition>
-		{/if}
-	{/key}
+{#if isResultVideo}
+	<div id="results" class="flex flex-col gap-2 flex-wrap justify-center">
+		<p>
+			{$translation.SearchSection.search_option.videos_found($filteredVideos?.length ?? 0)}:
+		</p>
+		<hr />
+		<div id="video-results" class="flex flex-wrap gap-2 justify-center overflow-y-auto">
+			{#if searchedText != '' && $filteredVideos}
+				{#each $filteredVideos as result, i}
+					<VideoSection
+						publisher={result?.user[0]?.USER_USERNAME ?? 'username loading...'}
+						publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
+						publisher_followers={result?.user[0]?.subscribers
+							? JSON.parse(result?.user[0]?.subscribers)
+							: []}
+						video={result?.video?.VIDEO_LOCATION ?? null}
+						video_id={result?.video?.VS_VIDEO_ID ?? 0}
+						video_views={result?.video?.VIDEO_VIEWS ?? 0}
+						video_likes={result?.feedback?.filter(
+							(feedback) => feedback?.VIDEO_FEEDBACK_TYPE === 'positive'
+						)?.length ?? 0}
+						video_dislikes={result?.feedback?.filter(
+							(feedback) => feedback?.VIDEO_FEEDBACK_TYPE === 'negative'
+						)?.length ?? 0}
+						video_tags={result?.tags ?? []}
+						video_title={result?.video?.VIDEO_TITLE ?? 'title loading...'}
+						display_variant={'small'}
+					/>
+				{:else}
+					<div class="flex justify-center">
+						<ProgressRadial
+							stroke={50}
+							width="w-12"
+							meter="stroke-primary-500"
+							track="stroke-primary-500/30"
+						/>
+					</div>
+				{/each}
+			{:else}
+				<p>{$translation.VideoResult.no_input()}</p>
+			{/if}
+		</div>
+	</div>
+{:else if current_video}
+	<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
+		<VideoSection
+			publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
+			publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
+			publisher_followers={current_video_publisher_followers ?? []}
+			video={current_video?.video?.VIDEO_LOCATION ?? null}
+			video_id={current_video?.video?.VS_VIDEO_ID ?? 0}
+			video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
+			video_likes={current_video_likes?.length ?? 0}
+			video_dislikes={current_video_dislikes?.length ?? 0}
+			video_comments={current_video?.comments?.length ?? 0}
+			display_variant={'default'}
+		/>
+	</PostTransition>
 {:else}
 	<div class="flex justify-center">
 		<ProgressRadial

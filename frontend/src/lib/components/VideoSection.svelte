@@ -93,8 +93,9 @@
 	let videoElement;
 
 	let view_followers: PopupSettings = {
-		event: 'click',
-		target: 'view_followers'
+		event: 'focus-click',
+		target: 'view_followers',
+		placement: 'bottom'
 	};
 </script>
 
@@ -121,43 +122,45 @@
 					</a>
 					<div id="video-publisher-info" class="flex flex-col">
 						<a href="/{$locale}/account/{publisher}" class="unstyled hover:underline text-lg"
-							>{publisher} | {video_id}</a
+							>{publisher}</a
 						>
-						<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
-							<button use:popup={view_followers}
-								>{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}</button
-							>
-							<div
-								data-popup="view_followers"
-								class="z-[999] rounded-md bg-surface-500 p-2 overflow-auto max-h-96"
-							>
-								{#each publisher_followers as follower, i}
-									<div class="flex gap-2 items-center h-full divide-x">
-										<p>{i + 1}</p>
-										<div class="flex items-center p-2 gap-2">
-											<a href="/{$locale}/account/{follower?.USER_USERNAME}" class="transition">
-												{#if follower?.USER_PROFILEPICTURE != null}
-													<Avatar
-														comment_username={follower?.USER_USERNAME}
-														comment_avatar={follower?.USER_PROFILEPICTURE}
-													/>
-												{:else}
-													<Avatar comment_username={follower?.USER_USERNAME} />
-												{/if}
-											</a>
-											<a
-												href="/{$locale}/account/{follower?.USER_USERNAME}"
-												class="unstyled hover:underline text-lg"
-											>
-												{follower?.USER_USERNAME}
-											</a>
+						{#key publisher_followers}
+							<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
+								<button use:popup={view_followers}
+									>{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}</button
+								>
+								<div
+									data-popup="view_followers"
+									class="z-[999] rounded-md bg-surface-500 p-2 overflow-auto max-h-96"
+								>
+									{#each publisher_followers as follower, i}
+										<div class="flex gap-2 items-center h-full divide-x">
+											<p>{i + 1}</p>
+											<div class="flex items-center p-2 gap-2">
+												<a href="/{$locale}/account/{follower?.USER_USERNAME}" class="transition">
+													{#if follower?.USER_PROFILEPICTURE != null}
+														<Avatar
+															comment_username={follower?.USER_USERNAME}
+															comment_avatar={follower?.USER_PROFILEPICTURE}
+														/>
+													{:else}
+														<Avatar comment_username={follower?.USER_USERNAME} />
+													{/if}
+												</a>
+												<a
+													href="/{$locale}/account/{follower?.USER_USERNAME}"
+													class="unstyled hover:underline text-lg"
+												>
+													{follower?.USER_USERNAME}
+												</a>
+											</div>
 										</div>
-									</div>
-								{:else}
-									{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}
-								{/each}
+									{:else}
+										{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}
+									{/each}
+								</div>
 							</div>
-						</div>
+						{/key}
 					</div>
 				</div>
 				<button
@@ -371,11 +374,12 @@
 						<Avatar comment_username={publisher} />
 					</a>
 					<div class="flex flex-col">
-						<div class="text-xs truncate">{publisher}</div>
+						<a
+							href="/{$locale}/account/{publisher}"
+							class="unstyled hover:underline text-xs truncate">{publisher}</a
+						>
 						<div class="text-xs text-primary-700 dark:text-primary-500">
-							<a class="unstyled truncate" href="/"
-								>{$translation.VideoResult.follower(publisher_followers)}</a
-							>
+							{$translation.VideoResult.follower(publisher_followers?.length ?? 0)}
 						</div>
 					</div>
 					<button

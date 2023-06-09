@@ -40,7 +40,8 @@ const de = {
 		follower: '{{ keine Follower | ein Follower | ?? Follower }}',
 		likes: '{{ keine Likes | ein Like | ?? Likes }}',
 		views: '{{ keine Views | ein View | ?? Views }}',
-		no_tags: 'keine tags'
+		no_tags: 'keine tags',
+		no_input: 'keine Eingabe'
 	},
 	VideoSection: {
 		follower: '{{ keine Follower | ein Follower | ?? Follower }}',

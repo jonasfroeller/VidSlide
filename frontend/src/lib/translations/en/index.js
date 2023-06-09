@@ -40,7 +40,8 @@ const en = {
 		follower: '{{ no Followers | one Follower | ?? Followers }}',
 		likes: '{{ no Likes | one Like | ?? Likes }}',
 		views: '{{ no Views | one View | ?? Views }}',
-		no_tags: 'no tags'
+		no_tags: 'no tags',
+		no_input: 'no input'
 	},
 	VideoSection: {
 		follower: '{{ no Followers | one Follower | ?? Followers }}',

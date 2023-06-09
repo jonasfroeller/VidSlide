@@ -116,6 +116,10 @@ type RootTranslation = {
 		 * k​e​i​n​e​ ​t​a​g​s
 		 */
 		no_tags: string
+		/**
+		 * k​e​i​n​e​ ​E​i​n​g​a​b​e
+		 */
+		no_input: string
 	}
 	VideoSection: {
 		/**
@@ -509,6 +513,10 @@ export type TranslationFunctions = {
 		 * keine tags
 		 */
 		no_tags: () => LocalizedString
+		/**
+		 * keine Eingabe
+		 */
+		no_input: () => LocalizedString
 	}
 	VideoSection: {
 		/**

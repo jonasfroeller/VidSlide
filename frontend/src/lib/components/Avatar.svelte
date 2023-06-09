@@ -30,6 +30,7 @@
 			cursor="cursor-pointer"
 			class={element_size}
 			initials={`${comment_username?.charAt(0) ?? '?'}${comment_username?.charAt(1) ?? '?'}`}
+			background={'bg-primary-900'}
 		/>
 	</a>
 {/if}
