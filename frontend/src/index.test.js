@@ -1,11 +1,30 @@
 import { describe, it, expect } from 'vitest';
+
 const axios = require('axios');
 const http = require('http');
 
 let jwt = {};
-let user = {};
+let user = {
+  data: {},
+  socials: [],
+  subscribed: [],
+  subscribers: [],
+  user_videos_liked: [],
+  user_videos_disliked: [],
+  user_comments_liked: [],
+  user_comments_disliked: [],
+  user_stats: {
+    videos: [],
+    likes: [],
+    views: [],
+    shares: []
+  }
+};
 let accountExisted = false;
 
+/**
+ * @param {string | http.RequestOptions | import("url").URL} options
+ */
 function respond(options) {
   return new Promise((resolve, reject) => {
     const req = http.request(options, (res) => {
@@ -31,8 +50,8 @@ function respond(options) {
 // API-Functions (with http because fetch (browser-function) is not NodeJS compatible)
 /**
  * @param {string} type
- * @param {string} index (can be 'all' and 'random' too)
- * @param {string} specification
+ * @param {number | string} index (can be 'all' and 'random' too)
+ * @param {number | string} specification
  */
 async function get(type, index, specification = '') {
   const options = {
@@ -58,35 +77,39 @@ async function auth(username, password) {
 
   // eslint-disable-next-line no-useless-catch
   try {
+    // @ts-ignore
     const response = await axios.post(url, formData, {
       body: formData
     });
 
+    // @ts-ignore
     if (response.status >= 200 && response.status <= 299) {
+      // @ts-ignore
 			const json_response = await response.data;
-			this.jwt = json_response['token'];
-			this.accountExisted = json_response["response"] == "accountExisted" ? true : false;
-			this.user.data = JSON.parse(json_response['data'][0])[0];
-			this.user.socials = JSON.parse(json_response['data']?.socials) ?? [];
-			this.user.subscribed = JSON.parse(json_response['data']?.subscribed) ?? [];
-			this.user.subscribers = JSON.parse(json_response['data']?.subscribers) ?? [];
-			this.user.user_videos_liked = JSON.parse(json_response['data']?.liked) ?? [];
-			this.user.user_videos_disliked = JSON.parse(json_response['data']?.disliked) ?? [];
-			this.user.user_comments_liked =
+			jwt = json_response['token'];
+			accountExisted = json_response["response"] == "accountExisted" ? true : false;
+			user.data = JSON.parse(json_response['data'][0])[0];
+			user.socials = JSON.parse(json_response['data']?.socials) ?? [];
+			user.subscribed = JSON.parse(json_response['data']?.subscribed) ?? [];
+			user.subscribers = JSON.parse(json_response['data']?.subscribers) ?? [];
+			user.user_videos_liked = JSON.parse(json_response['data']?.liked) ?? [];
+			user.user_videos_disliked = JSON.parse(json_response['data']?.disliked) ?? [];
+			user.user_comments_liked =
 				JSON.parse(json_response['data']?.comments_liked) ?? [];
-			this.user.user_comments_disliked =
+			user.user_comments_disliked =
 				JSON.parse(json_response['data']?.comments_disliked) ?? [];
-			this.user.user_stats.videos = JSON.parse(json_response['data']?.stats?.videos) ?? [];
-			this.user.user_stats.likes = JSON.parse(json_response['data']?.stats?.likes) ?? [];
-			this.user.user_stats.views = JSON.parse(json_response['data']?.stats?.views) ?? [];
-			this.user.user_stats.shares = JSON.parse(json_response['data']?.stats?.shares) ?? [];
+			user.user_stats.videos = JSON.parse(json_response['data']?.stats?.videos) ?? [];
+			user.user_stats.likes = JSON.parse(json_response['data']?.stats?.likes) ?? [];
+			user.user_stats.views = JSON.parse(json_response['data']?.stats?.views) ?? [];
+			user.user_stats.shares = JSON.parse(json_response['data']?.stats?.shares) ?? [];
 
 			return {
 				accountExisted: accountExisted,
 				token: jwt,
 				user: user
 			};
-		} else {
+    } else {
+      // @ts-ignore
 			return { status: response.status, statusText: response.statusText };
 		}
   } catch (error) {
@@ -104,19 +127,24 @@ async function post(action, options) {
   formData.append('action', action);
   formData.append('HTTP_AUTHORIZATION', `Bearer ${jwt}`);
 
+  // @ts-ignore
   for (const [key, value] of options) {
     formData.append(key, value);
   }
 
   // eslint-disable-next-line no-useless-catch
   try {
+    // @ts-ignore
     const response = await axios.post(url, formData, {
       body: formData
     });
 
+    // @ts-ignore
     if (response.status >= 200 && response.status <= 299) {
+      // @ts-ignore
       return await response.data;
     } else {
+      // @ts-ignore
       return { status: response.status, statusText: response.statusText };
     }
   } catch (error) {
@@ -278,7 +306,8 @@ describe('api-fetch-POST', () => {
       writable: false
     });
 
-    options.set("VIDEO_MEDIA", fileInput.files[0]);
+    // @ts-ignore
+    options.set("VIDEO_MEDIA", fileInput?.files[0]);
     options.set("VIDEO_TITLE", "Test Video");
     options.set("VIDEO_DESCRIPTION", "Lorem ipsum dolor sit amet, consecte.");
     const response = await post("video", options);

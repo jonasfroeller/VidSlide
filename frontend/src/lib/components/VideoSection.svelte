@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+	const videos = new Set();
 </script>
 
 <script lang="ts">
@@ -57,29 +58,39 @@
 	let video_path = 'http://localhost:8196/media/video/uploaded/';
 	$: video_element_id = 'vid_' + video_id;
 
-	$: play_button_state = false;
+	$: play_button_state = true;
 	$: sound_button_state = false;
 
 	function playVideo() {
 		if (browser) {
-			const video = document.getElementById(video_element_id);
-			video.play();
+			videoElement.play();
 		}
 	}
 
 	function pauseVideo() {
 		if (browser) {
-			const video = document.getElementById(video_element_id);
-			video.pause();
+			videoElement.pause();
 		}
 	}
 
 	function muteVideo() {
 		if (browser) {
-			const video = document.getElementById(video_element_id);
-			video.muted = !video.muted;
+			videoElement.muted = !videoElement.muted;
 		}
 	}
+
+	onMount(() => {
+		videos.add(videoElement);
+		return () => videos.delete(videoElement);
+	});
+
+	function stopOthers() {
+		videos.forEach((video) => {
+			if (video !== videoElement) video.pause();
+		});
+	}
+
+	let videoElement;
 
 	let view_followers: PopupSettings = {
 		event: 'click',
@@ -165,13 +176,26 @@
 					class="video absolute inset-0 w-full h-full"
 					title={video}
 					aria-label={video}
+					bind:this={videoElement}
+					bind:paused={play_button_state}
+					on:play={stopOthers}
+					on:click={() => {
+						play_button_state = !play_button_state;
+						if (play_button_state) {
+							playVideo();
+						} else {
+							pauseVideo();
+						}
+					}}
 					controls
 					muted
 				>
 					<source src="{video_path}{video}" type="video/mp4" />
 					Your browser does not support the video tag.
 				</video>
-				<div class="absolute w-full flex justify-between p-2">
+				<div
+					class="absolute w-full flex justify-between p-2 bg-primary-50/70 dark:bg-primary-900/60"
+				>
 					{#if play_button_state}
 						<button
 							on:click={() => {
@@ -214,7 +238,7 @@
 				</div>
 				<div
 					id="video-player-info-bottom"
-					class="absolute bottom-0 w-full p-2 text-xs text-primary-700 dark:text-primary-500 select-none"
+					class="absolute bottom-0 w-full p-2 text-xs text-primary-900 dark:text-primary-500 select-none bg-primary-50/70 dark:bg-primary-900/60"
 				>
 					{$translation.VideoSection.views(video_views)}
 				</div>
@@ -273,7 +297,9 @@
 				<iconify-icon icon="ic:round-edit" />
 				<iconify-icon icon="mdi:delete" />
 			</div>
-			<div class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2">
+			<div
+				class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2 bg-primary-50/70 dark:bg-primary-900/60"
+			>
 				<!-- 1920/6 -->
 				<div class="absolute w-full flex justify-between p-2">
 					{#if play_button_state}
@@ -375,13 +401,26 @@
 					class="video absolute inset-0 w-full h-full"
 					title={video}
 					aria-label={video}
+					bind:this={videoElement}
+					bind:paused={play_button_state}
+					on:play={stopOthers}
+					on:click={() => {
+						play_button_state = !play_button_state;
+						if (play_button_state) {
+							playVideo();
+						} else {
+							pauseVideo();
+						}
+					}}
 					controls
 					muted
 				>
 					<source src="{video_path}{video}" type="video/mp4" />
 					Your browser does not support the video tag.
 				</video>
-				<div class="absolute w-full flex justify-between p-2">
+				<div
+					class="absolute w-full flex justify-between items-center p-2 bg-primary-50/70 dark:bg-primary-900/60"
+				>
 					{#if play_button_state}
 						<button
 							on:click={() => {

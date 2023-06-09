@@ -113,6 +113,8 @@ function checkIfIdExists($connection, $type, $id, $bind_type = "i")
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VIDEO_TITLE LIKE ?");
     } else if ($type == "video_tag") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VS_VIDEO_ID IN (SELECT VS_VIDEO_ID FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?)");
+    } else if ($type == "video_username") {
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO WHERE VS_USER_ID IN (SELECT VS_USER_ID FROM VS_USER WHERE USER_USERNAME LIKE ?)");
     } else if ($type == "comments") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_VIDEO_COMMENT WHERE VS_VIDEO_ID = ?");
     } else if ($type == "comment_feedback") {
@@ -242,7 +244,7 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false)
                 }
             }
 
-            if ($topic == "all" || $topic == "tags") {
+            if ($topic == "all" || $topic == "tags") { // TODO: Why not fetched?
                 if (isset($_GET["medium_id"])) {
                     $hashtag = mysqli_real_escape_string($connection, strval($_GET["medium_id"]));
                     $hashtag_includes = '%' . $hashtag . '%';
@@ -531,6 +533,8 @@ try {
     //     - medium_id=? [ID++] // all videos with title including text
     //   - id=tag [ID]
     //     - medium_id=? [ID++] // all videos with tag including text
+    //   - id=username [ID]
+    //     - medium_id=? [ID++] // all videos with username of the creator including text
     //   - id=random [ID]
     //   - id=? [ID] 
     // - medium=comments [MEDIUM]
@@ -681,6 +685,28 @@ try {
                             if ($exists) {
                                 $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_VIDEO_ID IN (SELECT VS_VIDEO_ID FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?)');
                                 $response = getMedium($connection, $response, $table_video, $tag_includes, true, "s");
+
+                                $pulled_videos = json_decode($response["data"][0], true);
+                                foreach ($pulled_videos as $video) { // get multiple video infos at once
+                                    $_GET["id"] = $video["VS_VIDEO_ID"];
+                                    $response = getVideoInfo($connection, $response, "all", true);
+                                }
+                            } else {
+                                $response = errorOccurred($connection, $response, __LINE__, "video not found");
+                            }
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "medium_id param missing", true);
+                        }
+                    } else if ($id == "username") {
+                        if (isset($_GET["medium_id"])) { // ?medium=video&id=username&medium_id=? [ID]
+                            $username = mysqli_real_escape_string($connection, strval($_GET["medium_id"]));
+                            $username_includes = "%$username%";
+
+                            $exists = checkIfIdExists($connection, "video_username", $username_includes, "s");
+
+                            if ($exists) {
+                                $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_USER_ID IN (SELECT VS_USER_ID FROM VS_USER WHERE USER_USERNAME LIKE ?)');
+                                $response = getMedium($connection, $response, $table_video, $username_includes, true, "s");
 
                                 $pulled_videos = json_decode($response["data"][0], true);
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once

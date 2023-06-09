@@ -9,6 +9,9 @@
 	// Stores
 	import { loginState, jwt, user } from '$store/account';
 
+	// Scripts
+	import accountCfg from '$script/accountStorage';
+
 	// Translation
 	import translation from '$translation/i18n-svelte';
 	import { locale } from '$translation/i18n-svelte';
@@ -138,6 +141,7 @@
 	}
 
 	async function onFormSubmit(userMayExist: boolean) {
+		// VidSlide-account
 		let response;
 		if (userMayExist) {
 			response = await signIn(userData.username, userData.password);
@@ -147,17 +151,31 @@
 
 		let status = await setAccountVariables(response);
 
-		if (status) {
-			toastStore.trigger(popups.loggedIn_success);
-			$loginState = true;
-			setTimeout(() => modalStore.close(), 200);
-		} else if (status == false) {
-			toastStore.trigger(popups.registered_success);
-			$loginState = true;
-			setTimeout(() => modalStore.close(), 200);
-		} else {
-			toastStore.trigger(popups.failed_to_authenticate);
+		if (popups) {
+			if (status) {
+				toastStore.trigger(popups.loggedIn_success);
+				$loginState = true;
+				await saveAccountData();
+				setTimeout(() => modalStore.close(), 200);
+			} else if (status == false) {
+				toastStore.trigger(popups.registered_success);
+				$loginState = true;
+				await saveAccountData();
+				setTimeout(() => modalStore.close(), 200);
+			} else {
+				toastStore.trigger(popups.failed_to_authenticate);
+			}
 		}
+	}
+
+	async function saveAccountData() {
+		let cfg = {
+			loginState: $loginState,
+			jwt: $jwt,
+			user: $user
+		};
+
+		return accountCfg.save(cfg);
 	}
 
 	async function setAccountVariables(response: Promise) {
@@ -179,7 +197,6 @@
 			let formattedError = inputParseResult.error.format();
 
 			// console.log(formattedError);
-
 			// toastStore.trigger(popups.loggingIn_warning);
 
 			username_error = formattedError.username?._errors[0] ?? 'null';

@@ -5,6 +5,9 @@
 	// Stores
 	import { loginState } from '$store/account';
 
+	// Scripts
+	import accountCfg from '$script/accountStorage';
+
 	// JS-Framework/Library
 	import { browser } from '$app/environment';
 
@@ -129,8 +132,9 @@
 	// Popup Functions
 	function signOut() {
 		toastStore.trigger(loggingOut_info);
-		toastStore.trigger(loggedOut_success);
-		$loginState = false;
+		if (accountCfg.clear()) {
+			toastStore.trigger(loggedOut_success);
+		}
 	}
 
 	export const openLoginModal = () => {

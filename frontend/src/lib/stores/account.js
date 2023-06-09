@@ -13,7 +13,12 @@ export const user = writable({
 		USER_DATETIMECREATED: null,
 		USER_LASTUPDATE: null,
 	},
-	user_stats: {},
+	user_stats: {
+		videos: [],
+		likes: [],
+		views: [],
+		shares: [],
+	},
 	videos_liked: [],
 	videos_disliked: [],
 	comments_liked: [],

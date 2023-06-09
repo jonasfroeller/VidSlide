@@ -97,7 +97,7 @@
 			});
 
 			socials.forEach((box) => {
-				box.style.width = maxBoxWidth + 'px';
+				box.style = `min-width: ${maxBoxWidth}px !important;`;
 			});
 		}
 	});
@@ -138,20 +138,17 @@
 				>
 					{current_user_username}
 				</button>
-				<div id="stats" class="text-md text-primary-700 dark:text-primary-500 flex">
-					<p class="unstyled">
+				<div id="stats" class="text-md text-primary-700 dark:text-primary-500 flex divide-x">
+					<p class="unstyled p-1">
 						{$translation.UserData.follower(current_user_follower)}&nbsp;
 					</p>
-					|
-					<p class="unstyled">
+					<p class="unstyled p-1">
 						&nbsp;{$translation.UserData.views(current_user_views)}&nbsp;
 					</p>
-					|
-					<p class="unstyled">
+					<p class="unstyled p-1">
 						&nbsp;{$translation.UserData.videos(current_user_videos)}&nbsp;
 					</p>
-					|
-					<p class="unstyled">
+					<p class="unstyled p-1">
 						&nbsp;{$translation.UserData.joined(current_user_date_joined)}
 					</p>
 				</div>
@@ -215,7 +212,7 @@
 	<!-- Settings -->
 	<div class="pt-4">
 		<h3>{$translation.pages.settings.account_section.title()}</h3>
-		<div class="flex flex-col flex-wrap gap-8 divide-y">
+		<div class="flex flex-col flex-wrap gap-8 divide-y divide-primary-900">
 			<div id="account" class="flex flex-col p-2">
 				<div class="flex flex-col md:flex-row gap-2">
 					<label class="label">
@@ -253,39 +250,42 @@
 			<div id="socials" class="flex flex-col gap-2 p-2">
 				<h4>{$translation.pages.settings.account_section.socials()}</h4>
 				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim text-center md:text-left">
-						https://www.instagram.com/
+					<div class="social-media-site input-group-shim">
+						<span class="block mx-auto md:m-0">https://www.instagram.com/</span>
 					</div>
 					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
-					<button class="variant-soft-secondary text-center md:text-left"
-						>{$translation.pages.settings.account_section.edit()}</button
+					<button class="variant-soft-secondary"
+						><span class="block mx-auto">{$translation.pages.settings.account_section.edit()}</span
+						></button
 					>
 				</div>
 				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim text-center md:text-left">
-						https://www.youtube.com/
+					<div class="social-media-site input-group-shim">
+						<span class="block mx-auto md:m-0">https://www.youtube.com/</span>
 					</div>
 					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
-					<button class="variant-soft-secondary text-center md:text-left"
-						>{$translation.pages.settings.account_section.edit()}</button
+					<button class="variant-soft-secondary"
+						><span class="block mx-auto">{$translation.pages.settings.account_section.edit()}</span
+						></button
 					>
 				</div>
 				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim text-center md:text-left">
-						https://www.twitter.com/
+					<div class="social-media-site input-group-shim">
+						<span class="block mx-auto md:m-0">https://www.twitter.com/</span>
 					</div>
 					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
-					<button class="variant-soft-secondary text-center md:text-left"
-						>{$translation.pages.settings.account_section.edit()}</button
-					>
+					<button class="variant-soft-secondary"
+						><span class="block mx-auto">{$translation.pages.settings.account_section.edit()}</span>
+					</button>
 				</div>
 				<div class="input-group input-group-divider md:grid-cols-[auto_1fr_auto]">
-					<div class="social-media-site input-group-shim text-center md:text-left">
-						https://www.tiktok.com/
+					<div class="social-media-site input-group-shim">
+						<span class="block mx-auto md:m-0">https://www.tiktok.com/</span>
 					</div>
 					<input disabled class="outline-none p-2" type="text" placeholder="@your_username" />
-					<button class="variant-soft-secondary text-center md:text-left"
-						>{$translation.pages.settings.account_section.edit()}</button
+					<button class="variant-soft-secondary"
+						><span class="block mx-auto">{$translation.pages.settings.account_section.edit()}</span
+						></button
 					>
 				</div>
 			</div>
@@ -325,7 +325,7 @@
 						placeholder={this_user_profile_description}
 						value={this_user_profile_description}
 					/>
-					<button class="btn btn-sm variant-ringed-secondary w-full"
+					<button class="btn btn-sm variant-filled-primary w-full"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>

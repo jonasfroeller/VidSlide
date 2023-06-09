@@ -35,7 +35,10 @@
 	import signupComponent from '$component/SignInUp.svelte';
 
 	// Stores
-	import { loginState } from '$store/account';
+	import { loginState, user, jwt } from '$store/account';
+
+	// Scripts
+	import accountCfg from '$script/accountStorage';
 
 	/* --- LOGIC --- */
 	let popups; // popups in Popups.svelte
@@ -76,6 +79,15 @@
 		console.log(
 			"\r\n       _                         ______              _ _           \r\n      | |                       |  ____|            | | |          \r\n      | | ___  _ __   __ _ ___  | |__ _ __ ___   ___| | | ___ _ __ \r\n  _   | |/ _ \\| '_ \\ / _` / __| |  __| '__/ _ \\ / _ \\ | |/ _ \\ '__|\r\n | |__| | (_) | | | | (_| \\__ \\ | |  | | | (_) |  __/ | |  __/ |   \r\n  \\____/ \\___/|_| |_|\\__,_|___/ |_|  |_|  \\___/ \\___|_|_|\\___|_|   \r\n                                                                   \r\n                                                                   \r\n"
 		);
+
+		const cfg = await accountCfg.load();
+
+		if (cfg) {
+			$loginState = cfg.loginState;
+			$user = cfg.user;
+			$jwt = cfg.jwt;
+		}
+
 		checkIfLoggedIn();
 	});
 

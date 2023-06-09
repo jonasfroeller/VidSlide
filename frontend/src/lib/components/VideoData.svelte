@@ -25,9 +25,9 @@
 	// Slots
 	export let page;
 	export let isResultVideo = false;
-	export let searchSubject = null;
-	export let sortBy = null;
-	export let searchedText = null;
+	export let searchSubject = 'username';
+	export let sortBy = 'date';
+	export let searchedText = '';
 
 	/* --- LOGIC --- */
 	// - medium=video [MEDIUM] // gets videos and video info
@@ -37,6 +37,8 @@
 	//     - medium_id=? [ID++] // all videos with title including text
 	//   - id=tag [ID]
 	//     - medium_id=? [ID++] // all videos with tag including text
+	//   - id=username [ID]
+	//     - medium_id=? [ID++] // all videos with username of creator including text
 	//   - id=random [ID]
 	//   - id=? [ID]
 	async function fetchVideo(id: number | string, id_specification = '') {
@@ -44,12 +46,7 @@
 			id = 'random';
 		}
 
-		let medium = 'video';
-		if (id === 'username') {
-			medium = 'user';
-		}
-
-		let response = await Api.get(medium, id, id_specification);
+		let response = await Api.get('video', id, id_specification);
 
 		if (typeof id === 'number' && response?.data?.length === 0) {
 			response = await Api.get('video', 'random');
@@ -59,42 +56,65 @@
 
 	async function fetchMultipleVideos() {
 		let searched_videos = await fetchVideo(searchSubject, searchedText); // sortBy
-		current_video = [];
-
-		// console.log(searched_videos, searched_videos?.data?.length);
+		result_videos = [];
 
 		if (searched_videos?.data[0] || searched_videos?.data?.stats?.videos) {
 			let amount = 0;
 			let videos = [];
+			let user = [];
+			let feedback = [];
+			let tags = [];
 
-			if (searchSubject === 'username') {
-				amount = JSON.parse(searched_videos.data.stats.videos).length;
-				videos = JSON.parse(searched_videos.data.stats.videos);
-			} else {
-				amount = JSON.parse(searched_videos.data[0]).length;
-				videos = JSON.parse(searched_videos.data[0]);
+			amount = JSON.parse(searched_videos.data[0]).length;
+			videos = JSON.parse(searched_videos.data[0]);
+
+			for (let i = 0; i < searched_videos.data.user.length; i++) {
+				user.push(searched_videos.data.user[i]);
 			}
 
-			// console.log(videos, amount);
+			if (searched_videos.data.feedback) {
+				for (let i = 0; i < searched_videos.data.feedback.length; i++) {
+					feedback.push(JSON.parse(searched_videos.data.feedback[i]));
+				}
+			}
+
+			if (searched_videos.data.tags) {
+				for (let i = 0; i < searched_videos.data.tags.length; i++) {
+					tags.push(JSON.parse(searched_videos.data.tags[i]));
+				}
+			}
 
 			for (let i = 0; i < amount; i++) {
-				let video = null;
+				const videoId = videos[i].VS_VIDEO_ID;
 
-				video = JSON.parse(JSON.stringify(searched_videos));
-				video.data[0] = [JSON.parse(JSON.stringify(videos[i]))]; // TODO: add likes, dislikes, followers (api and frontend)
-				if (searchSubject === 'username') {
-					video.data[0] = JSON.stringify(video.data.stats.videos);
-				} else {
-					video.data[0] = JSON.stringify(video.data[0]);
+				const video = {
+					data: {
+						0: JSON.stringify([videos[i]]),
+						user: user[i]
+					}
+				};
+
+				for (let j = 0; j < feedback.length; j++) {
+					for (let k = 0; k < feedback[j].length; k++) {
+						if (feedback[j][k].VS_VIDEO_ID == videoId) {
+							video.data.feedback = JSON.stringify([feedback[j][k]]);
+						}
+					}
 				}
 
-				current_video.push(formatVideo(video));
+				for (let j = 0; j < tags.length; j++) {
+					for (let k = 0; k < tags[j].length; k++) {
+						if (tags[j][k].VS_VIDEO_ID == videoId) {
+							video.data.tags = JSON.stringify([tags[j][k]]);
+						}
+					}
+				}
+
+				result_videos.push(await formatVideo(video));
 			}
 
-			publisher_followers = await getUserFollowers(current_video_id);
+			publisher_followers = [];
 		}
-
-		return current_video;
 	}
 
 	async function fetchNextVideo(event) {
@@ -132,10 +152,10 @@
 
 		delete formatted_object['0'];
 
-		if (formatted_object && formatted_object.tags) {
+		if (formatted_object && formatted_object.tags && formatted_object.tags !== null) {
 			formatted_object.tags = JSON.parse(formatted_object.tags);
 		}
-		if (formatted_object && formatted_object.feedback) {
+		if (formatted_object && formatted_object.feedback && formatted_object.feedback !== null) {
 			formatted_object.feedback = JSON.parse(formatted_object.feedback);
 
 			let likes = formatted_object?.feedback?.filter((f) => f.VIDEO_FEEDBACK_TYPE === 'positive');
@@ -151,8 +171,17 @@
 				current_video_dislikes.push(dislikes);
 			}
 		}
-		if (formatted_object && formatted_object.comments) {
-			if (formatted_object && formatted_object.comments_feedback) {
+		if (
+			formatted_object &&
+			formatted_object.comments &&
+			formatted_object.comments !== null &&
+			!isResultVideo
+		) {
+			if (
+				formatted_object &&
+				formatted_object.comments_feedback &&
+				formatted_object.comments_feedback !== null
+			) {
 				formatted_object.comments_feedback = JSON.parse(formatted_object.comments_feedback);
 			}
 
@@ -206,6 +235,8 @@
 
 	$: current_video = null;
 	$: current_video_id = current_video?.user?.VS_USER_ID;
+
+	$: result_videos = [];
 </script>
 
 {#key $translation}
@@ -214,7 +245,7 @@
 
 <svelte:window on:keydown={fetchNextVideo} />
 
-{#if current_video != null && current_video != undefined}
+{#if current_video != null || result_videos != null}
 	{#key current_video_id}
 		{#if page.includes('home')}
 			<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
@@ -232,26 +263,29 @@
 		{#if isResultVideo}
 			<div id="results" class="flex flex-col gap-2 flex-wrap justify-center">
 				<p>
-					{$translation.SearchSection.search_option.videos_found(current_video?.length ?? 0)}:
+					{$translation.SearchSection.search_option.videos_found(result_videos?.length ?? 0)}:
 				</p>
 				<hr />
-				<div id="video-results" class="flex flex-col gap-2 justify-center">
-					{#each current_video as result, i}
-						<VideoSection
-							publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
-							publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
-							publisher_followers={publisher_followers ?? []}
-							video={result?.video?.VIDEO_LOCATION ?? null}
-							video_id={result?.video?.VS_VIDEO_ID ?? 0}
-							video_views={result?.video?.VIDEO_VIEWS ?? 0}
-							video_likes={current_video_likes[i]?.length ?? 0}
-							video_dislikes={current_video_dislikes[i]?.length ?? 0}
-							video_comments={result?.comments?.length ?? 0}
-							display_variant={'small'}
-						/>
+				<div id="video-results" class="flex flex-wrap gap-2 justify-center overflow-y-auto">
+					{#if searchedText != ''}
+						{#each result_videos as result, i}
+							<VideoSection
+								publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
+								publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
+								publisher_followers={publisher_followers ?? []}
+								video={result?.video?.VIDEO_LOCATION ?? null}
+								video_id={result?.video?.VS_VIDEO_ID ?? 0}
+								video_views={result?.video?.VIDEO_VIEWS ?? 0}
+								video_likes={current_video_likes[i]?.length ?? 0}
+								video_dislikes={current_video_dislikes[i]?.length ?? 0}
+								display_variant={'small'}
+							/>
+						{:else}
+							<p>no results</p>
+						{/each}
 					{:else}
-						<p>no results</p>
-					{/each}
+						<p>no input</p>
+					{/if}
 				</div>
 			</div>
 		{:else}

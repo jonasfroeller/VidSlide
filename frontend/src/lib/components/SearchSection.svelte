@@ -16,12 +16,17 @@
 	export let display_variant = 'vertical';
 </script>
 
-<div id="search-slot">
+<div
+	id="search-slot"
+	class="max-h-[44rem] {display_variant === 'vertical'
+		? 'max-w-sm'
+		: 'max-w-full'} overflow-y-auto rounded-lg"
+>
 	<div
 		id="search-section"
 		class="flex {display_variant == 'vertical'
 			? 'flex-col'
-			: 'flex-col xl:flex-row'} items-center justify-between gap-4 pt-4 pb-4"
+			: 'flex-col xl:flex-row'} items-center justify-between gap-4 pt-4 pb-4 sticky top-0 dark:bg-surface-900 bg-surface-50 z-50 p-2"
 	>
 		<div
 			id="search-bar"
