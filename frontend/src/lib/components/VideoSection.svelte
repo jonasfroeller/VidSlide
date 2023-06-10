@@ -358,7 +358,7 @@
 			</div>
 			<div class="video-info-tags flex justify-center flex-wrap gap-1 max-w-[180px]">
 				{#each video_tags as tag}
-					<span class="chip variant-ringed truncate">#{tag}</span>
+					<span class="chip variant-ringed truncate">#{tag?.HASHTAG_NAME}</span>
 				{:else}
 					<span class="truncate text-xs text-primary-700 dark:text-primary-500"
 						>{$translation.VideoResult.no_tags()}</span

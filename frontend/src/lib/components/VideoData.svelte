@@ -97,21 +97,25 @@
 					}
 				};
 
+				let feedback_temp = [];
 				for (let j = 0; j < feedback.length; j++) {
 					for (let k = 0; k < feedback[j].length; k++) {
 						if (feedback[j][k].VS_VIDEO_ID == videoId) {
-							video.data.feedback = JSON.stringify([feedback[j][k]]);
+							feedback_temp.push(feedback[j][k]);
 						}
 					}
 				}
+				video.data.feedback = JSON.stringify(feedback_temp);
 
+				let tags_temp = [];
 				for (let j = 0; j < tags.length; j++) {
 					for (let k = 0; k < tags[j].length; k++) {
 						if (tags[j][k].VS_VIDEO_ID == videoId) {
-							video.data.tags = JSON.stringify([tags[j][k]]);
+							tags_temp.push(tags[j][k]);
 						}
 					}
 				}
+				video.data.tags = JSON.stringify(tags_temp);
 
 				formatted_videos.push(await formatVideo(video));
 			}
