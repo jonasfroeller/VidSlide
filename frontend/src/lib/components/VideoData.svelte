@@ -278,6 +278,7 @@
 			{#if searchedText != '' && $filteredVideos}
 				{#each $filteredVideos as result, i}
 					<VideoSection
+						publisher_id={result?.user[0]?.VS_USER_ID ?? -1}
 						publisher={result?.user[0]?.USER_USERNAME ?? 'username loading...'}
 						publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
 						publisher_followers={result?.user[0]?.subscribers
@@ -314,6 +315,7 @@
 {:else if current_video}
 	<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
 		<VideoSection
+			publisher_id={current_video?.user?.VS_USER_ID ?? -1}
 			publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}
 			publisher_avatar={current_video?.user?.USER_PROFILEPICTURE ?? null}
 			publisher_followers={current_video_publisher_followers ?? []}

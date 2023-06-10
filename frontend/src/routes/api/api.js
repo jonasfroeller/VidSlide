@@ -43,18 +43,19 @@ export default class Api {
 
 	/**
 	 * Post actions as logged in user.
-	 * 
+	 * @param {Array<Object<string, any>>} options
 	 * @param {string} action
-	 * @param {Record<string, any>} options
+	 * @param {string} medium
 	 */
-	static async post(action, options) {
-
+	static async post(options, medium, action = "POST") {
 		let params = new FormData();
-		params.append('action', "POST");
-		params.append('medium', action);
-		for (let key in options) {
-			params.append(key, options[key]);
-		}
+		params.append('action', action);
+		params.append("medium", medium);
+		params.append('HTTP_AUTHORIZATION', `Bearer ${this.jwt}`);
+
+		options.forEach(option => {
+			params.append(option.attribute_name, option.attribute);
+		});
 
 		const response = fetch(`${this.baseURL}/${this.baseApiFile}`, {
 			method: 'POST',

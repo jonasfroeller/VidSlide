@@ -40,6 +40,9 @@
 	// Scripts
 	import accountCfg from '$script/accountStorage';
 
+	// Backend API
+	import Api from '$api/api';
+
 	/* --- LOGIC --- */
 	let popups; // popups in Popups.svelte
 	let openLoginModal; // passed by Header
@@ -87,6 +90,8 @@
 			$user = cfg.user;
 			$jwt = cfg.jwt;
 		}
+
+		Api.jwt = $jwt;
 
 		checkIfLoggedIn();
 	});

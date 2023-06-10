@@ -357,7 +357,7 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
         $table_socials = mysqli_prepare($connection, 'SELECT SOCIAL_PLATFORM, SOCIAL_URL FROM VS_USER_SOCIAL WHERE VS_USER_ID = ?');
         $response["data"]["socials"] = getMedium($connection, $response, $table_socials, $bind_var, true, "i", true);
 
-        $table_subscribed = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
+        $table_subscribed = mysqli_prepare($connection, 'SELECT VS_USER_ID, USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBED FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ?)');
         $response["data"]["subscribed"] = getMedium($connection, $response, $table_subscribed, $bind_var, true, "i", true);
 
         $table_liked = mysqli_prepare($connection, 'SELECT VS_VIDEO_ID FROM VS_VIDEO_FEEDBACK WHERE VIDEO_FEEDBACK_TYPE LIKE "positive" AND VS_USER_ID = ?');
@@ -384,7 +384,7 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
         $response["data"]["stats"]["shares"] = getMedium($connection, $response, $table_shares, $bind_var, true, "i", true);
     }
 
-    $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
+    $table_subscribers = mysqli_prepare($connection, 'SELECT VS_USER_ID, USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED = ?)');
     $response["data"]["subscribers"] = getMedium($connection, $response, $table_subscribers, $bind_var, true, "i", true);
 
     return $response;
@@ -487,6 +487,7 @@ $response = array(
     "token" => "", // unset, valid, invalid or hashed token string
     "response" => "", // Account and Authentication
     "requested" => "", // ACTIONS, READ, WRITE, MODIFY TABLE (res;res;res)
+    "success" => false, // POST, PUT, DELETE res
     "error" => false // errors and warnings
 );
 
@@ -1029,7 +1030,36 @@ try {
                     if ($jwt_received["user_id"]) {
                         $user_id = $jwt_received["user_id"];
 
-                        // TODO: Database Save and response
+                        if (isset($_POST["FOLLOWING_SUBSCRIBED"])) {
+                            $subscribed_user = $_POST["FOLLOWING_SUBSCRIBED"];
+
+                            mysqli_close($connection);
+                            $connection = mysqli_connect($host, $root, $pass, $schema, $port);
+
+                            if (!$connection) {
+                                errorOccurred($connection, $response, __LINE__, "connection error", true);
+                            } else {
+                                $exists = checkIfIdExists($connection, "user", $subscribed_user, "i");
+
+                                if ($exists) {
+                                    $table_follow_insert = mysqli_prepare($connection, "INSERT INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (?, ?)");
+                                    mysqli_stmt_bind_param($table_follow_insert, 'is', $user_id, $subscribed_user);
+                                    mysqli_stmt_execute($table_follow_insert);
+
+                                    if (mysqli_affected_rows($connection) > 0) {
+                                        array_push($response["log"], date('H:i:s') . ": inserted new follow, VS_USER_ID:" . $user_id);
+                                        mysqli_stmt_close($table_follow_insert);
+
+                                        $response["success"] = true;
+                                    } else {
+                                        errorOccurred($connection, $response, __LINE__, "follow insert failed", true);
+                                    }
+                                } else {
+                                    $response = errorOccurred($connection, $response, __LINE__, "user doesn't exist");
+                                }
+                            }
+                        }
+
                         $response["token"] = "valid";
                     } else {
                         $response["token"] = "invalid";

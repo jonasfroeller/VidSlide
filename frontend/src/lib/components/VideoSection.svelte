@@ -30,12 +30,16 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
+	// Backend API
+	import Api from '$api/api';
+
 	// Components
 	import Avatar from '$component/Avatar.svelte';
 	import Popups from '$component/Popups.svelte';
 	let popups; // popups in Popups.svelte
 
 	// Props
+	export let publisher_id;
 	export let publisher;
 	export let publisher_avatar = null;
 	export let publisher_followers = [];
@@ -52,7 +56,8 @@
 
 	export let video_comments = 0; // display_variant large/default
 
-	$: publisher_following = $user_subscribed?.includes(publisher);
+	$: publisher_following =
+		$user_subscribed?.filter((user) => user?.VS_USER_ID == publisher_id).length > 0;
 
 	/* --- LOGIC --- */
 	let video_path = 'http://localhost:8196/media/video/uploaded/';
@@ -97,6 +102,16 @@
 		target: 'view_followers',
 		placement: 'bottom'
 	};
+
+	async function action(action, attributes, type = 'POST') {
+		const res = await Api.post(attributes, action, type);
+
+		if (res?.success) {
+			if (attribute_name == 'FOLLOWING_SUBSCRIBED') {
+				$user.subscribed.push(attribute); // TODO fetch this user from the database and push it into the store, + add unfollow logic
+			}
+		}
+	}
 </script>
 
 {#key $translation}
@@ -167,6 +182,13 @@
 					id="video-action"
 					type="button"
 					class="btn variant-ringed hover:variant-filled h-1/2"
+					on:click={() =>
+						action('follow', [
+							{
+								attribute_name: 'FOLLOWING_SUBSCRIBED',
+								attribute: publisher_id
+							}
+						])}
 				>
 					{$translation.VideoSection.subscribe(publisher_following ? 0 : 1)}
 				</button>
