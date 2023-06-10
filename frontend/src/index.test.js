@@ -71,7 +71,8 @@ async function get(type, index, specification = '') {
 async function auth(username, password) {
   const url = 'http://localhost:8196/db_api.php';
   const formData = new FormData();
-  formData.append('action', 'auth');
+  formData.append('action', 'POST');
+  formData.append('medium', 'auth');
   formData.append('username', username);
   formData.append('password', password);
 
@@ -121,10 +122,11 @@ async function auth(username, password) {
  * @param {string} action
  * @param {Record<string, any>} options
  */
-async function post(action, options) {
+async function post(action, options, method = 'POST') {
   const url = 'http://localhost:8196/db_api.php';
   const formData = new FormData();
-  formData.append('action', action);
+  formData.append("action", method);
+  formData.append("medium", action);
   formData.append('HTTP_AUTHORIZATION', `Bearer ${jwt}`);
 
   // @ts-ignore
@@ -135,8 +137,10 @@ async function post(action, options) {
   // eslint-disable-next-line no-useless-catch
   try {
     // @ts-ignore
-    const response = await axios.post(url, formData, {
-      body: formData
+    const response = await axios({
+      method: method,
+      url: url,
+      data: formData
     });
 
     // @ts-ignore
@@ -263,17 +267,17 @@ describe('api-fetch-GET', () => {
 
 // POST-API-Tests
 describe('api-fetch-POST', () => {
-  // - action=auth [ACTION]
+  // - medium=auth [MEDIUM] // insufficient
   //   - username=?&password=? [ID] // => auth token if password for user is valid or account doesn't exist (will be created)
-  // - action=video [ACTION] 
+  // - medium=signout [MEDIUM]  
+  // - medium=video [MEDIUM] 
   //   - HTTP_AUTHORIZATION=?&VIDEO_MEDIA=?&VIDEO_TITLE=?&VIDEO_DESCRIPTION=?
-  // - action=comment [ACTION]
-  //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?&VS_USER_ID=?(&COMMENT_PARENT_ID=?)
-  // - action=feedback [ACTION]
-  //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?&VS_USER_ID=?
-  // - action=follow [ACTION]
-  //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBER=?&FOLLOWING_SUBSCRIBED=?
-  // - action=signout [ACTION]  
+  // - medium=comment [MEDIUM]
+  //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?(&COMMENT_PARENT_ID=?)
+  // - medium=feedback [MEDIUM]
+  //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?
+  // - medium=follow [MEDIUM]
+  //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBED=? 
   it('authenticate user', async () => {
     const response = await auth('Jonesisfroellerix', "Password2$");
     expect(response.token).toBeDefined();
@@ -317,7 +321,6 @@ describe('api-fetch-POST', () => {
     const options = new Map();
     options.set("COMMENT_MESSAGE", "Amazing!");
     options.set("VS_VIDEO_ID", 1);
-    options.set("VS_USER_ID", 1);
 
     const response = await post("comment", options);
     expect(response.token).toBe("valid");
@@ -326,55 +329,160 @@ describe('api-fetch-POST', () => {
     const options = new Map();
     options.set("VIDEO_FEEDBACK_TYPE", "positive");
     options.set("VS_VIDEO_ID", 1);
-    options.set("VS_USER_ID", 1);
 
     const response = await post("feedback", options);
     expect(response.token).toBe("valid");
   })
   it('post follow', async () => { // TODO
     const options = new Map();
-    options.set("FOLLOWING_SUBSCRIBER", 1);
     options.set("FOLLOWING_SUBSCRIBED", 1);
 
     const response = await post("follow", options);
     expect(response.token).toBe("valid");
   })
-  it('signout user', async () => { // TODO
-    const response = await post("signout", []);
-    expect(response.token).toBe("unset");
-  })
 })
 
 // PUT-API-Tests
-describe('api-fetch-PUT', () => { // TODO
+describe('api-fetch-PUT', () => { // TODO extend tests
   // - medium=profile_username [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_USERNAME=?
+  //   - HTTP_AUTHORIZATION=?&USER_USERNAME=?
   // - medium=profile_password [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PASSWORD=?
+  //   - HTTP_AUTHORIZATION=?&USER_PASSWORD=?
   // - medium=profile_description [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEDESCRIPTION=?
+  //   - HTTP_AUTHORIZATION=?&USER_PROFILEDESCRIPTION=?
   // - medium=profile_socials [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&VS_USER_SOCIAL=? (array of VS_USER_SOCIAL Objects)
+  //   - HTTP_AUTHORIZATION=?&VS_USER_SOCIAL=? (socials object)
   // - medium=profile_picture [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEPICTURE=?
+  //   - HTTP_AUTHORIZATION=?&USER_PROFILEPICTURE=?
   // - medium=video_post_title [MEDIUM]
   //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_TITLE=?
   // - medium=video_post_description [MEDIUM]
   //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_DESCRIPTION=?
   // - medium=video_post_hashtags [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VS_VIDEO_COMMENT=? (array of VS_VIDEO_COMMENT Objects)
+  //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VS_VIDEO_HASHTAG=? (hashtag object)
   // - medium=comment_post_text [MEDIUM]
   //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?&COMMENT_MESSAGE=?
+  it('update user profile username', async () => {
+    const options = new Map();
+    options.set("USER_USERNAME", "Peter Griffin"); // was Jonesisfroellerix
+
+    const response = await post("profile_username", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile password', async () => {
+    const options = new Map();
+    options.set("USER_PASSWORD", "pass123"); // was Password2$
+
+    const response = await post("profile_password", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile description', async () => {
+    const options = new Map();
+    options.set("USER_PROFILEDESCRIPTION", "I am a description."); // was empty
+
+    const response = await post("profile_description", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile socials', async () => {
+    const options = new Map();
+    options.set("VS_USER_SOCIAL", {
+      SOCIAL_PLATFORM: "youtube",
+      SOCIAL_URL: "https://www.youtube.com/channel/UCX6OQ3DkcsbYNE6H8uQQuVA"
+    }); // was empty
+
+    const response = await post("profile_socials", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile avatar', async () => {
+    const options = new Map();
+    options.set("USER_PROFILEPICTURE", "https://picsum.photos/1920"); // was empty
+
+    const response = await post("profile_picture", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user post title', async () => { 
+    const options = new Map();
+    options.set("VS_VIDEO_ID", 1);
+    options.set("VIDEO_TITLE", "new vid :)"); // TODO was ??? 
+
+    const response = await post("video_post_title", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user post description', async () => {
+    const options = new Map();
+    options.set("VS_VIDEO_ID", 1);
+    options.set("VIDEO_DESCRIPTION", "some description"); // was empty
+
+    const response = await post("video_post_description", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user post hashtags', async () => {
+    const options = new Map();
+    options.set("VS_VIDEO_ID", 1);
+    options.set("VS_VIDEO_HASHTAG", {
+      HASHTAG_NAME: "test"
+    }); // was empty
+
+    const response = await post("video_post_hashtags", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user comment text', async () => {
+    const options = new Map();
+    options.set("COMMENT_ID", 1);
+    options.set("COMMENT_MESSAGE", "some comment (:"); // was empty
+
+    const response = await post("comment_post_text", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+
+  // back to original
+  it('update user profile username again', async () => {
+    const options = new Map();
+    options.set("USER_USERNAME", "Jonesisfroellerix"); // was Peter Griffin
+
+    const response = await post("profile_username", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile password', async () => {
+    const options = new Map();
+    options.set("USER_PASSWORD", "Password2$"); // was pass123
+
+    const response = await post("profile_password", options, "PUT");
+    expect(response.token).toBe("valid");
+  })
 })
 
 // DELETE-API-Tests
 describe('api-fetch-DELETE', () => { // TODO
-  // - medium=all [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
   // - medium=account [MEDIUM]
-  //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
+  //   - HTTP_AUTHORIZATION=?
   // - medium=video [MEDIUM]
   //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?
   // - medium=comment [MEDIUM]
   //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?
+  it('update user profile password', async () => {
+    const response = await post("account", [], "DELETE");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile password', async () => {
+    const options = new Map();
+    options.set("VS_VIDEO_ID", 1); // TODO
+
+    const response = await post("account", options, "DELETE");
+    expect(response.token).toBe("valid");
+  })
+  it('update user profile password', async () => {
+    const options = new Map();
+    options.set("COMMENT_ID", 1); // TODO
+
+    const response = await post("video", options, "DELETE");
+    expect(response.token).toBe("valid");
+  })
+})
+
+describe('finally', () => {
+  it('signout user', async () => {
+    const response = await post("signout", []);
+    expect(response.token).toBe("unset");
+  })
 })

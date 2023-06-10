@@ -473,21 +473,21 @@ $port = 3196; /* default: 3306 */
 
 // RESPONSE
 $response = array(
-    "data" => array(),
+    "data" => array(), // response data object
     "info" => array(
         "database_connection_details" => array(
-            "database_username" => $root
+            "database_username" => $root // guest (GET access) or user with write privileges
         ),
-        "fetch_method" => $_SERVER['REQUEST_METHOD'],
-        "fetch_object" => "",
-        "fetch_id" => "",
-        "fetch_params" => array()
+        "fetch_method" => $_SERVER['REQUEST_METHOD'], // GET, POST, PUT, DELETE
+        "fetch_object" => "", // medium
+        "fetch_id" => "", // id of medium
+        "fetch_params" => array() // medium_id of medium 
     ),
     "log" => array(),
-    "token" => "",
-    "response" => "",
-    "requested" => "",
-    "error" => false
+    "token" => "", // unset, valid, invalid or hashed token string
+    "response" => "", // Account and Authentication
+    "requested" => "", // ACTIONS, READ, WRITE, MODIFY TABLE (res;res;res)
+    "error" => false // errors and warnings
 );
 
 // CONNECT
@@ -562,7 +562,6 @@ try {
                     $response["info"]["fetch_id"] = $id;
                     $log = $medium . " with id=" . $id . " as " . $response["info"]["database_connection_details"]["database_username"] . " [" . $response["info"]["fetch_method"] . "]";
                     array_push($response["log"], date('H:i:s') . ": fetching " . $log);
-                    $response["response"] = "fetched " . $log;
 
                     if ($id == "video") { // ?medium=video&id=video [ID]
                         if (isset($_GET["medium_id"])) { // ?medium=user&id=video&medium_id=? [ID]
@@ -631,7 +630,6 @@ try {
                     $response["info"]["fetch_id"] = $id;
                     $log = $medium . " with id=" . $id . " as " . $response["info"]["database_connection_details"]["database_username"] . " [" . $response["info"]["fetch_method"] . "]";
                     array_push($response["log"], date('H:i:s') . ": fetching " . $log);
-                    $response["response"] = "fetched " . $log;
 
                     if ($id == "all") {
                         if (isset($_GET["medium_id"])) { // ?medium=video&id=all&medium_id=1 [ID]
@@ -783,469 +781,488 @@ try {
         return getJWT($connection, $response, $jwt, $publicKey);
     }
 
-    // POST-Options:
-    // - action=auth [ACTION] // insufficient
-    //   - username=?&password=? [ID] // => auth token if password for user is valid or account doesn't exist (will be created)
-    // - action=signout [ACTION]  
-    // - action=video [ACTION] 
-    //   - HTTP_AUTHORIZATION=?&VIDEO_MEDIA=?&VIDEO_TITLE=?&VIDEO_DESCRIPTION=?
-    // - action=comment [ACTION]
-    //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?&VS_USER_ID=?(&COMMENT_PARENT_ID=?)
-    // - action=feedback [ACTION]
-    //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?&VS_USER_ID=?
-    // - action=follow [ACTION]
-    //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBER=?&FOLLOWING_SUBSCRIBED=?
+    // METHODS:
+    // POST, PUT, DELETE
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
-        if (isset($_POST["action"])) {
+        if (isset($_POST["action"]) && isset($_POST["medium"])) {
             $action = $_POST["action"];
+            $medium = $_POST["medium"];
 
-            // authentication
-            // https://github.com/firebase/php-jwt
-            if ($action == "auth") { // signup && signin
+            if ($action === "POST") {
+                // POST-Options:
+                // - medium=auth [MEDIUM] // insufficient
+                //   - username=?&password=? [ID] // => auth token if password for user is valid or account doesn't exist (will be created)
+                // - medium=signout [MEDIUM]  
+                // - medium=video [MEDIUM] 
+                //   - HTTP_AUTHORIZATION=?&VIDEO_MEDIA=?&VIDEO_TITLE=?&VIDEO_DESCRIPTION=?
+                // - medium=comment [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?(&COMMENT_PARENT_ID=?)
+                // - medium=feedback [MEDIUM]
+                //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?
+                // - medium=follow [MEDIUM]
+                //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBED=? 
+
                 // authentication
                 // https://github.com/firebase/php-jwt
-                $privateKey = $_ENV['PRIVATE_KEY'];
-                $issuedAt   = new DateTimeImmutable();
-                $expire     = $issuedAt->modify('+7 days')->getTimestamp(); // expires after 7 days
-                $serverName = "svelte-kit-vid-slide.vercel.app";
+                if ($medium == "auth") { // signup && signin
+                    // authentication
+                    // https://github.com/firebase/php-jwt
+                    $privateKey = $_ENV['PRIVATE_KEY'];
+                    $issuedAt   = new DateTimeImmutable();
+                    $expire     = $issuedAt->modify('+7 days')->getTimestamp(); // expires after 7 days
+                    $serverName = "svelte-kit-vid-slide.vercel.app";
 
-                if (isset($_POST["username"]) && isset($_POST["password"])) {
-                    $username = mysqli_real_escape_string($connection, $_POST["username"]);
-                    $password = mysqli_real_escape_string($connection, $_POST["password"]);
-                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                    if (isset($_POST["username"]) && isset($_POST["password"])) {
+                        $username = mysqli_real_escape_string($connection, $_POST["username"]);
+                        $password = mysqli_real_escape_string($connection, $_POST["password"]);
+                        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                    $payload = [
-                        'iat'  => $issuedAt->getTimestamp(),         // time when the token was generated
-                        'nbf'  => $issuedAt->getTimestamp(),         // not before
-                        'iss'  => $serverName,                       // issuer
-                        'exp'  => $expire,                           // expire
-                        "username" => $username
-                    ];
+                        mysqli_close($connection);
+                        $connection = mysqli_connect($host, $root, $pass, "", $port);
+                        mysqli_select_db($connection, $schema);
 
-                    mysqli_close($connection);
-                    $connection = mysqli_connect($host, $root, $pass, "", $port);
-                    mysqli_select_db($connection, $schema);
-
-                    if (!$connection) {
-                        errorOccurred($connection, $response, __LINE__, "connection error", true);
-                    } else {
-                        $exists = checkIfIdExists($connection, "user_username", $username, "s");
-
-                        if ($exists) {
-                            // send user data
-                            $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE USER_USERNAME = ?');
-                            $response = getMedium($connection, $response, $table_user, $username, true, "s");
-                            $response = getUserInfo($connection, $response, $username, "s");
-
-                            $password_from_database = json_decode($response["data"][0], true)[0]["USER_PASSWORD"];
-
-                            if (password_verify($password, $password_from_database)) {
-                                $response["response"] = "accountExisted";
-                                $response["info"]["database_connection_details"]["database_username"] = $username;
-                                $response["token"] = sendJWT($payload, $privateKey);
-                            } else {
-                                $response = errorOccurred($connection, $response, __LINE__, "invalid password");
-                            }
+                        if (!$connection) {
+                            errorOccurred($connection, $response, __LINE__, "connection error", true);
                         } else {
-                            $table_user_insert = mysqli_prepare($connection, "INSERT INTO VS_USER (USER_USERNAME, USER_PASSWORD) VALUES (?, ?)");
-                            mysqli_stmt_bind_param($table_user_insert, 'ss', $username, $hashed_password);
-                            mysqli_stmt_execute($table_user_insert);
+                            $exists = checkIfIdExists($connection, "user_username", $username, "s");
 
-                            if (mysqli_affected_rows($connection) > 0) {
-                                array_push($response["log"], date('H:i:s') . ": created new user: " . $username);
-                                $response["token"] = sendJWT($payload, $privateKey);
-
-                                mysqli_stmt_close($table_user_insert);
-
-                                $response["response"] = "accountDidNotExist";
-                                $response["info"]["database_connection_details"]["database_username"] = $username;
-
+                            if ($exists) {
                                 // send user data
                                 $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE USER_USERNAME = ?');
                                 $response = getMedium($connection, $response, $table_user, $username, true, "s");
                                 $response = getUserInfo($connection, $response, $username, "s");
-                            } else {
-                                errorOccurred($connection, $response, __LINE__, "user insert failed", true);
-                            }
-                        }
-                    }
-                } else {
-                    errorOccurred($connection, $response, __LINE__, "Username and password are missing!", true);
-                }
-            } else if ($action == "signout") {
-                $response["token"] = 'unset';
-            } else if ($action == "video") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                                $response_data = json_decode($response["data"][0], true)[0];
+                                $password_from_database = $response_data["USER_PASSWORD"];
+                                $user_id = $response_data["VS_USER_ID"];
 
-                    if (isset($_FILES["VIDEO_MEDIA"])) {
-                        $video_media = $_FILES["VIDEO_MEDIA"];
-                        $video_media_name = pathinfo(mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]), PATHINFO_FILENAME);
-                        $video_media_tmp_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["tmp_name"]); // temp name on server
-                        $video_media_size = mysqli_real_escape_string($connection, strval($_FILES["VIDEO_MEDIA"]["size"])); // in bytes
-                        $video_media_type = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["type"]); // MIME-Typ
+                                $payload = [
+                                    'iat'  => $issuedAt->getTimestamp(),         // time when the token was generated
+                                    'nbf'  => $issuedAt->getTimestamp(),         // not before
+                                    'iss'  => $serverName,                       // issuer
+                                    'exp'  => $expire,                           // expire
+                                    "user_id" => $user_id
+                                ];
 
-                        $supported_video_formats = array(
-                            "AVI",
-                            "MP4",
-                            "MKV",
-                            "MOV",
-                            "WMV",
-                            "FLV",
-                            "MPEG",
-                            "WebM",
-                            "3GP"
-                        );
-
-                        $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]) : "";
-                        $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_DESCRIPTION"]) : "";
-
-                        if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supported_video_formats))) {
-                            $media_video_path = "./media/video/uploaded/";
-
-                            if (!is_dir($media_video_path)) {
-                                mkdir($media_video_path);
-                            }
-
-                            $media_video_filename = preg_replace('/[^A-Za-z0-9\-\_]/', '0', $video_title); // replaces every special char with 0
-                            $media_video_filename = preg_replace('/\s+/', '_', $media_video_filename); // replaces every SPACE with _
-
-                            $files = scandir($media_video_path);
-                            $files_in_folder = array_slice($files, 2); // removes "." and ".."
-                            $files_count = count($files_in_folder) + 1; // count files
-
-                            $uploaded_video_name = $media_video_filename . "_$files_count" . $video_media_type;
-                            $uploaded_video_path = $media_video_path . $uploaded_video_name;
-                            move_uploaded_file($video_media_tmp_name, $uploaded_video_path);
-
-                            // Video Processing
-                            $media_video_compressed_path = "./media/video/compressed/";
-
-                            $ffmpegConfig = array(
-                                'ffmpeg.binaries'  => '/usr/local/bin/ffmpeg',
-                                'ffprobe.binaries' => '/usr/local/bin/ffprobe',
-                            );
-
-                            $ffmpeg = FFMpeg::create($ffmpegConfig);
-                            $format = new X264();
-                            $dimensions = new Dimension(1024, 576);
-
-                            try {
-                                /** @var \FFMpeg\Media\Video */
-                                $video = $ffmpeg->open($uploaded_video_path);
-                            } catch (InvalidArgumentException $e) {
-                                errorOccurred($connection, $response, __LINE__, $e->getMessage(), true);
-                            }
-
-                            $video->filters()->resize($dimensions);
-
-                            try {
-                                $video->save($format, $media_video_compressed_path . $uploaded_video_name);
-                            } catch (RuntimeException $e) {
-                                errorOccurred($connection, $response, __LINE__, $e->getMessage(), true);
-                            }
-
-                            mysqli_close($connection);
-                            $connection = mysqli_connect($host, $root, $pass, "", $port);
-                            mysqli_select_db($connection, $schema);
-
-                            if (!$connection) {
-                                errorOccurred($connection, $response, __LINE__, "connection error", true);
-                            } else {
-                                $exists = checkIfIdExists($connection, "user_username", $username, "s");
-
-                                if ($exists) {
-                                    $user_id = json_decode(getUserInfo($connection, $response, $username, "s")["data"][0], true)[0]["VS_USER_ID"];
-
-                                    $table_video_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('?', '?', '?', '?', ?)");
-                                    mysqli_stmt_bind_param($table_video_insert, 'ssssi', $video_title, $video_description, $uploaded_video_name, $video_media_size, $user_id);
-                                    mysqli_stmt_execute($table_video_insert);
-
-                                    if (mysqli_affected_rows($connection) > 0) {
-                                        array_push($response["log"], date('H:i:s') . ": inserted new video: " . $username);
-                                        mysqli_stmt_close($table_video_insert);
-                                    } else {
-                                        errorOccurred($connection, $response, __LINE__, "video insert failed", true);
-                                    }
+                                if (password_verify($password, $password_from_database)) {
+                                    $response["response"] = "accountExisted";
+                                    $response["info"]["database_connection_details"]["database_username"] = $username;
+                                    $response["token"] = sendJWT($payload, $privateKey);
                                 } else {
-                                    $response = errorOccurred($connection, $response, __LINE__, "user doesn't exist");
+                                    $response = errorOccurred($connection, $response, __LINE__, "invalid password");
+                                }
+                            } else {
+                                $table_user_insert = mysqli_prepare($connection, "INSERT INTO VS_USER (USER_USERNAME, USER_PASSWORD) VALUES (?, ?)");
+                                mysqli_stmt_bind_param($table_user_insert, 'ss', $username, $hashed_password);
+                                mysqli_stmt_execute($table_user_insert);
+
+                                if (mysqli_affected_rows($connection) > 0) {
+                                    array_push($response["log"], date('H:i:s') . ": created new user: " . $username);
+
+                                    mysqli_stmt_close($table_user_insert);
+
+                                    $response["response"] = "accountDidNotExist";
+                                    $response["info"]["database_connection_details"]["database_username"] = $username;
+
+                                    // send user data
+                                    $table_user = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE USER_USERNAME = ?');
+                                    $response = getMedium($connection, $response, $table_user, $username, true, "s");
+                                    $response = getUserInfo($connection, $response, $username, "s");
+
+                                    $response_data = json_decode($response["data"][0], true)[0];
+                                    $user_id = $response_data["VS_USER_ID"];
+
+                                    $payload = [
+                                        'iat'  => $issuedAt->getTimestamp(),         // time when the token was generated
+                                        'nbf'  => $issuedAt->getTimestamp(),         // not before
+                                        'iss'  => $serverName,                       // issuer
+                                        'exp'  => $expire,                           // expire
+                                        "user_id" => $user_id
+                                    ];
+
+                                    $response["token"] = sendJWT($payload, $privateKey);
+                                } else {
+                                    errorOccurred($connection, $response, __LINE__, "user insert failed", true);
                                 }
                             }
                         }
                     } else {
-                        errorOccurred($connection, $response, __LINE__, "video missing", true);
+                        errorOccurred($connection, $response, __LINE__, "Username or password is missing!", true);
                     }
+                } else if ($medium == "signout") {
+                    $response["token"] = 'unset';
+                } else if ($medium == "video") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
-                    $response["token"] = "valid";
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($action == "comment") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                        if (isset($_FILES["VIDEO_MEDIA"])) {
+                            $video_media = $_FILES["VIDEO_MEDIA"];
+                            $video_media_name = pathinfo(mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]), PATHINFO_FILENAME);
+                            $video_media_tmp_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["tmp_name"]); // temp name on server
+                            $video_media_size = mysqli_real_escape_string($connection, strval($_FILES["VIDEO_MEDIA"]["size"])); // in bytes
+                            $video_media_type = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["type"]); // MIME-Typ
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($action == "feedback") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                            $supported_video_formats = array(
+                                "AVI",
+                                "MP4",
+                                "MKV",
+                                "MOV",
+                                "WMV",
+                                "FLV",
+                                "MPEG",
+                                "WebM",
+                                "3GP"
+                            );
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                            $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]) : "";
+                            $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_DESCRIPTION"]) : "";
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($action == "follow") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                            if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supported_video_formats))) {
+                                $media_video_path = "./media/video/uploaded/";
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                                if (!is_dir($media_video_path)) {
+                                    mkdir($media_video_path);
+                                }
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            }
-        }
-    }
+                                $media_video_filename = preg_replace('/[^A-Za-z0-9\-\_]/', '0', $video_title); // replaces every special char with 0
+                                $media_video_filename = preg_replace('/\s+/', '_', $media_video_filename); // replaces every SPACE with _
 
-    // PUT-Options:
-    // - medium=profile_username [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_USERNAME=?
-    // - medium=profile_password [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PASSWORD=?
-    // - medium=profile_description [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEDESCRIPTION=?
-    // - medium=profile_socials [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&VS_USER_SOCIAL=? (array of VS_USER_SOCIAL Objects)
-    // - medium=profile_picture [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?&USER_PROFILEPICTURE=?
-    // - medium=video_post_title [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_TITLE=?
-    // - medium=video_post_description [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_DESCRIPTION=?
-    // - medium=video_post_hashtags [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VS_VIDEO_COMMENT=? (array of VS_VIDEO_COMMENT Objects)
-    // - medium=comment_post_text [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?&COMMENT_MESSAGE=?
-    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-        $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
-        if (isset($_POST["medium"])) {
-            $medium = $_POST["medium"];
-            if ($medium == "profile_username") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                                $files = scandir($media_video_path);
+                                $files_in_folder = array_slice($files, 2); // removes "." and ".."
+                                $files_count = count($files_in_folder) + 1; // count files
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                                $uploaded_video_name = $media_video_filename . "_$files_count" . $video_media_type;
+                                $uploaded_video_path = $media_video_path . $uploaded_video_name;
+                                move_uploaded_file($video_media_tmp_name, $uploaded_video_path);
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "profile_password") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                                // Video Processing
+                                $media_video_compressed_path = "./media/video/compressed/";
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                                $ffmpegConfig = array(
+                                    'ffmpeg.binaries'  => '/usr/local/bin/ffmpeg',
+                                    'ffprobe.binaries' => '/usr/local/bin/ffprobe',
+                                );
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "profile_description") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                                $ffmpeg = FFMpeg::create($ffmpegConfig);
+                                $format = new X264();
+                                $dimensions = new Dimension(1024, 576);
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                                try {
+                                    /** @var \FFMpeg\Media\Video */
+                                    $video = $ffmpeg->open($uploaded_video_path);
+                                } catch (InvalidArgumentException $e) {
+                                    errorOccurred($connection, $response, __LINE__, $e->getMessage(), true);
+                                }
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "profile_socials") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                                $video->filters()->resize($dimensions);
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                                try {
+                                    $video->save($format, $media_video_compressed_path . $uploaded_video_name);
+                                } catch (RuntimeException $e) {
+                                    errorOccurred($connection, $response, __LINE__, $e->getMessage(), true);
+                                }
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "profile_picture") {
-                if (isset($_FILES["IMAGE_MEDIA"])) {
-                    $supported_image_formats = array(
-                        'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi',
-                        'png',
-                        'bmp', "dib",
-                        'webp',
-                        'gif'
-                    );
-                    $width = 50;
-                    $height = 50;
+                                mysqli_close($connection);
+                                $connection = mysqli_connect($host, $root, $pass, "", $port);
+                                mysqli_select_db($connection, $schema);
 
-                    $media_image_path = "./media/image/uploaded/";
-                    $type = $_FILES["IMAGE_MEDIA"]["type"];
-                    if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supported_image_formats))) {
-                        switch ($type) {
-                            case 'jpg':
-                            case 'jpeg':
-                            case 'jpe':
-                            case 'jif':
-                            case 'jfif':
-                            case 'jfi':
-                                $image = imagecreatefromjpeg($_FILES["IMAGE_MEDIA"]["tmp_name"]);
-                                imagejpeg(imagescale($image, $width, $height), $media_image_path);
-                                // TODO: Database Save
-                                break;
-                            case 'png':
-                                $image = imagecreatefrompng($_FILES["IMAGE_MEDIA"]["tmp_name"]);
-                                imagepng(imagescale($image, $width, $height), $media_image_path);
-                                // TODO: Database Save
-                                break;
-                            case 'gif':
-                                $image = imagecreatefromgif($_FILES["IMAGE_MEDIA"]["tmp_name"]);
-                                imagegif(imagescale($image, $width, $height), $media_image_path);
-                                // TODO: Database Save
-                                break;
-                            case 'bmp':
-                            case 'dib':
-                                $image = imagecreatefrombmp($_FILES["IMAGE_MEDIA"]["tmp_name"]);
-                                imagebmp(imagescale($image, $width, $height), $media_image_path);
-                                // TODO: Database Save
-                                break;
-                            case 'webp':
-                                $image = imagecreatefromwebp($_FILES["IMAGE_MEDIA"]["tmp_name"]);
-                                imagewebp(imagescale($image, $width, $height), $media_image_path);
-                                // TODO: Database Save
-                                break;
-                            default:
-                                break;
+                                if (!$connection) {
+                                    errorOccurred($connection, $response, __LINE__, "connection error", true);
+                                } else {
+                                    $exists = checkIfIdExists($connection, "user", $user_id, "s"); // TODO
+
+                                    if ($exists) {
+                                        $table_video_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('?', '?', '?', '?', ?)");
+                                        mysqli_stmt_bind_param($table_video_insert, 'ssssi', $video_title, $video_description, $uploaded_video_name, $video_media_size, $user_id);
+                                        mysqli_stmt_execute($table_video_insert);
+
+                                        if (mysqli_affected_rows($connection) > 0) {
+                                            array_push($response["log"], date('H:i:s') . ": inserted new video, VS_USER_ID:" . $user_id);
+                                            mysqli_stmt_close($table_video_insert);
+                                        } else {
+                                            errorOccurred($connection, $response, __LINE__, "video insert failed", true);
+                                        }
+                                    } else {
+                                        $response = errorOccurred($connection, $response, __LINE__, "user doesn't exist");
+                                    }
+                                }
+                            }
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "video missing", true);
                         }
+
+                        $response["token"] = "valid";
                     } else {
-                        errorOccurred($connection, $response, __LINE__, "image not supported", true);
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "comment") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "feedback") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "follow") { // as FOLLOWING_SUBSCRIBER
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
                     }
                 }
-            } else if ($medium == "video_post_title") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+            } else if ($action === "PUT") {
+                // PUT-Options:
+                // - medium=profile_username [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&USER_USERNAME=?
+                // - medium=profile_password [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&USER_PASSWORD=?
+                // - medium=profile_description [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&USER_PROFILEDESCRIPTION=?
+                // - medium=profile_socials [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&VS_USER_SOCIAL=? (socials object)
+                // - medium=profile_picture [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&USER_PROFILEPICTURE=?
+                // - medium=video_post_title [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_TITLE=?
+                // - medium=video_post_description [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VIDEO_DESCRIPTION=?
+                // - medium=video_post_hashtags [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?&VS_VIDEO_HASHTAG=? (hashtag object)
+                // - medium=comment_post_text [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?&COMMENT_MESSAGE=?
+                if ($medium == "profile_username") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "profile_password") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "profile_description") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "profile_socials") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "profile_picture") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        if (isset($_FILES["IMAGE_MEDIA"])) {
+                            $supported_image_formats = array(
+                                'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi',
+                                'png',
+                                'bmp', "dib",
+                                'webp',
+                                'gif'
+                            );
+                            $width = 50;
+                            $height = 50;
+
+                            $media_image_path = "./media/image/uploaded/";
+                            $type = $_FILES["IMAGE_MEDIA"]["type"];
+                            if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supported_image_formats))) {
+                                switch ($type) {
+                                    case 'jpg':
+                                    case 'jpeg':
+                                    case 'jpe':
+                                    case 'jif':
+                                    case 'jfif':
+                                    case 'jfi':
+                                        $image = imagecreatefromjpeg($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                        imagejpeg(imagescale($image, $width, $height), $media_image_path);
+                                        // TODO: Database Save
+                                        break;
+                                    case 'png':
+                                        $image = imagecreatefrompng($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                        imagepng(imagescale($image, $width, $height), $media_image_path);
+                                        // TODO: Database Save
+                                        break;
+                                    case 'gif':
+                                        $image = imagecreatefromgif($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                        imagegif(imagescale($image, $width, $height), $media_image_path);
+                                        // TODO: Database Save
+                                        break;
+                                    case 'bmp':
+                                    case 'dib':
+                                        $image = imagecreatefrombmp($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                        imagebmp(imagescale($image, $width, $height), $media_image_path);
+                                        // TODO: Database Save
+                                        break;
+                                    case 'webp':
+                                        $image = imagecreatefromwebp($_FILES["IMAGE_MEDIA"]["tmp_name"]);
+                                        imagewebp(imagescale($image, $width, $height), $media_image_path);
+                                        // TODO: Database Save
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            } else {
+                                errorOccurred($connection, $response, __LINE__, "image not supported", true);
+                            }
+                        }
+
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "video_post_title") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "video_post_description") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "video_post_hashtags") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "comment_post_text") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
+
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
                 }
-            } else if ($medium == "video_post_description") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+            } else if ($action === "DELETE") {
+                // DELETE-Options:
+                // - medium=account [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?
+                // - medium=video [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?
+                // - medium=comment [MEDIUM]
+                //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                if ($medium == "account") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "video_post_hashtags") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "video") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "comment_post_text") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
 
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
+                } else if ($medium == "comment") {
+                    $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            }
-        }
-    }
+                    if ($jwt_received["user_id"]) {
+                        $user_id = $jwt_received["user_id"];
 
-    // DELETE-Options:
-    // - medium=all [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
-    // - medium=account [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_USER_ID=?
-    // - medium=video [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&VS_VIDEO_ID=?
-    // - medium=comment [MEDIUM]
-    //   - HTTP_AUTHORIZATION=?&COMMENT_ID=?
-    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        $response["info"]["fetch_method"] = $_SERVER['REQUEST_METHOD'];
-        if (isset($_POST["medium"])) {
-            $medium = $_POST["medium"];
-            if ($medium == "all") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
-
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
-
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "account") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
-
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
-
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "video") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
-
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
-
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
-                }
-            } else if ($medium == "comment") {
-                $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
-
-                if ($jwt_received["username"]) {
-                    $username = $jwt_received["username"];
-
-                    // TODO: Database Save and response
-                } else {
-                    $response["token"] = "invalid";
-                    errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                        // TODO: Database Save and response
+                        $response["token"] = "valid";
+                    } else {
+                        $response["token"] = "invalid";
+                        errorOccurred($connection, $response, __LINE__, "invalid jwt", true);
+                    }
                 }
             }
         }

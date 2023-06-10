@@ -50,7 +50,8 @@ export default class Api {
 	static async post(action, options) {
 
 		let params = new FormData();
-		params.append('action', action);
+		params.append('action', "POST");
+		params.append('medium', action);
 		for (let key in options) {
 			params.append(key, options[key]);
 		}
@@ -77,7 +78,8 @@ export default class Api {
 	static async auth(username, password) {
 		// sign/in/up
 		let params = new FormData();
-		params.append('action', 'auth');
+		params.append('action', 'POST');
+		params.append('medium', 'auth');
 		params.append('username', username);
 		params.append('password', password);
 
