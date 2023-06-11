@@ -14,6 +14,7 @@
 	import { clipboard } from '@skeletonlabs/skeleton';
 	import { toastStore } from '@skeletonlabs/skeleton';
 	import { FileDropzone } from '@skeletonlabs/skeleton';
+	import { FileButton } from '@skeletonlabs/skeleton';
 
 	// Components
 	import Avatar from '$component/Avatar.svelte';
@@ -110,6 +111,8 @@
 	$: this_user_avatar = $user?.data?.USER_PROFILEPICTURE;
 	$: this_user_date_joined = $user?.data?.USER_DATETIMECREATED ?? '???';
 	$: this_user_last_edit = $user?.data?.USER_LASTUPDATE ?? '???';
+
+	let editable = false;
 </script>
 
 {#key $translation}
@@ -119,13 +122,24 @@
 {#if page.includes('account')}
 	<div id="user-info" class="flex flex-wrap justify-between gap-4 items-center w-full pb-2">
 		<div class="flex items-center gap-2">
-			<Avatar comment_username={current_user_username} size="large" />
+			{#if editable}
+				<FileButton name="avatar" />
+			{:else}
+				<Avatar comment_username={current_user_username} size="large" />
+			{/if}
 			<div class="flex flex-col">
 				<button
 					id="username"
-					class="text-lg flex"
+					class="text-lg flex {editable
+						? 'cursor-text rounded-md outline-2 outline-offset-0 outline-dashed outline-tertiary-900 dark:outline-tertiary-50 text-tertiary-900 dark:text-tertiary-50'
+						: ''}"
+					contenteditable={editable}
 					use:clipboard={current_user_username}
-					on:click={() => toastStore.trigger(popups.copiedUsername_toClipboard_success)}
+					on:click={() => {
+						if (!editable) {
+							toastStore.trigger(popups.copiedUsername_toClipboard_success);
+						}
+					}}
 				>
 					{current_user_username}
 				</button>
@@ -147,7 +161,13 @@
 		</div>
 		<div class="flex gap-2">
 			{#if $loginState}
-				<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
+				<button
+					on:click={() => {
+						editable = !editable;
+					}}
+					class="btn variant-ringed hover:variant-filled h-1/2"
+					type="button"
+				>
 					{$translation.UserData.edit()}
 				</button>
 				<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
@@ -163,10 +183,15 @@
 	<hr />
 	<div id="user-description" class="flex justify-between p-2">
 		<div class="flex flex-col">
-			<div class="textbox p-2">
+			<div
+				class="textbox p-2 {editable
+					? 'rounded-md outline-2 outline-offset-0 outline-dashed outline-tertiary-900 dark:outline-tertiary-50 text-tertiary-900 dark:text-tertiary-50'
+					: ''}"
+				contenteditable={editable}
+			>
 				{current_user_profile_description}
 			</div>
-			<button class="btn variant-ringed hover:variant-filled h-1/2 w-fit" type="button">
+			<button class="btn variant-ringed hover:variant-filled h-1/2 w-fit mt-2" type="button">
 				{$translation.UserData.more()}
 			</button>
 		</div>
