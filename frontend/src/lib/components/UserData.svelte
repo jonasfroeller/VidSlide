@@ -51,17 +51,8 @@
 
 	function formatUser(user: JSON) {
 		let formattet_object = user?.data;
-		formattet_object['user'] = JSON.parse(formattet_object[0])[0];
+		formattet_object['user'] = formattet_object[0][0];
 		delete formattet_object['0'];
-
-		formattet_object['socials'] = JSON.parse(formattet_object['socials']);
-		formattet_object['stats']['likes'] = JSON.parse(formattet_object['stats']['likes']);
-		formattet_object['stats']['shares'] = JSON.parse(formattet_object['stats']['shares']);
-		formattet_object['stats']['videos'] = JSON.parse(formattet_object['stats']['videos']);
-		formattet_object['stats']['views'] = JSON.parse(formattet_object['stats']['views']);
-
-		formattet_object['subscribed'] = JSON.parse(formattet_object['subscribed']);
-		formattet_object['subscribers'] = JSON.parse(formattet_object['subscribers']);
 
 		return formattet_object;
 	}
@@ -72,16 +63,16 @@
 		current_user = formatUser(user);
 
 		current_user_socials = {};
-		current_user_socials['instagram'] = current_user?.socials.find(
+		current_user_socials['instagram'] = current_user?.socials?.find(
 			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'instagram'
 		);
-		current_user_socials['youtube'] = current_user?.socials.find(
+		current_user_socials['youtube'] = current_user?.socials?.find(
 			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'youtube'
 		);
-		current_user_socials['tiktok'] = current_user?.socials.find(
+		current_user_socials['tiktok'] = current_user?.socials?.find(
 			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'tiktok'
 		);
-		current_user_socials['twitter'] = current_user?.socials.find(
+		current_user_socials['twitter'] = current_user?.socials?.find(
 			(social) => social.SOCIAL_PLATFORM.toLowerCase() === 'twitter'
 		);
 

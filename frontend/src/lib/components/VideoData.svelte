@@ -62,37 +62,18 @@
 		let formatted_videos = [];
 
 		if (fetched_videos?.data[0] || fetched_videos?.data?.stats?.videos) {
-			let amount = 0;
-			let videos = [];
-			let user = [];
-			let feedback = [];
-			let tags = [];
-
-			amount = JSON.parse(fetched_videos.data[0]).length;
-			videos = JSON.parse(fetched_videos.data[0]);
-
-			for (let i = 0; i < fetched_videos.data.user.length; i++) {
-				user.push(fetched_videos.data.user[i]);
-			}
-
-			if (fetched_videos.data.feedback) {
-				for (let i = 0; i < fetched_videos.data.feedback.length; i++) {
-					feedback.push(JSON.parse(fetched_videos.data.feedback[i]));
-				}
-			}
-
-			if (fetched_videos.data.tags) {
-				for (let i = 0; i < fetched_videos.data.tags.length; i++) {
-					tags.push(JSON.parse(fetched_videos.data.tags[i]));
-				}
-			}
+			let amount = fetched_videos.data[0].length;
+			let videos = fetched_videos.data[0];
+			let user = fetched_videos.data.user;
+			let feedback = fetched_videos.data.feedback;
+			let tags = fetched_videos.data.tags;
 
 			for (let i = 0; i < amount; i++) {
 				const videoId = videos[i].VS_VIDEO_ID;
 
 				const video = {
 					data: {
-						0: JSON.stringify([videos[i]]),
+						0: [videos[i]],
 						user: user[i]
 					}
 				};
@@ -105,7 +86,8 @@
 						}
 					}
 				}
-				video.data.feedback = JSON.stringify(feedback_temp);
+
+				video.data.feedback = feedback_temp;
 
 				let tags_temp = [];
 				for (let j = 0; j < tags.length; j++) {
@@ -115,7 +97,8 @@
 						}
 					}
 				}
-				video.data.tags = JSON.stringify(tags_temp);
+
+				video.data.tags = tags_temp;
 
 				formatted_videos.push(await formatVideo(video));
 			}
@@ -142,7 +125,6 @@
 
 		if (userData) {
 			let userSubscribers = userData?.data?.subscribers ?? null;
-			userSubscribers = JSON.parse(userSubscribers);
 			return userSubscribers;
 		} else {
 			return [];
@@ -155,18 +137,13 @@
 
 		try {
 			// error thrown but the object is alright
-			formatted_object['video'] = JSON.parse(formatted_object[0])[0];
-			formatted_object['user'] = JSON.parse(formatted_object['user'])[0];
+			formatted_object['video'] = formatted_object[0][0];
+			formatted_object['user'] = formatted_object['user'][0];
 		} catch {}
 
 		delete formatted_object['0'];
 
-		if (formatted_object && formatted_object.tags && formatted_object.tags !== null) {
-			formatted_object.tags = JSON.parse(formatted_object.tags);
-		}
 		if (formatted_object && formatted_object.feedback && formatted_object.feedback !== null) {
-			formatted_object.feedback = JSON.parse(formatted_object.feedback);
-
 			let likes = formatted_object?.feedback?.filter((f) => f.VIDEO_FEEDBACK_TYPE === 'positive');
 			let dislikes = formatted_object?.feedback?.filter(
 				(f) => f.VIDEO_FEEDBACK_TYPE === 'negative'
@@ -186,16 +163,6 @@
 			formatted_object.comments !== null &&
 			!isResultVideo
 		) {
-			if (
-				formatted_object &&
-				formatted_object.comments_feedback &&
-				formatted_object.comments_feedback !== null
-			) {
-				formatted_object.comments_feedback = JSON.parse(formatted_object.comments_feedback);
-			}
-
-			formatted_object.comments = JSON.parse(formatted_object.comments);
-
 			let comments = [];
 			formatted_object.comments.forEach((comment) => {
 				let likes = formatted_object?.comments_feedback?.filter(
@@ -278,12 +245,10 @@
 			{#if searchedText != '' && $filteredVideos}
 				{#each $filteredVideos as result, i}
 					<VideoSection
-						publisher_id={result?.user[0]?.VS_USER_ID ?? -1}
-						publisher={result?.user[0]?.USER_USERNAME ?? 'username loading...'}
+						publisher_id={result?.user?.VS_USER_ID ?? -1}
+						publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
 						publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
-						publisher_followers={result?.user[0]?.subscribers
-							? JSON.parse(result?.user[0]?.subscribers)
-							: []}
+						publisher_followers={result?.user?.subscribers ? result?.user?.subscribers : []}
 						video={result?.video?.VIDEO_LOCATION ?? null}
 						video_id={result?.video?.VS_VIDEO_ID ?? 0}
 						video_views={result?.video?.VIDEO_VIEWS ?? 0}

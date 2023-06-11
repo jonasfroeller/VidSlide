@@ -93,20 +93,20 @@ export default class Api {
 			const json_response = await response.json();
 			this.jwt = json_response['token'];
 			this.accountExisted = json_response["response"] == "accountExisted" ? true : false;
-			this.user.data = JSON.parse(json_response['data'][0])[0];
-			this.user.socials = JSON.parse(json_response['data']?.socials) ?? [];
-			this.user.subscribed = JSON.parse(json_response['data']?.subscribed) ?? [];
-			this.user.subscribers = JSON.parse(json_response['data']?.subscribers) ?? [];
-			this.user.user_videos_liked = JSON.parse(json_response['data']?.liked) ?? [];
-			this.user.user_videos_disliked = JSON.parse(json_response['data']?.disliked) ?? [];
+			this.user.data = json_response['data'][0][0];
+			this.user.socials = json_response['data']?.socials ?? [];
+			this.user.subscribed = json_response['data']?.subscribed ?? [];
+			this.user.subscribers = json_response['data']?.subscribers ?? [];
+			this.user.user_videos_liked = json_response['data']?.liked ?? [];
+			this.user.user_videos_disliked = json_response['data']?.disliked ?? [];
 			this.user.user_comments_liked =
-				JSON.parse(json_response['data']?.comments_liked) ?? [];
+				json_response['data']?.comments_liked ?? [];
 			this.user.user_comments_disliked =
-				JSON.parse(json_response['data']?.comments_disliked) ?? [];
-			this.user.user_stats.videos = JSON.parse(json_response['data']?.stats?.videos) ?? [];
-			this.user.user_stats.likes = JSON.parse(json_response['data']?.stats?.likes) ?? [];
-			this.user.user_stats.views = JSON.parse(json_response['data']?.stats?.views) ?? [];
-			this.user.user_stats.shares = JSON.parse(json_response['data']?.stats?.shares) ?? [];
+				json_response['data']?.comments_disliked ?? [];
+			this.user.user_stats.videos = json_response['data']?.stats?.videos ?? [];
+			this.user.user_stats.likes = json_response['data']?.stats?.likes ?? [];
+			this.user.user_stats.views = json_response['data']?.stats?.views ?? [];
+			this.user.user_stats.shares = json_response['data']?.stats?.shares ?? [];
 
 			return {
 				accountExisted: this.accountExisted,

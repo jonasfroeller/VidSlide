@@ -151,14 +151,14 @@ function getMedium($connection, $response, $table, $id = 0, $prepare = false, $b
         // fetch result
         $query = mysqli_stmt_get_result($table);
         $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
-        $res = json_encode($rows);
+        $res = $rows;
         mysqli_stmt_close($table);
     } else {
         // execute query
         $query = mysqli_query($connection, $table); // SELECT, SHOW, DESCRIBE or EXPLAIN returns mysqli_result object // mysqli_real_query() => doesn't wait for response // mysqli_reap_async_query() => async
         // fetch all
         $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
-        $res = json_encode($rows);
+        $res = $rows;
     }
 
     // save as response data
@@ -221,8 +221,7 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false, $se
 
                         $table_subscribers = mysqli_prepare($connection, 'SELECT USER_USERNAME, USER_PROFILEPICTURE FROM VS_USER WHERE VS_USER_ID IN (SELECT FOLLOWING_SUBSCRIBER FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBED IN (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?))');
 
-                        $user = json_decode($user, true);
-                        $user[0]["subscribers"] = getMedium($connection, $response, $table_subscribers, $id, true, "i", true);
+                        $user[0]["subscribers"] = getMedium($connection, $response, $table_subscribers, $id, true, "i", true); // TEST ME (removed json_decode)
 
                         array_push($response["data"]["user"], $user);
                     } else {
@@ -297,7 +296,7 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false, $se
                         array_push($response["data"]["comments"], $comments);
 
                         for ($i = 0; $i < count($response["data"]["comments"]); $i++) {
-                            foreach (json_decode($response["data"]["comments"][$i], true) as $comment) {
+                            foreach ($response["data"]["comments"][$i] as $comment) { // TEST ME (removed json_decode)
                                 $video_id = $id;
                                 $id = $comment["COMMENT_ID"];
 
@@ -315,7 +314,7 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false, $se
                     } else {
                         $response["data"]["comments"] = getMedium($connection, $response, $table_comment, $id, true, "i", true);
 
-                        foreach (json_decode($response["data"]["comments"], true) as $comment) {
+                        foreach ($response["data"]["comments"] as $comment) { // TEST ME (removed json_decode)
                             $video_id = $id;
                             $id = $comment["COMMENT_ID"];
 
@@ -350,7 +349,7 @@ function getUserInfo($connection, $response, $bind_var, $bind_type = "i")
 {
     if ($bind_type == "s") {
         $table_socials = mysqli_prepare($connection, 'SELECT VS_USER_ID FROM VS_USER WHERE USER_USERNAME = ?');
-        $user_id = json_decode(getMedium($connection, $response, $table_socials, $bind_var, true, "s", true), true);
+        $user_id = getMedium($connection, $response, $table_socials, $bind_var, true, "s", true); // TEST ME (removed json_decode)
         $bind_var = $user_id[0]["VS_USER_ID"];
 
         // fetch more if fetched with username instead of id
@@ -644,7 +643,7 @@ try {
                                     $response = getMedium($connection, $response, $table_video, $userID, true);
 
                                     unset($_GET['medium_id']);
-                                    $pulled_videos = json_decode($response["data"][0], true);
+                                    $pulled_videos = $response["data"][0]; // TEST ME (removed json_decode)
                                     foreach ($pulled_videos as $video) { // get multiple video infos at once
                                         $_GET["id"] = $video["VS_VIDEO_ID"];
                                         $response = getVideoInfo($connection, $response, "all", true, $video["VS_VIDEO_ID"]);
@@ -669,7 +668,7 @@ try {
                                 $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VIDEO_TITLE LIKE ?');
                                 $response = getMedium($connection, $response, $table_video, $title_includes, true, "s");
 
-                                $pulled_videos = json_decode($response["data"][0], true);
+                                $pulled_videos = $response["data"][0]; // TEST ME (removed json_decode)
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
                                     $_GET["id"] = $video["VS_VIDEO_ID"];
                                     $response = getVideoInfo($connection, $response, "all", true, "title");
@@ -691,7 +690,7 @@ try {
                                 $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_VIDEO_ID IN (SELECT VS_VIDEO_ID FROM VS_VIDEO_HASHTAG WHERE HASHTAG_NAME LIKE ?)');
                                 $response = getMedium($connection, $response, $table_video, $tag_includes, true, "s");
 
-                                $pulled_videos = json_decode($response["data"][0], true);
+                                $pulled_videos = $response["data"][0]; // TEST ME (removed json_decode)
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
                                     $_GET["id"] = $video["VS_VIDEO_ID"];
                                     $response = getVideoInfo($connection, $response, "all", true, "tag");
@@ -713,7 +712,7 @@ try {
                                 $table_video = mysqli_prepare($connection, 'SELECT * FROM VS_VIDEO WHERE VS_USER_ID IN (SELECT VS_USER_ID FROM VS_USER WHERE USER_USERNAME LIKE ?)');
                                 $response = getMedium($connection, $response, $table_video, $username_includes, true, "s");
 
-                                $pulled_videos = json_decode($response["data"][0], true);
+                                $pulled_videos = $response["data"][0]; // TEST ME (removed json_decode)
                                 foreach ($pulled_videos as $video) { // get multiple video infos at once
                                     $_GET["id"] = $video["VS_VIDEO_ID"];
                                     $response = getVideoInfo($connection, $response, "all", true, "username");
@@ -728,7 +727,7 @@ try {
                         $table_video = "SELECT * FROM VS_VIDEO ORDER BY RAND() LIMIT 1"; // inefficient
                         $response = getMedium($connection, $response, $table_video, $id, false);
 
-                        $_GET["id"] = json_decode($response["data"][0], true)[0]["VS_VIDEO_ID"]; // set id to video_id instead of random
+                        $_GET["id"] = $response["data"][0][0]["VS_VIDEO_ID"]; // set id to video_id instead of random // TEST ME (removed json_decode)
                         $response = getVideoInfo($connection, $response);
                     } else { // ?medium=video&id=? [ID]
                         $videoID = intval($id);
@@ -834,7 +833,7 @@ try {
                                 $response = getMedium($connection, $response, $table_user, $username, true, "s");
                                 $response = getUserInfo($connection, $response, $username, "s");
 
-                                $response_data = json_decode($response["data"][0], true)[0];
+                                $response_data = $response["data"][0][0]; // TEST ME (removed json_decode)
                                 $password_from_database = $response_data["USER_PASSWORD"];
                                 $user_id = $response_data["VS_USER_ID"];
 
@@ -871,7 +870,7 @@ try {
                                     $response = getMedium($connection, $response, $table_user, $username, true, "s");
                                     $response = getUserInfo($connection, $response, $username, "s");
 
-                                    $response_data = json_decode($response["data"][0], true)[0];
+                                    $response_data = $response["data"][0][0]; // TEST ME (removed json_decode)
                                     $user_id = $response_data["VS_USER_ID"];
 
                                     $payload = [
