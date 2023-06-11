@@ -46,7 +46,7 @@ const de = {
 	VideoSection: {
 		follower: '{{ keine Follower | ein Follower | ?? Follower }}',
 		views: '{{ keine Views | ein View | ?? Views }}',
-		subscribe: '{{ Folgen | Gefolgt }}'
+		subscribe: '{{ Gefolgt | Folgen }}'
 	},
 	InfoSection: {
 		description: 'Beschreibung',

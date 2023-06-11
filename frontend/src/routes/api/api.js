@@ -54,14 +54,11 @@ export default class Api {
 		params.append('HTTP_AUTHORIZATION', `Bearer ${this.jwt}`);
 
 		options.forEach(option => {
-			params.append(option.attribute_name, option.attribute);
+			params.append(option?.attribute_name, option?.attribute);
 		});
 
 		const response = fetch(`${this.baseURL}/${this.baseApiFile}`, {
 			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${this.jwt}`
-			},
 			body: params
 		}).then(response => {
 			return response.json(); 

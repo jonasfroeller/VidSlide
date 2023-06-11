@@ -131,7 +131,7 @@ type RootTranslation = {
 		 */
 		views: string
 		/**
-		 * {​{​F​o​l​g​e​n​|​G​e​f​o​l​g​t​}​}
+		 * {​{​G​e​f​o​l​g​t​|​F​o​l​g​e​n​}​}
 		 */
 		subscribe: string
 	}
@@ -528,7 +528,7 @@ export type TranslationFunctions = {
 		 */
 		views: (arg0: number | string | boolean) => LocalizedString
 		/**
-		 * {{Folgen|Gefolgt}}
+		 * {{Gefolgt|Folgen}}
 		 */
 		subscribe: (arg0: number | string | boolean) => LocalizedString
 	}

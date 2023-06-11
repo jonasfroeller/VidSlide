@@ -46,7 +46,7 @@ const en = {
 	VideoSection: {
 		follower: '{{ no Followers | one Follower | ?? Followers }}',
 		views: '{{ no Views | one View | ?? Views }}',
-		subscribe: '{{ Subscribe | Subscribed }}'
+		subscribe: '{{ Subscribed | Subscribe }}'
 	},
 	InfoSection: {
 		description: 'Description',

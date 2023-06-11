@@ -56,9 +56,6 @@
 
 	export let video_comments = 0; // display_variant large/default
 
-	$: publisher_following =
-		$user_subscribed?.filter((user) => user?.VS_USER_ID == publisher_id).length > 0;
-
 	/* --- LOGIC --- */
 	let video_path = 'http://localhost:8196/media/video/uploaded/';
 	$: video_element_id = 'vid_' + video_id;
@@ -103,12 +100,32 @@
 		placement: 'bottom'
 	};
 
+	$: publisher_following =
+		$user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
+
 	async function action(action, attributes, type = 'POST') {
 		const res = await Api.post(attributes, action, type);
 
 		if (res?.success) {
-			if (attribute_name == 'FOLLOWING_SUBSCRIBED') {
-				$user.subscribed.push(attribute); // TODO fetch this user from the database and push it into the store, + add unfollow logic
+			if (action == 'follow') {
+				const id = attributes[0].attribute;
+				const res = await Api.get('user', `${id}`);
+
+				const user = {
+					VS_USER_ID: res?.data[0][0]?.VS_USER_ID,
+					USER_USERNAME: res?.data[0][0]?.USER_USERNAME,
+					USER_PROFILEPICTURE: res?.data[0][0]?.USER_PROFILEPICTURE ?? null
+				};
+
+				$user.subscribed.push(user);
+			}
+		} else if (res?.success == false) {
+			// TODO: popup error
+		} else {
+			if (action == 'follow') {
+				const id = attributes[0].attribute;
+
+				$user.subscribed = $user.subscribed.filter((obj) => obj.VS_USER_ID !== id);
 			}
 		}
 	}
@@ -190,7 +207,7 @@
 							}
 						])}
 				>
-					{$translation.VideoSection.subscribe(publisher_following ? 0 : 1)}
+					{$translation.VideoSection.subscribe(publisher_following)}
 				</button>
 			</div>
 			<div class="aspect-9-16 relative border border-gray-500 rounded-md">

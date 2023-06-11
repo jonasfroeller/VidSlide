@@ -96,6 +96,21 @@ function getJWT($connection, $response, $jwt, $publicKey)
 
 // DATABASE FUNCTIONS
 
+function doesntHurtConstraint($connection, $table_name, $bind_str, ...$bind_vars)
+{
+    if ($table_name == "VS_USER_FOLLOWING") {
+        $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ? AND FOLLOWING_SUBSCRIBED = ?");
+    }
+
+    mysqli_stmt_bind_param($id_exists, $bind_str, ...$bind_vars);
+    mysqli_stmt_execute($id_exists);
+    $query = mysqli_stmt_get_result($id_exists);
+    $result = mysqli_fetch_all($query, MYSQLI_ASSOC);
+    mysqli_stmt_close($id_exists);
+
+    return $result[0]["count"] == 0;
+}
+
 /**
  * Looks for a medium in the database. Returns true if it exists, false otherwise.
  */
@@ -1041,17 +1056,34 @@ try {
                                 $exists = checkIfIdExists($connection, "user", $subscribed_user, "i");
 
                                 if ($exists) {
-                                    $table_follow_insert = mysqli_prepare($connection, "INSERT INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (?, ?)");
-                                    mysqli_stmt_bind_param($table_follow_insert, 'is', $user_id, $subscribed_user);
-                                    mysqli_stmt_execute($table_follow_insert);
+                                    $doesntHurtConstraint = doesntHurtConstraint($connection, "VS_USER_FOLLOWING", "ss", $user_id, $subscribed_user);
 
-                                    if (mysqli_affected_rows($connection) > 0) {
-                                        array_push($response["log"], date('H:i:s') . ": inserted new follow, VS_USER_ID:" . $user_id);
-                                        mysqli_stmt_close($table_follow_insert);
+                                    if ($doesntHurtConstraint) {
+                                        $table_follow_insert = mysqli_prepare($connection, "INSERT INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (?, ?)");
+                                        mysqli_stmt_bind_param($table_follow_insert, 'ii', $user_id, $subscribed_user);
+                                        mysqli_stmt_execute($table_follow_insert);
 
-                                        $response["success"] = true;
+                                        if (mysqli_affected_rows($connection) > 0) {
+                                            array_push($response["log"], date('H:i:s') . ": inserted new follow, VS_USER_ID:" . $user_id);
+                                            mysqli_stmt_close($table_follow_insert);
+
+                                            $response["success"] = true;
+                                        } else {
+                                            errorOccurred($connection, $response, __LINE__, "follow insert failed", true);
+                                        }
                                     } else {
-                                        errorOccurred($connection, $response, __LINE__, "follow insert failed", true);
+                                        $table_follow_delete = mysqli_prepare($connection, "DELETE FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ? AND FOLLOWING_SUBSCRIBED = ?");
+                                        mysqli_stmt_bind_param($table_follow_delete, 'ii', $user_id, $subscribed_user);
+                                        mysqli_stmt_execute($table_follow_delete);
+
+                                        if (mysqli_affected_rows($connection) > 0) {
+                                            array_push($response["log"], date('H:i:s') . ": deleted follow, VS_USER_ID:" . $user_id);
+                                            mysqli_stmt_close($table_follow_delete);
+
+                                            $response["success"] = null;
+                                        } else {
+                                            errorOccurred($connection, $response, __LINE__, "follow deletion failed", true);
+                                        }
                                     }
                                 } else {
                                     $response = errorOccurred($connection, $response, __LINE__, "user doesn't exist");
