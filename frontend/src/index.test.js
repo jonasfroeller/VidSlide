@@ -275,7 +275,8 @@ describe('api-fetch-POST', () => {
   // - medium=comment [MEDIUM]
   //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?(&COMMENT_PARENT_ID=?)
   // - medium=feedback [MEDIUM]
-  //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?
+  //   - medium_id=? (type=comment|video) [ID]
+  //     - HTTP_AUTHORIZATION=?&FEEDBACK_TYPE=?&VS_VIDEO_ID=?||VS_COMMENT_ID=?
   // - medium=follow [MEDIUM]
   //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBED=? 
   it('authenticate user', async () => {
@@ -325,10 +326,20 @@ describe('api-fetch-POST', () => {
     const response = await post("comment", options);
     expect(response.token).toBe("valid");
   })
-  it('post feedback', async () => { // TODO
+  it('post video feedback', async () => { // TODO
     const options = new Map();
-    options.set("VIDEO_FEEDBACK_TYPE", "positive");
+    options.set("FEEDBACK_TYPE", "positive");
     options.set("VS_VIDEO_ID", 1);
+    options.set("type", "video");
+
+    const response = await post("feedback", options);
+    expect(response.token).toBe("valid");
+  })
+  it('post comment feedback', async () => { // TODO
+    const options = new Map();
+    options.set("FEEDBACK_TYPE", "positive");
+    options.set("VS_COMMENT_ID", 1);
+    options.set("type", "comment");
 
     const response = await post("feedback", options);
     expect(response.token).toBe("valid");
