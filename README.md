@@ -110,3 +110,6 @@ MYSQL_ROOT_PASSWORD=&#60;password&#62;
 
 **Password example in /.env:**  
 MYSQL_ROOT_PASSWORD=&#60;password&#62;
+
+**Setup tables with dummy data:**
+[http://localhost:8196/db_api.php?setup_db=true](http://localhost:8196/db_api.php?setup_db=true)
