@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	/* --- INIT --- */
 	// JS-Framework/Library
 	import { page } from '$app/stores';

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	/* --- INIT --- */
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
