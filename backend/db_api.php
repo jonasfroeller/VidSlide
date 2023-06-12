@@ -96,10 +96,12 @@ function getJWT($connection, $response, $jwt, $publicKey)
 
 // DATABASE FUNCTIONS
 
-function doesntHurtConstraint($connection, $table_name, $bind_str, ...$bind_vars)
+function doesntHurtConstraint($connection, $table_name, $bind_str, $return_type, ...$bind_vars)
 {
     if ($table_name == "VS_USER_FOLLOWING") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ? AND FOLLOWING_SUBSCRIBED = ?");
+    } else if ($table_name == "VS_COMMENT_FEEDBACK") {
+        $id_exists = mysqli_prepare($connection, "SELECT * FROM VS_COMMENT_FEEDBACK WHERE COMMENT_ID = ? AND VS_USER_ID = ?");
     }
 
     mysqli_stmt_bind_param($id_exists, $bind_str, ...$bind_vars);
@@ -108,7 +110,11 @@ function doesntHurtConstraint($connection, $table_name, $bind_str, ...$bind_vars
     $result = mysqli_fetch_all($query, MYSQLI_ASSOC);
     mysqli_stmt_close($id_exists);
 
-    return $result[0]["count"] == 0;
+    if ($return_type == "object") {
+        return $result;
+    } else {
+        return $result[0]["count"] == 0;
+    }
 }
 
 /**
@@ -814,7 +820,8 @@ try {
                 // - medium=comment [MEDIUM]
                 //   - HTTP_AUTHORIZATION=?&COMMENT_MESSAGE=?&VS_VIDEO_ID=?(&COMMENT_PARENT_ID=?)
                 // - medium=feedback [MEDIUM]
-                //  - HTTP_AUTHORIZATION=?&VIDEO_FEEDBACK_TYPE=?&VS_VIDEO_ID=?
+                //   - medium_id=? (type=comment|video) [ID]
+                //     - HTTP_AUTHORIZATION=?&FEEDBACK_TYPE=?&VS_VIDEO_ID=?||VS_COMMENT_ID=?
                 // - medium=follow [MEDIUM]
                 //  - HTTP_AUTHORIZATION=?&FOLLOWING_SUBSCRIBED=? 
 
@@ -1020,7 +1027,37 @@ try {
                     if ($jwt_received["user_id"]) {
                         $user_id = $jwt_received["user_id"];
 
-                        // TODO: Database Save and response
+                        if (isset($_POST["COMMENT_MESSAGE"]) && isset($_POST["VS_VIDEO_ID"])) { // TODO: COMMENT_PARENT_ID
+                            $comment_message = $_POST["COMMENT_MESSAGE"];
+                            $video_id = $_POST["VS_VIDEO_ID"];
+
+                            mysqli_close($connection);
+                            $connection = mysqli_connect($host, $root, $pass, $schema, $port);
+
+                            if (!$connection) {
+                                errorOccurred($connection, $response, __LINE__, "connection error", true);
+                            } else {
+                                $exists = checkIfIdExists($connection, "video", $video_id, "i");
+
+                                if ($exists) {
+                                    $table_comment_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO_COMMENT (COMMENT_MESSAGE, VS_VIDEO_ID, VS_USER_ID) VALUES (?, ?, ?)");
+                                    mysqli_stmt_bind_param($table_comment_insert, 'sii', $comment_message, $video_id, $user_id);
+                                    mysqli_stmt_execute($table_comment_insert);
+
+                                    if (mysqli_affected_rows($connection) > 0) {
+                                        array_push($response["log"], date('H:i:s') . ": inserted new comment, VS_USER_ID:" . $user_id);
+                                        mysqli_stmt_close($table_comment_insert);
+
+                                        $response["success"] = true;
+                                    } else {
+                                        errorOccurred($connection, $response, __LINE__, "comment insert failed", true);
+                                    }
+                                } else {
+                                    $response = errorOccurred($connection, $response, __LINE__, "video doesn't exist");
+                                }
+                            }
+                        }
+
                         $response["token"] = "valid";
                     } else {
                         $response["token"] = "invalid";
@@ -1032,7 +1069,84 @@ try {
                     if ($jwt_received["user_id"]) {
                         $user_id = $jwt_received["user_id"];
 
-                        // TODO: Database Save and response
+                        if (isset($_POST["medium_id"])) {
+                            $type = mysqli_real_escape_string($connection, strval($_POST["medium_id"]));
+
+                            if (isset($_POST["FEEDBACK_TYPE"])) {
+                                $feedback_type = $_POST["FEEDBACK_TYPE"];
+
+                                if ($type === "comment") {
+                                    if (isset($_POST["COMMENT_ID"])) {
+                                        $comment_id = $_POST["COMMENT_ID"];
+
+                                        mysqli_close($connection);
+                                        $connection = mysqli_connect($host, $root, $pass, $schema, $port);
+
+                                        if (!$connection) {
+                                            errorOccurred($connection, $response, __LINE__, "connection error", true);
+                                        } else {
+                                            $exists = checkIfIdExists($connection, "comments", $comment_id, "i");
+
+                                            if ($exists) { // TODO
+                                                $doesntHurtConstraint = doesntHurtConstraint($connection, "VS_COMMENT_FEEDBACK", "ii", "object", $comment_id, $user_id);
+
+                                                if (empty($doesntHurtConstraint[0])) { // create new comment feedback
+                                                    $table_comment_feedback_insert = mysqli_prepare($connection, "INSERT INTO VS_COMMENT_FEEDBACK (COMMENT_FEEDBACK_TYPE, COMMENT_ID, VS_USER_ID) VALUES (?, ?, ?)");
+                                                    mysqli_stmt_bind_param($table_comment_feedback_insert, 'sii', $feedback_type, $comment_id, $user_id);
+                                                    mysqli_stmt_execute($table_comment_feedback_insert);
+
+                                                    if (mysqli_affected_rows($connection) > 0) {
+                                                        array_push($response["log"], date('H:i:s') . ": inserted new comment feedback, VS_USER_ID:" . $user_id);
+                                                        mysqli_stmt_close($table_comment_feedback_insert);
+
+                                                        $response["success"] = true;
+                                                    } else {
+                                                        errorOccurred($connection, $response, __LINE__, "comment feedback insert failed", true);
+                                                    }
+                                                } else if ($doesntHurtConstraint[0]["COMMENT_FEEDBACK_TYPE"] != $feedback_type) { // update comment feedback
+                                                    $table_comment_feedback_update = mysqli_prepare($connection, "UPDATE VS_COMMENT_FEEDBACK SET COMMENT_FEEDBACK_TYPE = ? WHERE COMMENT_ID = ?");
+                                                    mysqli_stmt_bind_param($table_comment_feedback_update, 'si', $feedback_type, $comment_id);
+                                                    mysqli_stmt_execute($table_comment_feedback_update);
+
+                                                    if (mysqli_affected_rows($connection) > 0) {
+                                                        array_push($response["log"], date('H:i:s') . ": updated comment feedback, VS_USER_ID:" . $user_id);
+                                                        mysqli_stmt_close($table_comment_feedback_update);
+
+                                                        $response["success"] = true;
+                                                    } else {
+                                                        errorOccurred($connection, $response, __LINE__, "comment feedback update failed", true);
+                                                    }
+                                                } else { // delete feedback
+                                                    $table_comment_feedback_delete = mysqli_prepare($connection, "DELETE FROM VS_COMMENT_FEEDBACK WHERE COMMENT_ID = ?");
+                                                    mysqli_stmt_bind_param($table_comment_feedback_delete, 'i', $comment_id);
+                                                    mysqli_stmt_execute($table_comment_feedback_delete);
+
+                                                    if (mysqli_affected_rows($connection) > 0) {
+                                                        array_push($response["log"], date('H:i:s') . ": deleted comment feedback, VS_USER_ID:" . $user_id);
+                                                        mysqli_stmt_close($table_comment_feedback_delete);
+
+                                                        $response["success"] = null;
+                                                    } else {
+                                                        errorOccurred($connection, $response, __LINE__, "comment feedback deletion failed", true);
+                                                    }
+                                                }
+                                            } else {
+                                                $response = errorOccurred($connection, $response, __LINE__, "comment doesn't exist");
+                                            }
+                                        }
+                                    }
+                                } else if ($type === "video") {
+                                    if (isset($_POST["VS_VIDEO_ID"])) {
+                                        $video_id = $_POST["VS_VIDEO_ID"];
+
+                                        // TODO
+                                    }
+                                }
+                            }
+                        } else {
+                            errorOccurred($connection, $response, __LINE__, "medium_id param missing", true);
+                        }
+
                         $response["token"] = "valid";
                     } else {
                         $response["token"] = "invalid";
@@ -1056,7 +1170,7 @@ try {
                                 $exists = checkIfIdExists($connection, "user", $subscribed_user, "i");
 
                                 if ($exists) {
-                                    $doesntHurtConstraint = doesntHurtConstraint($connection, "VS_USER_FOLLOWING", "ss", $user_id, $subscribed_user);
+                                    $doesntHurtConstraint = doesntHurtConstraint($connection, "VS_USER_FOLLOWING", "ii", "boolean", $user_id, $subscribed_user);
 
                                     if ($doesntHurtConstraint) {
                                         $table_follow_insert = mysqli_prepare($connection, "INSERT INTO VS_USER_FOLLOWING (FOLLOWING_SUBSCRIBER, FOLLOWING_SUBSCRIBED) VALUES (?, ?)");
