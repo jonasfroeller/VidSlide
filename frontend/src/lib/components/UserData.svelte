@@ -160,10 +160,12 @@
 			</div>
 		</div>
 		<div class="flex gap-2">
-			{#if $loginState}
+			{#if $loginState && this_user_id === current_user?.user?.VS_USER_ID}
 				<button
 					on:click={() => {
-						editable = !editable;
+						if (this_user_id === current_user?.user?.VS_USER_ID) {
+							editable = !editable;
+						}
 					}}
 					class="btn variant-ringed hover:variant-filled h-1/2"
 					type="button"
