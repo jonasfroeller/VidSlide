@@ -100,6 +100,8 @@ function doesntHurtConstraint($connection, $table_name, $bind_str, $return_type,
 {
     if ($table_name == "VS_USER_FOLLOWING") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER_FOLLOWING WHERE FOLLOWING_SUBSCRIBER = ? AND FOLLOWING_SUBSCRIBED = ?");
+    } else if ($table_name == "VS_VIDEO_FEEDBACK") {
+        $id_exists = mysqli_prepare($connection, "SELECT * FROM VS_VIDEO_FEEDBACK WHERE VS_VIDEO_ID = ? AND VS_USER_ID = ?");
     } else if ($table_name == "VS_COMMENT_FEEDBACK") {
         $id_exists = mysqli_prepare($connection, "SELECT * FROM VS_COMMENT_FEEDBACK WHERE COMMENT_ID = ? AND VS_USER_ID = ?");
     }
@@ -1087,7 +1089,7 @@ try {
                                         } else {
                                             $exists = checkIfIdExists($connection, "comments", $comment_id, "i");
 
-                                            if ($exists) { // TODO
+                                            if ($exists) {
                                                 $doesntHurtConstraint = doesntHurtConstraint($connection, "VS_COMMENT_FEEDBACK", "ii", "object", $comment_id, $user_id);
 
                                                 if (empty($doesntHurtConstraint[0])) { // create new comment feedback
@@ -1139,7 +1141,61 @@ try {
                                     if (isset($_POST["VS_VIDEO_ID"])) {
                                         $video_id = $_POST["VS_VIDEO_ID"];
 
-                                        // TODO
+                                        mysqli_close($connection);
+                                        $connection = mysqli_connect($host, $root, $pass, $schema, $port);
+
+                                        if (!$connection) {
+                                            errorOccurred($connection, $response, __LINE__, "connection error", true);
+                                        } else {
+                                            $exists = checkIfIdExists($connection, "video", $video_id, "i");
+
+                                            if ($exists) {
+                                                $doesntHurtConstraint = doesntHurtConstraint($connection, "VS_VIDEO_FEEDBACK", "ii", "object", $video_id, $user_id);
+
+                                                if (empty($doesntHurtConstraint[0])) { // create new video feedback
+                                                    $table_video_feedback_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO_FEEDBACK (VIDEO_FEEDBACK_TYPE, VS_VIDEO_ID, VS_USER_ID) VALUES (?, ?, ?)");
+                                                    mysqli_stmt_bind_param($table_video_feedback_insert, 'sii', $feedback_type, $video_id, $user_id);
+                                                    mysqli_stmt_execute($table_video_feedback_insert);
+
+                                                    if (mysqli_affected_rows($connection) > 0) {
+                                                        array_push($response["log"], date('H:i:s') . ": inserted new video feedback, VS_USER_ID:" . $user_id);
+                                                        mysqli_stmt_close($table_video_feedback_insert);
+
+                                                        $response["success"] = true;
+                                                    } else {
+                                                        errorOccurred($connection, $response, __LINE__, "video feedback insert failed", true);
+                                                    }
+                                                } else if ($doesntHurtConstraint[0]["VIDEO_FEEDBACK_TYPE"] != $feedback_type) { // update video feedback
+                                                    $table_video_feedback_update = mysqli_prepare($connection, "UPDATE VS_VIDEO_FEEDBACK SET VIDEO_FEEDBACK_TYPE = ? WHERE VS_VIDEO_ID = ?");
+                                                    mysqli_stmt_bind_param($table_video_feedback_update, 'si', $feedback_type, $video_id);
+                                                    mysqli_stmt_execute($table_video_feedback_update);
+
+                                                    if (mysqli_affected_rows($connection) > 0) {
+                                                        array_push($response["log"], date('H:i:s') . ": updated video feedback, VS_USER_ID:" . $user_id);
+                                                        mysqli_stmt_close($table_video_feedback_update);
+
+                                                        $response["success"] = true;
+                                                    } else {
+                                                        errorOccurred($connection, $response, __LINE__, "video feedback update failed", true);
+                                                    }
+                                                } else { // delete feedback
+                                                    $table_video_feedback_delete = mysqli_prepare($connection, "DELETE FROM VS_VIDEO_FEEDBACK WHERE VS_VIDEO_ID = ?");
+                                                    mysqli_stmt_bind_param($table_video_feedback_delete, 'i', $video_id);
+                                                    mysqli_stmt_execute($table_video_feedback_delete);
+
+                                                    if (mysqli_affected_rows($connection) > 0) {
+                                                        array_push($response["log"], date('H:i:s') . ": deleted video feedback, VS_USER_ID:" . $user_id);
+                                                        mysqli_stmt_close($table_video_feedback_delete);
+
+                                                        $response["success"] = null;
+                                                    } else {
+                                                        errorOccurred($connection, $response, __LINE__, "video video deletion failed", true);
+                                                    }
+                                                }
+                                            } else {
+                                                $response = errorOccurred($connection, $response, __LINE__, "video doesn't exist");
+                                            }
+                                        }
                                     }
                                 }
                             }
