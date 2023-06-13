@@ -28,6 +28,28 @@ const de = {
 		logIn: 'Anmelden',
 		logOut: '{username|} Abmelden'
 	},
+	UploadVideo: {
+		step_01: {
+			title: 'Wähle ein Video, dass du veröffentlichen willst:',
+			video_dropzone: 'Wähle ein Video aus, welches du veröffentlichen möchtest. Klicke auf die Dropzone oder ziehe dein Video in die Dropzone.',
+		},
+		step_02: {
+			title: 'Um was geht es? Schreibe einen Titel, eine Beschreibung und füge eventuell tags hinzu:',
+			video_title_label: 'Titel:',
+			video_title: 'Dein Video Titel...',
+			video_description_label: 'Beschreibung:',
+			video_description: 'Deine Video Beschreibung...',
+			video_tags_label: 'Tags:',
+			video_tags: 'Schreibe #tag und drücke ENTER um einen Tag hinzuzufügen...',
+		},
+		next: 'Weiter',
+		back: 'Zurück',
+		step: 'Schritt',
+		complete: 'Hochladen'
+	},
+	EditVideo: {
+
+	},
 	SignInUp: {
 		signUp: 'Registrieren',
 		signIn: 'Anmelden',
@@ -85,8 +107,13 @@ const de = {
 				title: 'Einloggen?',
 				body: 'Würden sie die Website gerne angemeldet besuchen?'
 			},
+			confirmVideoDeletion: {
+				title: 'Video löschen?',
+				body: 'Das Video wird permanent gelöscht, bist du dir sicher, dass du es löschen möchtest?'
+			},
 			confirm: 'Bestätigen',
-			cancel: 'Abbrechen'
+			cancel: 'Abbrechen',
+			close: 'Schließen',
 		},
 		toast: {
 			configSaved_success: 'Konfiguration gesichert!',
@@ -100,7 +127,8 @@ const de = {
 			loggedIn_success: 'Eingeloggt!',
 			registered_success: 'Ein neuer Account wurde registriert!',
 			failed_to_fetch_video: 'Video konnte nicht geladen werden!',
-			failed_to_authenticate: 'Authentifizierung fehlgeschlagen!'
+			failed_to_authenticate: 'Authentifizierung fehlgeschlagen!',
+			filetype_not_allowed: 'Dateityp nicht erlaubt!'
 		}
 	},
 	SearchSection: {

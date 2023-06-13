@@ -19,6 +19,7 @@
 
 	// CSS-Framework/Library
 	import { clipboard } from '@skeletonlabs/skeleton';
+	import { modalStore } from '@skeletonlabs/skeleton';
 	import { toastStore } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
@@ -332,13 +333,18 @@
 		</div>
 	</div>
 {:else if display_variant == 'small'}
-	{#if publisher == user?.data?.USER_USERNAME}
+	{#if publisher == user?.user?.USER_USERNAME}
 		<div class="video-result flex flex-col items-center gap-2 relative">
 			<p class="text-center">{video_title}</p>
 			<div class="absolute right-0 flex gap-2">
-				<iconify-icon icon="ic:round-edit" />
-				<iconify-icon icon="mdi:delete" />
+				<button on:click={modalStore.trigger(popups.editVideo)}
+					><iconify-icon icon="ic:round-edit" /></button
+				>
+				<button on:click={modalStore.trigger(popups.deleteVideo)}
+					><iconify-icon icon="mdi:delete" /></button
+				>
 			</div>
+			<!-- TODO: add edit function to big post too -->
 			<div
 				class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2 bg-primary-50/70 dark:bg-primary-900/60"
 			>

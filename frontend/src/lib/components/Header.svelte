@@ -28,6 +28,16 @@
 {/key}
 
 <header class="flex justify-end gap-2 text-lg">
+	{#if $loginState}
+		<button
+			type="button"
+			class="btn variant-ringed"
+			name="post-btn"
+			on:click={() => modalStore.trigger(popups.uploadVideo)}
+		>
+			{$translation.UserData.post()}
+		</button>
+	{/if}
 	<button type="button" class="btn variant-ringed" name="login-btn" on:click={openLoginModal}>
 		{#if !$loginState}
 			<iconify-icon class="cursor-pointer flex items-center" icon="mdi:login-variant" />

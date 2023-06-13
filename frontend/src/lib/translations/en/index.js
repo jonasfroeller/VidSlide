@@ -28,6 +28,28 @@ const en = {
 		logIn: 'LogIn',
 		logOut: 'LogOut {username|}'
 	},
+	UploadVideo: {
+		step_01: {
+			title: 'Choose a video you want to publish:',
+			video_dropzone: 'Choose a video you want to publish. Click left-click the dropzone or drag and drop your video into the dropzone.',
+		},
+		step_02: {
+			title: 'What is it about? Write a title, a description and add tags if you want:',
+			video_title_label: 'Title:',
+			video_title: 'Your Video Title...',
+			video_description_label: 'Description:',
+			video_description: 'Your Video Description...',
+			video_tags_label: 'Tags:',
+			video_tags: 'Write #tag and press ENTER to add a tag...',
+		},
+		next: 'Next',
+		back: 'Back',
+		step: 'Step',
+		complete: 'Upload'
+	},
+	EditVideo: {
+
+	},
 	SignInUp: {
 		signUp: 'SignUp',
 		signIn: 'SignIn',
@@ -85,8 +107,13 @@ const en = {
 				title: 'Sign In?',
 				body: 'Would you like to create an Account or log in an existing account?'
 			},
+			confirmVideoDeletion: {
+				title: 'Delete video?',
+				body: 'Would you like to delete this video?'
+			},
 			confirm: 'Confirm',
-			cancel: 'Cancel'
+			cancel: 'Cancel',
+			close: 'Close'
 		},
 		toast: {
 			configSaved_success: 'Config saved!',
@@ -101,6 +128,7 @@ const en = {
 			registered_success: 'Registered new account!',
 			failed_to_fetch_video: 'Couldn\'t fetch video!',
 			failed_to_authenticate: 'Couldn\'t authenticate!',
+			filetype_not_allowed: 'Filetype not allowed!'
 		}
 	},
 	SearchSection: {

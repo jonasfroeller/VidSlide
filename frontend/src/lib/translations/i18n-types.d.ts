@@ -73,6 +73,66 @@ type RootTranslation = {
 		 */
 		logOut: RequiredParams<'username|'>
 	}
+	UploadVideo: {
+		step_01: {
+			/**
+			 * W​ä​h​l​e​ ​e​i​n​ ​V​i​d​e​o​,​ ​d​a​s​s​ ​d​u​ ​v​e​r​ö​f​f​e​n​t​l​i​c​h​e​n​ ​w​i​l​l​s​t​:
+			 */
+			title: string
+			/**
+			 * W​ä​h​l​e​ ​e​i​n​ ​V​i​d​e​o​ ​a​u​s​,​ ​w​e​l​c​h​e​s​ ​d​u​ ​v​e​r​ö​f​f​e​n​t​l​i​c​h​e​n​ ​m​ö​c​h​t​e​s​t​.​ ​K​l​i​c​k​e​ ​a​u​f​ ​d​i​e​ ​D​r​o​p​z​o​n​e​ ​o​d​e​r​ ​z​i​e​h​e​ ​d​e​i​n​ ​V​i​d​e​o​ ​i​n​ ​d​i​e​ ​D​r​o​p​z​o​n​e​.
+			 */
+			video_dropzone: string
+		}
+		step_02: {
+			/**
+			 * U​m​ ​w​a​s​ ​g​e​h​t​ ​e​s​?​ ​S​c​h​r​e​i​b​e​ ​e​i​n​e​n​ ​T​i​t​e​l​,​ ​e​i​n​e​ ​B​e​s​c​h​r​e​i​b​u​n​g​ ​u​n​d​ ​f​ü​g​e​ ​e​v​e​n​t​u​e​l​l​ ​t​a​g​s​ ​h​i​n​z​u​:
+			 */
+			title: string
+			/**
+			 * T​i​t​e​l​:
+			 */
+			video_title_label: string
+			/**
+			 * D​e​i​n​ ​V​i​d​e​o​ ​T​i​t​e​l​.​.​.
+			 */
+			video_title: string
+			/**
+			 * B​e​s​c​h​r​e​i​b​u​n​g​:
+			 */
+			video_description_label: string
+			/**
+			 * D​e​i​n​e​ ​V​i​d​e​o​ ​B​e​s​c​h​r​e​i​b​u​n​g​.​.​.
+			 */
+			video_description: string
+			/**
+			 * T​a​g​s​:
+			 */
+			video_tags_label: string
+			/**
+			 * S​c​h​r​e​i​b​e​ ​#​t​a​g​ ​u​n​d​ ​d​r​ü​c​k​e​ ​E​N​T​E​R​ ​u​m​ ​e​i​n​e​n​ ​T​a​g​ ​h​i​n​z​u​z​u​f​ü​g​e​n​.​.​.
+			 */
+			video_tags: string
+		}
+		/**
+		 * W​e​i​t​e​r
+		 */
+		next: string
+		/**
+		 * Z​u​r​ü​c​k
+		 */
+		back: string
+		/**
+		 * S​c​h​r​i​t​t
+		 */
+		step: string
+		/**
+		 * H​o​c​h​l​a​d​e​n
+		 */
+		complete: string
+	}
+	EditVideo: {
+	}
 	SignInUp: {
 		/**
 		 * R​e​g​i​s​t​r​i​e​r​e​n
@@ -251,6 +311,16 @@ type RootTranslation = {
 				 */
 				body: string
 			}
+			confirmVideoDeletion: {
+				/**
+				 * V​i​d​e​o​ ​l​ö​s​c​h​e​n​?
+				 */
+				title: string
+				/**
+				 * D​a​s​ ​V​i​d​e​o​ ​w​i​r​d​ ​p​e​r​m​a​n​e​n​t​ ​g​e​l​ö​s​c​h​t​,​ ​b​i​s​t​ ​d​u​ ​d​i​r​ ​s​i​c​h​e​r​,​ ​d​a​s​s​ ​d​u​ ​e​s​ ​l​ö​s​c​h​e​n​ ​m​ö​c​h​t​e​s​t​?
+				 */
+				body: string
+			}
 			/**
 			 * B​e​s​t​ä​t​i​g​e​n
 			 */
@@ -259,6 +329,10 @@ type RootTranslation = {
 			 * A​b​b​r​e​c​h​e​n
 			 */
 			cancel: string
+			/**
+			 * S​c​h​l​i​e​ß​e​n
+			 */
+			close: string
 		}
 		toast: {
 			/**
@@ -309,6 +383,10 @@ type RootTranslation = {
 			 * A​u​t​h​e​n​t​i​f​i​z​i​e​r​u​n​g​ ​f​e​h​l​g​e​s​c​h​l​a​g​e​n​!
 			 */
 			failed_to_authenticate: string
+			/**
+			 * D​a​t​e​i​t​y​p​ ​n​i​c​h​t​ ​e​r​l​a​u​b​t​!
+			 */
+			filetype_not_allowed: string
 		}
 	}
 	SearchSection: {
@@ -469,6 +547,66 @@ export type TranslationFunctions = {
 		 * {username|} Abmelden
 		 */
 		logOut: (arg: { username: unknown }) => LocalizedString
+	}
+	UploadVideo: {
+		step_01: {
+			/**
+			 * Wähle ein Video, dass du veröffentlichen willst:
+			 */
+			title: () => LocalizedString
+			/**
+			 * Wähle ein Video aus, welches du veröffentlichen möchtest. Klicke auf die Dropzone oder ziehe dein Video in die Dropzone.
+			 */
+			video_dropzone: () => LocalizedString
+		}
+		step_02: {
+			/**
+			 * Um was geht es? Schreibe einen Titel, eine Beschreibung und füge eventuell tags hinzu:
+			 */
+			title: () => LocalizedString
+			/**
+			 * Titel:
+			 */
+			video_title_label: () => LocalizedString
+			/**
+			 * Dein Video Titel...
+			 */
+			video_title: () => LocalizedString
+			/**
+			 * Beschreibung:
+			 */
+			video_description_label: () => LocalizedString
+			/**
+			 * Deine Video Beschreibung...
+			 */
+			video_description: () => LocalizedString
+			/**
+			 * Tags:
+			 */
+			video_tags_label: () => LocalizedString
+			/**
+			 * Schreibe #tag und drücke ENTER um einen Tag hinzuzufügen...
+			 */
+			video_tags: () => LocalizedString
+		}
+		/**
+		 * Weiter
+		 */
+		next: () => LocalizedString
+		/**
+		 * Zurück
+		 */
+		back: () => LocalizedString
+		/**
+		 * Schritt
+		 */
+		step: () => LocalizedString
+		/**
+		 * Hochladen
+		 */
+		complete: () => LocalizedString
+	}
+	EditVideo: {
 	}
 	SignInUp: {
 		/**
@@ -644,6 +782,16 @@ export type TranslationFunctions = {
 				 */
 				body: () => LocalizedString
 			}
+			confirmVideoDeletion: {
+				/**
+				 * Video löschen?
+				 */
+				title: () => LocalizedString
+				/**
+				 * Das Video wird permanent gelöscht, bist du dir sicher, dass du es löschen möchtest?
+				 */
+				body: () => LocalizedString
+			}
 			/**
 			 * Bestätigen
 			 */
@@ -652,6 +800,10 @@ export type TranslationFunctions = {
 			 * Abbrechen
 			 */
 			cancel: () => LocalizedString
+			/**
+			 * Schließen
+			 */
+			close: () => LocalizedString
 		}
 		toast: {
 			/**
@@ -702,6 +854,10 @@ export type TranslationFunctions = {
 			 * Authentifizierung fehlgeschlagen!
 			 */
 			failed_to_authenticate: () => LocalizedString
+			/**
+			 * Dateityp nicht erlaubt!
+			 */
+			filetype_not_allowed: () => LocalizedString
 		}
 	}
 	SearchSection: {

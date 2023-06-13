@@ -32,7 +32,9 @@
 	import Header from '$component/Header.svelte';
 	import Sidebar from '$component/Sidebar.svelte';
 	import Popups from '$component/Popups.svelte';
-	import signupComponent from '$component/SignInUp.svelte';
+	import SignupComponent from '$component/SignInUp.svelte';
+	import UploadVideoComponent from '$component/UploadVideo.svelte';
+	import EditVideoComponent from '$component/EditVideo.svelte';
 
 	// Stores
 	import { loginState, user, jwt } from '$store/account';
@@ -50,7 +52,23 @@
 	const modalComponentRegistry: Record<string, ModalComponent> = {
 		signupModalComponent: {
 			// component
-			ref: signupComponent,
+			ref: SignupComponent,
+			// props
+			props: {},
+			// default slot
+			slot: '<em>Error</em>'
+		},
+		uploadVideoComponent: {
+			// component
+			ref: UploadVideoComponent,
+			// props
+			props: {},
+			// default slot
+			slot: '<em>Error</em>'
+		},
+		editVideoComponent: {
+			// component
+			ref: EditVideoComponent,
 			// props
 			props: {},
 			// default slot

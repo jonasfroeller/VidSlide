@@ -11,7 +11,7 @@
 	import { browser } from '$app/environment';
 
 	// CSS-Framework/Library
-	import { clipboard } from '@skeletonlabs/skeleton';
+	import { clipboard, modalStore } from '@skeletonlabs/skeleton';
 	import { toastStore } from '@skeletonlabs/skeleton';
 	import { FileDropzone } from '@skeletonlabs/skeleton';
 	import { FileButton } from '@skeletonlabs/skeleton';
@@ -172,7 +172,11 @@
 				>
 					{$translation.UserData.edit()}
 				</button>
-				<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
+				<button
+					on:click={() => modalStore.trigger(popups.uploadVideo)}
+					class="btn variant-ringed hover:variant-filled h-1/2"
+					type="button"
+				>
 					{$translation.UserData.post()}
 				</button>
 			{:else}

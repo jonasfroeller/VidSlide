@@ -41,10 +41,32 @@
 		response: (r: boolean) => (r ? signOut() : console.log('declined log out'))
 	};
 
+	let message_confirmVideoDeletion_title = $translation.Popups.modal.confirmVideoDeletion.title();
+	let message_confirmVideoDeletion_body = $translation.Popups.modal.confirmVideoDeletion.body();
+	export const confirmVideoDeletion: ModalSettings = {
+		type: 'confirm',
+		title: message_confirmVideoDeletion_title,
+		body: message_confirmVideoDeletion_body,
+		buttonTextConfirm: message_button_confirm,
+		buttonTextCancel: message_button_cancel,
+		response: (r: boolean) => (r ? signOut() : console.log('declined video deletion'))
+	};
+
 	/* Form */
 	export const signInUpForm: ModalSettings = {
 		type: 'component',
 		component: 'signupModalComponent'
+	};
+
+	/* Post Management */
+	export const uploadVideo: ModalSettings = {
+		type: 'component',
+		component: 'uploadVideoComponent'
+	};
+
+	export const editVideo: ModalSettings = {
+		type: 'component',
+		component: 'editVideoComponent'
 	};
 
 	/* Notifications */
@@ -126,6 +148,13 @@
 	let message_failed_to_authenticate = $translation.Popups.toast.failed_to_authenticate();
 	export const failed_to_authenticate: ToastSettings = {
 		message: message_failed_to_authenticate,
+		background: 'variant-ghost-error'
+	};
+
+	// fileTypeNotSupported
+	let message_filetype_not_allowed = $translation.Popups.toast.filetype_not_allowed();
+	export const filetype_not_allowed: ToastSettings = {
+		message: message_filetype_not_allowed,
 		background: 'variant-ghost-error'
 	};
 
