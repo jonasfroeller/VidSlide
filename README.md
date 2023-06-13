@@ -1,6 +1,7 @@
 # VidSlide
 
-![Vercel](https://therealsujitk-vercel-badge.vercel.app/?app=svelte-kit-vid-slide)
+[![Frontend-Hosting](https://therealsujitk-vercel-badge.vercel.app/?app=svelte-kit-vid-slide)](https://svelte-kit-vid-slide.vercel.app)
+[![Docs](https://github.com/jonasfroeller/SvelteKit_VidSlide/actions/workflows/pages/pages-build-deployment/badge.svg)](https://jonasfroeller.github.io/SvelteKit_VidSlide/)
 [![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 ## Info  
