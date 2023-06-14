@@ -57,12 +57,29 @@
 
 	export let video_comments = 0; // display_variant large/default
 
-	/* --- LOGIC --- */
-	let video_path = 'http://localhost:8196/media/video/uploaded/';
-	$: video_element_id = 'vid_' + video_id;
+	export let fetchNextVideo: Function;
 
-	$: play_button_state = true;
-	$: sound_button_state = false;
+	/* --- LOGIC --- */
+	let videoElement;
+
+	let video_path = 'http://localhost:8196/media/video/uploaded/';
+	let video_element_id = 'vid_' + video_id;
+
+	let play_button_state = true;
+	let sound_button_state = false;
+
+	$: followers = publisher_followers;
+	$: likes = video_likes;
+	$: dislikes = video_dislikes;
+
+	$: publisher_following =
+		$user.subscribed.filter((obj) => obj.VS_USER_ID === publisher_id).length > 0;
+
+	let view_followers: PopupSettings = {
+		event: 'focus-click',
+		target: 'view_followers',
+		placement: 'bottom'
+	};
 
 	function playVideo() {
 		if (browser) {
@@ -82,27 +99,16 @@
 		}
 	}
 
-	onMount(() => {
-		videos.add(videoElement);
-		return () => videos.delete(videoElement);
-	});
-
 	function stopOthers() {
 		videos.forEach((video) => {
 			if (video !== videoElement) video.pause();
 		});
 	}
 
-	let videoElement;
-
-	let view_followers: PopupSettings = {
-		event: 'focus-click',
-		target: 'view_followers',
-		placement: 'bottom'
-	};
-
-	$: publisher_following =
-		$user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
+	onMount(() => {
+		videos.add(videoElement);
+		return () => videos.delete(videoElement);
+	});
 
 	async function action(action, attributes, type = 'POST') {
 		const res = await Api.post(attributes, action, type);
@@ -118,7 +124,10 @@
 					USER_PROFILEPICTURE: res?.data[0][0]?.USER_PROFILEPICTURE ?? null
 				};
 
+				followers.push($user.data);
 				$user.subscribed.push(user);
+				publisher_following =
+					$user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
 			}
 		} else if (res?.success == false) {
 			// TODO: popup error
@@ -126,7 +135,10 @@
 			if (action == 'follow') {
 				const id = attributes[0].attribute;
 
+				followers = followers.filter((obj) => obj.VS_USER_ID !== $user.data.VS_USER_ID);
 				$user.subscribed = $user.subscribed.filter((obj) => obj.VS_USER_ID !== id);
+				publisher_following =
+					$user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
 			}
 		}
 	}
@@ -141,7 +153,7 @@
 		<div id="video" class="flex flex-col gap-2">
 			<div id="video-publisher" class="flex justify-between items-center w-[360px]">
 				<!-- 1080/3 -->
-				<div id="video-info" class="flex items-center gap-2">
+				<div id="video-info" class="flex items-center gap-2 text-primary-700 dark:text-primary-400">
 					<a href="/{$locale}/account/{publisher}" class="transition">
 						{#if publisher_avatar != null}
 							<Avatar
@@ -154,22 +166,28 @@
 						{/if}
 					</a>
 					<div id="video-publisher-info" class="flex flex-col">
-						<a href="/{$locale}/account/{publisher}" class="unstyled hover:underline text-lg"
+						<a
+							href="/{$locale}/account/{publisher}"
+							class="unstyled hover:underline text-2xl text-primary-700 dark:text-primary-400"
 							>{publisher}</a
 						>
-						{#key publisher_followers}
-							<div id="subscriber" class="text-md text-primary-700 dark:text-primary-500">
+						{#key publisher_following}
+							<div id="subscriber" class="text-md text-primary-700 dark:text-primary-600">
 								<button use:popup={view_followers}
-									>{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}</button
+									>{$translation.VideoSection.follower(followers?.length ?? 0)}</button
 								>
 								<div
 									data-popup="view_followers"
-									class="z-[999] rounded-md bg-surface-500 p-2 overflow-auto max-h-96"
+									class="z-[999] rounded-md bg-surface-200-700-token border-primary-400-500-token p-2 overflow-auto max-h-96 border-2"
 								>
-									{#each publisher_followers as follower, i}
-										<div class="flex gap-2 items-center h-full divide-x">
-											<p>{i + 1}</p>
-											<div class="flex items-center p-2 gap-2">
+									{#each followers as follower, i}
+										<div
+											class="flex gap-2 items-center h-full divide-x divide-primary-400 dark:divide-primary-500"
+										>
+											<p class="text-lg">{i + 1}</p>
+											<div
+												class="flex items-center p-2 gap-2 text-primary-700 dark:text-primary-400"
+											>
 												<a href="/{$locale}/account/{follower?.USER_USERNAME}" class="transition">
 													{#if follower?.USER_PROFILEPICTURE != null}
 														<Avatar
@@ -182,14 +200,14 @@
 												</a>
 												<a
 													href="/{$locale}/account/{follower?.USER_USERNAME}"
-													class="unstyled hover:underline text-lg"
+													class="unstyled hover:underline text-lg text-primary-700 dark:text-primary-400"
 												>
 													{follower?.USER_USERNAME}
 												</a>
 											</div>
 										</div>
 									{:else}
-										{$translation.VideoSection.follower(publisher_followers?.length ?? 0)}
+										{$translation.VideoSection.follower(followers?.length ?? 0)}
 									{/each}
 								</div>
 							</div>
@@ -208,7 +226,9 @@
 							}
 						])}
 				>
-					{$translation.VideoSection.subscribe(publisher_following)}
+					{#key publisher_following}
+						{$translation.VideoSection.subscribe(publisher_following)}
+					{/key}
 				</button>
 			</div>
 			<div class="aspect-9-16 relative border border-gray-500 rounded-md">
@@ -237,7 +257,7 @@
 					Your browser does not support the video tag.
 				</video>
 				<div
-					class="absolute w-full flex justify-between p-2 bg-primary-50/70 dark:bg-primary-900/60"
+					class="absolute w-full flex justify-between p-2 bg-surface-50/70 dark:bg-surface-900/60"
 				>
 					{#if play_button_state}
 						<button
@@ -281,54 +301,77 @@
 				</div>
 				<div
 					id="video-player-info-bottom"
-					class="absolute bottom-0 w-full p-2 text-xs text-primary-900 dark:text-primary-500 select-none bg-primary-50/70 dark:bg-primary-900/60"
+					class="absolute bottom-0 w-full p-2 text-xs select-none bg-surface-50/70 dark:bg-surface-900/60"
 				>
 					{$translation.VideoSection.views(video_views)}
 				</div>
 			</div>
 		</div>
-		<div id="actions" class="flex justify-end flex-col gap-2 h-[710px]">
-			<div class="flex flex-col gap-1">
-				<button type="button" class="btn-icon variant-ringed">
-					{#if $user_videos_liked?.includes(video_id)}
-						<iconify-icon icon="material-symbols:thumb-up-rounded" />
-					{:else}
-						<iconify-icon class="scale-125" icon="material-symbols:thumb-up-outline-rounded" />
-					{/if}
-				</button>
-				<span class="text-xs text-center text-primary-700 dark:text-primary-500 select-none"
-					>{video_likes}</span
-				>
+		<div id="actions" class="flex flex-col justify-between gap-2 h-[700px]">
+			<div class="flex flex-col justify-center h-full gap-2">
+				<div class="flex flex-col gap-1">
+					<button
+						type="button"
+						class="btn-icon variant-ringed text-4xl"
+						on:click={() => fetchNextVideo({ keyCode: 38 })}
+					>
+						<iconify-icon icon="ic:round-arrow-left" />
+					</button>
+				</div>
+				<div class="flex flex-col gap-1">
+					<button
+						type="button"
+						class="btn-icon variant-ringed text-4xl"
+						on:click={() => fetchNextVideo({ keyCode: 40 })}
+					>
+						<iconify-icon icon="ic:round-arrow-right" />
+					</button>
+				</div>
 			</div>
-			<div class="flex flex-col gap-1">
-				<button type="button" class="btn-icon variant-ringed">
-					{#if $user_videos_disliked?.includes(video_id)}
-						<iconify-icon icon="material-symbols:thumb-up-rounded" />
-					{:else}
-						<iconify-icon class="scale-125" icon="material-symbols:thumb-down-outline-rounded" />
-					{/if}
-				</button>
-				<span class="text-xs text-center text-primary-700 dark:text-primary-500 select-none"
-					>{video_dislikes}</span
-				>
-			</div>
-			<div class="flex flex-col gap-1">
-				<button type="button" class="btn-icon variant-ringed">
-					<iconify-icon class="scale-125" icon="fa:commenting-o" />
-				</button>
-				<span class="text-xs text-center text-primary-700 dark:text-primary-500 select-none"
-					>{video_comments}</span
-				>
-			</div>
-			<div class="flex flex-col gap-1">
-				<button
-					type="button"
-					class="btn-icon variant-ringed"
-					use:clipboard={`${video_path}${video}`}
-					on:click={() => toastStore.trigger(popups.copiedURL_toClipboard_success)}
-				>
-					<iconify-icon class="scale-150" icon="mdi:share" />
-				</button>
+
+			<div class="flex flex-col gap-2">
+				<div class="flex flex-col gap-1">
+					<button type="button" class="btn-icon variant-ringed text-2xl">
+						{#if $user_videos_liked?.includes(video_id)}
+							<iconify-icon icon="material-symbols:thumb-up-rounded" />
+						{:else}
+							<iconify-icon icon="material-symbols:thumb-up-outline-rounded" />
+						{/if}
+					</button>
+					<span class="text-xs text-center text-primary-700 dark:text-primary-500 select-none"
+						>{likes}</span
+					>
+				</div>
+				<div class="flex flex-col gap-1">
+					<button type="button" class="btn-icon variant-ringed text-2xl">
+						{#if $user_videos_disliked?.includes(video_id)}
+							<iconify-icon icon="material-symbols:thumb-up-rounded" />
+						{:else}
+							<iconify-icon icon="material-symbols:thumb-down-outline-rounded" />
+						{/if}
+					</button>
+					<span class="text-xs text-center text-primary-700 dark:text-primary-500 select-none"
+						>{dislikes}</span
+					>
+				</div>
+				<div class="flex flex-col gap-1">
+					<button type="button" class="btn-icon variant-ringed text-xl">
+						<iconify-icon icon="fa:commenting-o" />
+					</button>
+					<button class="text-xs text-center text-primary-700 dark:text-primary-500 select-none"
+						>{video_comments}</button
+					>
+				</div>
+				<div class="flex flex-col gap-1">
+					<button
+						type="button"
+						class="btn-icon variant-ringed text-2xl"
+						use:clipboard={`${video_path}${video}`}
+						on:click={() => toastStore.trigger(popups.copiedURL_toClipboard_success)}
+					>
+						<iconify-icon icon="mdi:share" />
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -346,7 +389,7 @@
 			</div>
 			<!-- TODO: add edit function to big post too -->
 			<div
-				class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2 bg-primary-50/70 dark:bg-primary-900/60"
+				class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2 bg-surface-50/70 dark:bg-surface-900/60"
 			>
 				<!-- 1920/6 -->
 				<div class="absolute w-full flex justify-between p-2">
@@ -397,7 +440,7 @@
 						{$translation.VideoResult.views(video_views)}
 					</div>
 					<div class="p-2 text-xs">
-						{$translation.VideoResult.likes(video_likes)}
+						{$translation.VideoResult.likes(likes)}
 					</div>
 				</div>
 			</div>
@@ -421,15 +464,25 @@
 					<div class="flex flex-col">
 						<a
 							href="/{$locale}/account/{publisher}"
-							class="unstyled hover:underline text-xs truncate">{publisher}</a
+							class="unstyled hover:underline text-xs truncate text-primary-700 dark:text-primary-400"
+							>{publisher}</a
 						>
 						<div class="text-xs text-primary-700 dark:text-primary-500">
-							{$translation.VideoResult.follower(publisher_followers?.length ?? 0)}
+							{#key publisher_following}
+								{$translation.VideoResult.follower(followers?.length ?? 0)}
+							{/key}
 						</div>
 					</div>
 					<button
 						type="button"
 						class="ml-2 btn btn-icon variant-ringed hover:variant-filled scale-75"
+						on:click={() =>
+							action('follow', [
+								{
+									attribute_name: 'FOLLOWING_SUBSCRIBED',
+									attribute: publisher_id
+								}
+							])}
 					>
 						{#if publisher_following}
 							<iconify-icon class="cursor-pointer" icon="ic:outline-minus" />
@@ -438,7 +491,9 @@
 						{/if}
 					</button>
 				</div>
-				<p class="text-center truncate">{video_title}</p>
+				<button class="text-center truncate" on:click={() => fetchNextVideo({ title: video_title })}
+					>{video_title}</button
+				>
 			</div>
 			<div
 				class="aspect-9-16-small relative border border-gray-500 rounded-md mb-2 overflow-hidden"
@@ -468,7 +523,7 @@
 					Your browser does not support the video tag.
 				</video>
 				<div
-					class="absolute w-full flex justify-between items-center p-2 bg-primary-50/70 dark:bg-primary-900/60"
+					class="absolute w-full flex justify-between items-center p-2 bg-surface-50/70 dark:bg-surface-900/60"
 				>
 					{#if play_button_state}
 						<button
@@ -517,8 +572,8 @@
 						{$translation.VideoResult.views(video_views)}
 					</div>
 					<div class="p-2 text-xs">
-						<span class="text-success-400">{video_likes}</span> /
-						<span class="text-error-400">{video_dislikes}</span>
+						<span class="text-success-400">{likes}</span> /
+						<span class="text-error-400">{dislikes}</span>
 					</div>
 				</div>
 			</div>

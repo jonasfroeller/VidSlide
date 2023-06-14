@@ -35,12 +35,14 @@
 	/* --- LOGIC --- */
 	async function fetchVideo(id: number | string, id_specification = '') {
 		if (typeof id === 'number' && id <= 0) {
+			failedToFetch = true;
 			id = 'random';
 		}
 
 		let response = await Api.get('video', id, id_specification);
 
 		if (typeof id === 'number' && response?.data?.length === 0) {
+			failedToFetch = true;
 			response = await Api.get('video', 'random');
 		}
 		return response;
@@ -96,18 +98,29 @@
 		}
 	}
 
-	async function fetchNextVideo(event) {
-		// ArrowUp && ArrowLeft
-		if (event.keyCode === 38 || event.keyCode === 37) {
-			let video = await fetchVideo(current_video_id);
-			current_video = await formatVideo(video);
-			current_video_publisher_followers = await getUserFollowers(current_video?.user?.VS_USER_ID);
-		} else if (event.keyCode === 40 || event.keyCode === 39) {
-			let video = await fetchVideo(current_video_id);
-			current_video = await formatVideo(video);
-			current_video_publisher_followers = await getUserFollowers(current_video?.user?.VS_USER_ID);
-		} // ArrowDown && ArrowRight
-	}
+	let fetchNextVideo = async function (event) {
+		if (event?.title) {
+			// TODO: use api.routes.js and implement getting video by title
+		} else {
+			// ArrowUp && ArrowLeft
+			if (event.keyCode === 38 || event.keyCode === 37) {
+				current_video_id -= 1;
+				let video = await fetchVideo(current_video_id);
+				current_video = await formatVideo(video);
+				current_video_publisher_followers = await getUserFollowers(current_video_id);
+			} else if (event.keyCode === 40 || event.keyCode === 39) {
+				current_video_id += 1;
+				let video = await fetchVideo(current_video_id);
+				current_video = await formatVideo(video);
+				current_video_publisher_followers = await getUserFollowers(current_video_id);
+			} // ArrowDown && ArrowRight
+		}
+
+		if (failedToFetch) {
+			failedToFetch = false;
+			current_video_id = 0;
+		}
+	};
 
 	async function getUserFollowers(id: number) {
 		let userData = await Api.get('user', id);
@@ -185,7 +198,9 @@
 
 			if (video) {
 				current_video = await formatVideo(video);
-				current_video_publisher_followers = await getUserFollowers(current_video?.user?.VS_USER_ID);
+				current_video_publisher_followers = await getUserFollowers(
+					current_video?.video?.VS_VIDEO_ID
+				);
 			} else {
 				toastStore.trigger(popups.failed_to_fetch_video);
 			}
@@ -196,10 +211,12 @@
 
 	// CURRENT VIDEO
 	$: current_video = null;
-	$: current_video_id = current_video?.user?.VS_USER_ID;
+	$: current_video_id = null;
 	$: current_video_publisher_followers = [];
 	$: current_video_likes = [];
 	$: current_video_dislikes = [];
+
+	let failedToFetch = false;
 
 	// SEARCHED VIDEOS
 	$filter = sortBy;
@@ -280,6 +297,7 @@
 			video_dislikes={current_video_dislikes?.length ?? 0}
 			video_comments={current_video?.comments?.length ?? 0}
 			display_variant={'default'}
+			bind:fetchNextVideo
 		/>
 	</PostTransition>
 {:else}
