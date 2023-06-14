@@ -39,17 +39,19 @@
 				? 'items-center'
 				: 'items-start'} input-group-divider grid-cols-[auto_1fr_auto] h-fit w-max"
 		>
-			<div class="input-group-shim h-full">
+			<div class="h-full">
 				<iconify-icon class="cursor-pointer" icon="material-symbols:search-rounded" />
 			</div>
 			<input
-				class="p-2 rounded-none outline-none"
+				class="p-2 input rounded-none"
 				type="search"
 				placeholder="{$translation.SearchSection.search()}..."
 				bind:value={search}
 				on:change={searchedVideos.set([])}
 			/>
-			<button class="variant-soft-secondary h-full">{$translation.SearchSection.search()}</button>
+			<button class="variant-soft-primary h-full border-l border-surface-400-500-token"
+				>{$translation.SearchSection.search()}</button
+			>
 		</div>
 		<div
 			id="search-config"

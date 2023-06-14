@@ -126,7 +126,7 @@
 					id="username"
 					class="text-lg flex {editable
 						? 'cursor-text rounded-md outline-2 outline-offset-0 outline-dashed outline-tertiary-900 dark:outline-tertiary-50 text-tertiary-900 dark:text-tertiary-50'
-						: ''}"
+						: 'text-primary-700 dark:text-primary-400'}"
 					contenteditable={editable}
 					use:clipboard={current_user_username}
 					on:click={() => {
@@ -191,23 +191,23 @@
 			>
 				{current_user_profile_description}
 			</div>
-			<button class="btn variant-ringed hover:variant-filled h-1/2 w-fit mt-2" type="button">
+			<!-- <button class="btn variant-ringed hover:variant-filled h-1/2 w-fit mt-2" type="button">
 				{$translation.UserData.more()}
-			</button>
+			</button> -->
 		</div>
 		<div id="user-socials" class="flex gap-2 pl-2 pt-2 h-min">
 			{#if current_user_socials?.instagram}
-				<a href={current_user_socials.instagram.SOCIAL_URL} class="transition"
+				<a href={current_user_socials.instagram.SOCIAL_URL} target="_blank" class="transition"
 					><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:instagram" /></a
 				>
 			{/if}
 			{#if current_user_socials?.youtube}
-				<a href={current_user_socials.youtube.SOCIAL_URL} class="transition"
+				<a href={current_user_socials.youtube.SOCIAL_URL} target="_blank" class="transition"
 					><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:youtube" /></a
 				>
 			{/if}
 			{#if current_user_socials?.tiktok}
-				<a href={current_user_socials.tiktok.SOCIAL_URL} class="transition"
+				<a href={current_user_socials.tiktok.SOCIAL_URL} target="_blank" class="transition"
 					><iconify-icon
 						class="cursor-pointer"
 						width="30"
@@ -217,7 +217,7 @@
 				>
 			{/if}
 			{#if current_user_socials?.twitter}
-				<a href={current_user_socials.twitter.SOCIAL_URL} class="transition"
+				<a href={current_user_socials.twitter.SOCIAL_URL} target="_blank" class="transition"
 					><iconify-icon class="cursor-pointer" width="30" height="30" icon="mdi:twitter" /></a
 				>
 			{/if}
@@ -341,7 +341,7 @@
 						placeholder={this_user_profile_description}
 						value={this_user_profile_description}
 					/>
-					<button class="btn btn-sm variant-filled-primary w-full"
+					<button class="btn btn-sm variant-ghost-secondary w-full"
 						>{$translation.pages.settings.account_section.edit()}</button
 					>
 				</div>
@@ -351,7 +351,7 @@
 					>{$translation.pages.settings.account_section.delete_account()}</button
 				>
 			</div>
-			<div id="account-info">
+			<div id="account-info text-primary-400-500-token">
 				{this_user_last_edit} |
 				{this_user_date_joined}
 			</div>

@@ -42,13 +42,13 @@
 	<div>
 		<div class="btn-group variant-ghost-tertiary">
 			<button
-				class={selectedBox ? 'variant-soft-tertiary hover:variant-soft-tertiary' : ''}
+				class={selectedBox ? 'active' : ''}
 				on:click={() => {
 					selectedBox = true;
 				}}>{$translation.InfoSection.comments()}</button
 			>
 			<button
-				class={!selectedBox ? 'variant-soft-tertiary hover:variant-soft-tertiary' : ''}
+				class={!selectedBox ? 'active' : ''}
 				on:click={() => {
 					selectedBox = false;
 				}}>{$translation.InfoSection.description()}</button
@@ -74,10 +74,10 @@
 								<Avatar size="medium" comment_username={this_user_username} />
 							{/if}
 							<textarea
-								class="textarea outline-none hover:outline-none input p-2 w-fit resize-none"
+								class="textarea outline-none hover:outline-none input p-2 w-fit resize-none focus:border-secondary-400-500-token"
 								rows="1"
 								maxlength="200"
-								placeholder="I think..."
+								placeholder={$translation.InfoSection.comment_placeholder()}
 							/>
 							<button type="button" class="btn-icon variant-ghost-secondary">
 								<iconify-icon class="cursor-pointer text-2xl" icon="material-symbols:send" />
@@ -106,7 +106,7 @@
 						/>
 						<!-- TODO: replies -->
 					{:else}
-						<p class="text-secondary-500">{$translation.InfoSection.be_the_first_comment()}</p>
+						{$translation.InfoSection.be_the_first_comment()}
 					{/each}
 				</div>
 			</div>

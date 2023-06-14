@@ -27,7 +27,7 @@
 </script>
 
 <div class="flex flex-col">
-	<div class="flex items-center p-2 pl-0 gap-2">
+	<div class="flex items-center p-2 pl-0 gap-2 text-primary-700 dark:text-primary-400">
 		<a href="/{$locale}/account/{comment_username}" class="transition">
 			{#if comment_avatar != null}
 				<Avatar {comment_avatar} {comment_username} />
@@ -38,7 +38,7 @@
 		<p>
 			<a
 				href="/{$locale}/account/{comment_username}"
-				class="unstyled hover:underline {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
+				class="unstyled hover:underline text-primary-700 dark:text-primary-400"
 				>{comment_username}</a
 			>
 			|
@@ -47,10 +47,7 @@
 			>
 		</p>
 	</div>
-	<div
-		class="{CSS_Styles.SMALL_ELEMENT
-			.FONT_SECONDARY} p-2 rounded-md bg-surface-200 dark:bg-surface-600 max-h-36"
-	>
+	<div class="p-2 rounded-md bg-surface-200 dark:bg-surface-600 max-h-36">
 		{comment_text}
 	</div>
 	<div class="flex justify-between mt-2">
@@ -59,7 +56,7 @@
 				<button
 					type="button"
 					disabled={$loginState ? false : true}
-					class="btn btn-sm variant-ringed-secondary {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
+					class="btn btn-sm variant-ringed-primary {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
 				>
 					{#if $user_comments_liked?.includes(comment_id)}
 						<iconify-icon icon="material-symbols:thumb-up-rounded" />
@@ -73,7 +70,7 @@
 				<button
 					type="button"
 					disabled={$loginState ? false : true}
-					class="btn btn-sm variant-ringed-secondary {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
+					class="btn btn-sm variant-ringed-primary {CSS_Styles.SMALL_ELEMENT.FONT_PRIMARY}"
 				>
 					{#if $user_comments_disliked?.includes(comment_id)}
 						<iconify-icon icon="material-symbols:thumb-up-rounded" />
@@ -91,12 +88,12 @@
 				<button
 					type="button"
 					disabled={$loginState ? false : true}
-					class="btn btn-sm variant-ringed-secondary"
+					class="btn btn-sm variant-ringed-primary"
 				>
 					{$translation.CommentPost.reply()}
 				</button>
 			{/if}
-			<button type="button" class="btn btn-sm variant-ringed-secondary">
+			<button type="button" class="btn btn-sm variant-ringed-primary">
 				{$translation.CommentPost.replies({ replies: comment_replies })}
 			</button>
 		</div>

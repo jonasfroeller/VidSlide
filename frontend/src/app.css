@@ -4,4 +4,30 @@ body {
 	@apply bg-surface-50-900-token;
 }
 
-/* TODO: add default classes with tailwind classes */
+html:focus-within {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:focus-within {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    }
+}
+
+/* Style Overrides */
+button.active {
+    @apply bg-tertiary-400-500-token;
+}
+
+button.active:hover {
+    @apply bg-tertiary-400-500-token;
+}

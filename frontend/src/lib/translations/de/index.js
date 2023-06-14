@@ -77,6 +77,7 @@ const de = {
 		dateTime: 'gepostet am {0|videoDate}',
 		logIn: 'Anmelden',
 		logIn_text: 'um einen Kommentar zu schreiben',
+		comment_placeholder: 'Kommentar...',
 		be_the_first_comment: 'Schreibe jetzt einen Kommentar um der Erste zu sein!'
 	},
 	CommentPost: {

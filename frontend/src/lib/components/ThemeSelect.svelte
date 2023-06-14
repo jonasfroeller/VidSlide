@@ -36,7 +36,7 @@
 
 <div class="relative {variant === 'large' ? 'w-full' : 'w-[2rem]'} max-w-full">
 	<select
-		class="select outlined text-md rounded-lg variant-ringed cursor-pointer"
+		class="select outlined text-md rounded-lg variant-ringed cursor-pointer appearance-none"
 		name="theme"
 		bind:value={$themeState}
 		on:change={() => {
@@ -50,7 +50,9 @@
 		<option value="light">{$translation.ThemeSelect.theme_light()}</option>
 	</select>
 	{#if variant !== 'large'}
-		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+		<div
+			class="absolute top-1/2 left-1/2 text-2xl transform -translate-x-1/4 -translate-y-1/2 pointer-events-none"
+		>
 			<iconify-icon
 				class="cursor-pointer flex items-center"
 				icon={$themeState === 'dark' ? 'heroicons:moon-solid' : 'material-symbols:sunny-rounded'}

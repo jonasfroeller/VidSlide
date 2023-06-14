@@ -77,6 +77,7 @@ const en = {
 		dateTime: 'posted on {0|videoDate}',
 		logIn: 'LogIn',
 		logIn_text: 'to write a comment',
+		comment_placeholder: 'Comment...',
 		be_the_first_comment: 'Be the first to comment on this post!'
 	},
 	CommentPost: {

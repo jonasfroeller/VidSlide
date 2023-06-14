@@ -102,7 +102,9 @@
 		{/each}
 	</select>
 	{#if variant !== 'large'}
-		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+		<div
+			class="absolute top-1/2 left-1/2 text-2xl transform -translate-x-1/4 -translate-y-1/2 pointer-events-none"
+		>
 			<iconify-icon class="cursor-pointer flex items-center" icon="material-symbols:language" />
 		</div>
 	{/if}

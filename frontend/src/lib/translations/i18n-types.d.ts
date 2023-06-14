@@ -222,6 +222,10 @@ type RootTranslation = {
 		 */
 		logIn_text: string
 		/**
+		 * K​o​m​m​e​n​t​a​r​.​.​.
+		 */
+		comment_placeholder: string
+		/**
 		 * S​c​h​r​e​i​b​e​ ​j​e​t​z​t​ ​e​i​n​e​n​ ​K​o​m​m​e​n​t​a​r​ ​u​m​ ​d​e​r​ ​E​r​s​t​e​ ​z​u​ ​s​e​i​n​!
 		 */
 		be_the_first_comment: string
@@ -699,6 +703,10 @@ export type TranslationFunctions = {
 		 * um einen Kommentar zu schreiben
 		 */
 		logIn_text: () => LocalizedString
+		/**
+		 * Kommentar...
+		 */
+		comment_placeholder: () => LocalizedString
 		/**
 		 * Schreibe jetzt einen Kommentar um der Erste zu sein!
 		 */

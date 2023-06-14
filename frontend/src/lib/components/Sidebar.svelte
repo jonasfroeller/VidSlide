@@ -33,7 +33,7 @@
 					class="btn text-3xl rounded-lg w-full flex justify-start {route === '/home' ||
 					route === ''
 						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
+						: 'variant-ringed-primary'}"
 				>
 					<span>
 						{#if route === '/home' || route === ''}
@@ -55,7 +55,7 @@
 					type="button"
 					class="btn text-3xl rounded-lg w-full flex justify-start {route === '/search'
 						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
+						: 'variant-ringed-primary'}"
 				>
 					<span>
 						{#if route === '/search'}
@@ -75,7 +75,7 @@
 						type="button"
 						class="btn text-3xl rounded-lg w-full flex justify-start {route?.includes('account')
 							? 'variant-ghost-tertiary'
-							: 'variant-ringed-secondary'}"
+							: 'variant-ringed-primary'}"
 					>
 						<span>
 							{#if route?.includes('account')}
@@ -95,7 +95,7 @@
 					type="button"
 					class="btn text-3xl rounded-lg w-full flex justify-start {route === '/settings'
 						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
+						: 'variant-ringed-primary'}"
 				>
 					<span>
 						{#if route === '/settings'}
@@ -134,7 +134,7 @@
 					type="button"
 					class="btn-icon text-3xl rounded-lg w-fit max-w-full {route === '/home' || route === ''
 						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
+						: 'variant-ringed-primary'}"
 				>
 					<span class="p-2">
 						{#if route === '/home' || route === ''}
@@ -155,7 +155,7 @@
 					type="button"
 					class="btn-icon text-3xl rounded-lg w-fit max-w-full {route === '/search'
 						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
+						: 'variant-ringed-primary'}"
 				>
 					<span class="p-2">
 						{#if route === '/search'}
@@ -174,7 +174,7 @@
 						type="button"
 						class="btn-icon text-3xl rounded-lg w-fit max-w-full {route?.includes('account')
 							? 'variant-ghost-tertiary'
-							: 'variant-ringed-secondary'}"
+							: 'variant-ringed-primary'}"
 					>
 						<span class="p-2">
 							{#if route?.includes('account')}
@@ -193,7 +193,7 @@
 					type="button"
 					class="btn-icon text-3xl rounded-lg w-fit max-w-full {route === '/settings'
 						? 'variant-ghost-tertiary'
-						: 'variant-ringed-secondary'}"
+						: 'variant-ringed-primary'}"
 				>
 					<span class="p-2">
 						{#if route === '/settings'}
