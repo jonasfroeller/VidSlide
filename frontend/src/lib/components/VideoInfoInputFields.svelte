@@ -65,6 +65,47 @@
 	}
 
 	export const validateInput = () => {
+		const notAllowedWithoutClosingTag = ['meta', 'link', 'base', 'input', 'embed', 'img'];
+		const notAllowedWithClosingTag = [
+			'body',
+			'iframe',
+			'object',
+			'script',
+			'audio',
+			'video',
+			'head',
+			'html',
+			'body',
+			'title',
+			'svg',
+			'form',
+			'button',
+			'textarea',
+			'select',
+			'option',
+			'map'
+		];
+
+		// escape malicious html tags (TODO: maybe attributes too?)
+		if (
+			notAllowedWithClosingTag.some((tag) => video_description.includes(tag)) ||
+			notAllowedWithoutClosingTag.some((tag) => video_description.includes(tag))
+		) {
+			notAllowedWithClosingTag.forEach((tag) => {
+				const regex = new RegExp(`<${tag}[^>]*>|<\/${tag}>`, 'g');
+				video_description = video_description.replace(regex, (match) => {
+					return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+				});
+			});
+
+			notAllowedWithoutClosingTag.forEach((tag) => {
+				const regex = new RegExp(`<${tag}[^>]*>`, 'g');
+				video_description = video_description.replace(regex, (match) => {
+					return match.replace(/</g, '&lt;');
+				});
+			});
+		}
+
 		let inputParseResult = videoInfoSchema.safeParse({
 			title: video_title,
 			video_description: video_description,
@@ -99,7 +140,10 @@
 
 			let formattedText = '';
 			if (selectedText.includes(tag)) {
-				selectedText = selectedText.replaceAll(`<${tag}>`, '').replaceAll(`</${tag}>`, '');
+				const tagWithAttributes = new RegExp(`<${tag}[^>]*>|<\/${tag}>`, 'g'); // remove tag with attributes
+				selectedText = selectedText
+					.replaceAll(tagWithAttributes, '')
+					.replaceAll(tagWithAttributes, '');
 				formattedText = selectedText;
 			} else {
 				formattedText = `<${tag}>${selectedText}</${tag}>`;
@@ -117,7 +161,7 @@
 	export let lockedState: boolean; // sync with UploadVideo.svelte
 
 	export let video_title: string = ''; // use name of video file as default
-	let video_description: string = '';
+	$: video_description = '';
 	let video_tags: string[];
 
 	let titleErrors = [];
@@ -184,7 +228,7 @@
 			placeholder={$translation.UploadVideo.step_02.video_description()}
 		/>
 	</label>
-	<div class="bg-surface-50 dark:bg-surface-700 rounded-md p-2">
+	<div class="bg-surface-50 dark:bg-surface-700 rounded-md p-2 break-all">
 		{@html video_description}
 	</div>
 </div>
