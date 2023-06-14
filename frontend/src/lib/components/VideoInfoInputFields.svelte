@@ -12,17 +12,49 @@
 
 	// Translation
 	import translation from '$translation/i18n-svelte'; // translations
+	import { locale } from '$translation/i18n-svelte';
 
 	/* --- LOGIC --- */
-	const videoInfoSchema = z.object({
-		title: z.string().min(3).max(25),
-		video_description: z.string().max(500).optional(),
-		tags: z.array(z.string().max(15)).max(6).optional()
+	const videoInfoSchemaGerman = z.object({
+		title: z
+			.string({ required_error: 'Titel ist erforderlich' })
+			.min(3, { message: 'Der Titel muss mindestens 3 Zeichen lang sein' })
+			.max(25, { message: 'Der Titel darf maximal 25 Zeichen lang sein' }),
+		video_description: z
+			.string()
+			.max(500, { message: 'Die Beschreibung darf maximal 500 Zeichen lang sein' })
+			.optional(),
+		tags: z
+			.array(z.string().max(15, { message: 'Ein tag darf nur bis zu 15 Zeichen lang sein' }))
+			.max(6, { message: 'Pro Video max. 6 tags' })
+			.optional()
 	});
 
-	const videoTagSchema = z.object({
-		tags: z.string().max(6)
+	const videoInfoSchemaEnglish = z.object({
+		title: z
+			.string({ required_error: 'Title is required' })
+			.min(3, { message: 'The title must be at least 3 characters long' })
+			.max(25, { message: 'The title must be a maximum of 25 characters long' }),
+		video_description: z
+			.string()
+			.max(500, { message: 'The description must be a maximum of 500 characters long' })
+			.optional(),
+		tags: z
+			.array(z.string().max(15, { message: 'A tag can only be up to 15 characters long' }))
+			.max(6, { message: 'Up to 6 tags per video' })
+			.optional()
 	});
+
+	const videoTagSchemaGerman = z.object({
+		tags: z.string().max(15, { message: 'Ein tag darf nur bis zu 15 Zeichen lang sein' })
+	});
+
+	const videoTagSchemaEnglish = z.object({
+		tags: z.string().max(15, { message: 'A tag can only be up to 15 characters long' })
+	});
+
+	$: videoInfoSchema = $locale === 'de' ? videoInfoSchemaGerman : videoInfoSchemaEnglish;
+	$: videoTagSchema = $locale === 'de' ? videoTagSchemaGerman : videoTagSchemaEnglish;
 
 	function validateTags(value: string): boolean {
 		return videoTagSchema.safeParse({
