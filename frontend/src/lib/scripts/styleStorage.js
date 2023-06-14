@@ -1,4 +1,7 @@
+// Scripts
 import localStore from '$script/localStorage';
+
+// JS-Framework/Library
 import { browser } from '$app/environment';
 
 /**

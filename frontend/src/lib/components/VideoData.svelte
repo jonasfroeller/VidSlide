@@ -22,7 +22,7 @@
 	import { toastStore } from '@skeletonlabs/skeleton';
 
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 	import { disableCache } from 'iconify-icon';
 
 	// Slots
@@ -33,17 +33,6 @@
 	export let searchedText = '';
 
 	/* --- LOGIC --- */
-	// - medium=video [MEDIUM] // gets videos and video info
-	//   - id=all [ID] // insufficient
-	//     - medium_id=? [ID++] // all videos of user
-	//   - id=title [ID]
-	//     - medium_id=? [ID++] // all videos with title including text
-	//   - id=tag [ID]
-	//     - medium_id=? [ID++] // all videos with tag including text
-	//   - id=username [ID]
-	//     - medium_id=? [ID++] // all videos with username of creator including text
-	//   - id=random [ID]
-	//   - id=? [ID]
 	async function fetchVideo(id: number | string, id_specification = '') {
 		if (typeof id === 'number' && id <= 0) {
 			id = 'random';

@@ -11,7 +11,7 @@
 	import { InputChip } from '@skeletonlabs/skeleton';
 
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 	import { locale } from '$translation/i18n-svelte';
 
 	/* --- LOGIC --- */

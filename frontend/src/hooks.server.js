@@ -1,3 +1,4 @@
+// Translation Functions
 import { detectLocale } from '$translation/i18n-util';
 import { initAcceptLanguageHeaderDetector } from 'typesafe-i18n/detectors';
 

@@ -124,6 +124,7 @@ const de = {
 			loggingIn_error: 'Einloggen nicht erfolgreich!',
 			loggingIn_warning: 'Eingabe invalide!',
 			loggingIn_info: 'Du wirst in kürze eingeloggt!',
+			registering_account_info: 'Wir registrieren deinen Account!',
 			loggedIn_success: 'Eingeloggt!',
 			registered_success: 'Ein neuer Account wurde registriert!',
 			failed_to_fetch_video: 'Video konnte nicht geladen werden!',

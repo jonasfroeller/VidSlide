@@ -1,10 +1,13 @@
 <script>
-	// Svelte
+	/* INIT */
+	// JS-Framework/Library
 	import { page } from '$app/stores';
 
 	// Translation
 	import translation from '$translation/i18n-svelte';
 	import { locale } from '$translation/i18n-svelte';
+
+	/* LOGIC */
 </script>
 
 <section class="flex flex-col items-center">

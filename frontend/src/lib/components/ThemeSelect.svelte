@@ -20,9 +20,10 @@
 	// Scripts
 	import styleCfg from '$script/styleStorage';
 
-	/* --- LOGIC --- */
+	// Props
 	export let variant = 'large';
 
+	/* --- LOGIC --- */
 	onMount(async () => {
 		$config = await styleCfg.load();
 		$themeState = $config.theme;

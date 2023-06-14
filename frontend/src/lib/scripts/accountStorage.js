@@ -43,23 +43,22 @@ export default class accountCfg {
                     USER_DATETIMECREATED: null,
                     USER_LASTUPDATE: null,
                 },
+                socials: [],
+                subscribed: [],
+                subscribers: [],
+                user_videos_liked: [],
+                user_videos_disliked: [],
+                user_comments_liked: [],
+                user_comments_disliked: [],
                 user_stats: {
                     videos: [],
                     likes: [],
                     views: [],
-                    shares: [],
-                },
-                videos_liked: [],
-                videos_disliked: [],
-                comments_liked: [],
-                comments_disliked: [],
-                subscribed: [],
-                subscribers: [],
-                user_social: []
+                    shares: []
+                }
             });
 
             return await localStore.clear('VidSlide-account');
         }
     }
 }
-

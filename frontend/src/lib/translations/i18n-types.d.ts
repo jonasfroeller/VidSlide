@@ -368,6 +368,10 @@ type RootTranslation = {
 			 */
 			loggingIn_info: string
 			/**
+			 * W​i​r​ ​r​e​g​i​s​t​r​i​e​r​e​n​ ​d​e​i​n​e​n​ ​A​c​c​o​u​n​t​!
+			 */
+			registering_account_info: string
+			/**
 			 * E​i​n​g​e​l​o​g​g​t​!
 			 */
 			loggedIn_success: string
@@ -838,6 +842,10 @@ export type TranslationFunctions = {
 			 * Du wirst in kürze eingeloggt!
 			 */
 			loggingIn_info: () => LocalizedString
+			/**
+			 * Wir registrieren deinen Account!
+			 */
+			registering_account_info: () => LocalizedString
 			/**
 			 * Eingeloggt!
 			 */

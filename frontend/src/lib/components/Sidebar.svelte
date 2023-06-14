@@ -4,16 +4,20 @@
 	import { page } from '$app/stores';
 
 	// Translation
-	import { locale } from '$translation/i18n-svelte'; // current language
-	import translation from '$translation/i18n-svelte'; // translations
+	import { locale } from '$translation/i18n-svelte';
+	import translation from '$translation/i18n-svelte';
+
+	// Components
 	import LangSelect from '$component/LangSelect.svelte';
 	import ThemeSelect from '$component/ThemeSelect.svelte';
 
 	// Stores
 	import { loginState, user } from '$store/account';
 
-	/* --- LOGIC --- */
+	// Props
 	export let variant = 'large';
+
+	/* --- LOGIC --- */
 	$: route = $page?.route?.id?.replace('/[lang]', '');
 </script>
 

@@ -124,6 +124,7 @@ const en = {
 			loggingIn_error: "Couldn't log in!",
 			loggingIn_warning: 'Input invalid!',
 			loggingIn_info: 'Logging you in!',
+			registering_account_info: 'Registering account!',
 			loggedIn_success: 'Logged in!',
 			registered_success: 'Registered new account!',
 			failed_to_fetch_video: 'Couldn\'t fetch video!',

@@ -1,6 +1,7 @@
 <script lang="ts">
+	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// Components
 	import VideoData from '$component/VideoData.svelte';
@@ -11,12 +12,13 @@
 	// Scripts
 	import { searchedVideos } from '$store/searchedVideos';
 
+	// Props
+	export let display_variant = 'vertical';
+
 	/* --- LOGIC --- */
 	let subject: string = 'username';
 	let sort: string = 'date';
 	let search: string = '';
-
-	export let display_variant = 'vertical';
 </script>
 
 <div

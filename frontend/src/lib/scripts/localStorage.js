@@ -1,3 +1,4 @@
+// JS-Framework/Library
 import { browser } from '$app/environment';
 
 export default class localStore {

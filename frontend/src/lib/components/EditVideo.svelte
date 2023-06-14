@@ -5,6 +5,8 @@
 
 	// Components
 	import VideoInfoInputFields from '$component/VideoInfoInputFields.svelte';
+
+	/* --- LOGIC --- */
 </script>
 
 <div class="card p-4 w-modal shadow-xl space-y-4">

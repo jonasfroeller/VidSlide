@@ -44,7 +44,6 @@
 	const userDataSchemaGerman = z.object({
 		username: z
 			.string({ required_error: 'Benutzername ist erforderlich' })
-			.trim()
 			.min(2, { message: 'Der Benutzername muss mindestens 2 Zeichen lang sein' })
 			.max(25, { message: 'Der Benutzername darf maximal 25 Zeichen lang sein' })
 			.regex(RegExp('^(?=.*[A-Za-z])(?!.*[-_]{2})[A-Za-z0-9_-]*$'), {
@@ -53,7 +52,6 @@
 			}),
 		password: z
 			.string({ required_error: 'Passwort ist erforderlich' })
-			.trim()
 			.min(8)
 			.max(25)
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
@@ -62,7 +60,6 @@
 			}),
 		password_confirmation: z
 			.string({ required_error: 'Passwort-Wiederholung ist erforderlich' })
-			.trim()
 			.min(8)
 			.max(25)
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
@@ -77,7 +74,6 @@
 	const userDataSchemaEnglish = z.object({
 		username: z
 			.string({ required_error: 'username is required' })
-			.trim()
 			.min(2, { message: 'username must be at least 2 characters long' })
 			.max(25, { message: 'username must be less than 26 characters long' })
 			.regex(RegExp('^(?=.*[A-Za-z])(?!.*[-_]{2})[A-Za-z0-9_-]*$'), {
@@ -86,7 +82,6 @@
 			}) /* min 1 char, - and _ are allowed but not 2x next to each other, numbers are valid too */,
 		password: z
 			.string({ required_error: 'password is required' })
-			.trim()
 			.min(8)
 			.max(25)
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
@@ -95,7 +90,6 @@
 			}) /* min 1 symbol/special char, 1 digit, 1 uppercase char, 1 lowercase char */,
 		password_confirmation: z
 			.string({ required_error: 'password repeation is required' })
-			.trim()
 			.min(8)
 			.max(25)
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
@@ -136,7 +130,7 @@
 	}
 
 	async function signUp(username: string, password: string) {
-		toastStore.trigger(popups.loggingIn_info);
+		toastStore.trigger(popups.registering_account_info);
 		return await Api.auth(username, password);
 	}
 
@@ -163,7 +157,9 @@
 				await saveAccountData();
 				setTimeout(() => modalStore.close(), 200);
 			} else {
+				toastStore.trigger(popups.loggingIn_error);
 				toastStore.trigger(popups.failed_to_authenticate);
+				setTimeout(() => modalStore.close(), 200);
 			}
 		}
 	}
@@ -197,7 +193,7 @@
 			let formattedError = inputParseResult.error.format();
 
 			// console.log(formattedError);
-			// toastStore.trigger(popups.loggingIn_warning);
+			toastStore.trigger(popups.loggingIn_warning);
 
 			username_error = formattedError.username?._errors[0] ?? 'null';
 			password_error = formattedError.password?._errors[0] ?? 'null';
@@ -226,7 +222,7 @@
 	<Popups bind:this={popups} />
 {/key}
 
-<div class="modal-example-form {cBase}">
+<div class={cBase}>
 	<!-- debugging: -->
 	<!-- <pre>{JSON.stringify(userData, null, 2)}</pre> -->
 

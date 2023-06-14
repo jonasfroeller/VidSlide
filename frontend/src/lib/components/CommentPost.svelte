@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 	import { locale } from '$translation/i18n-svelte';
 
 	// Components
@@ -9,6 +9,9 @@
 
 	// Stores
 	import { loginState, user_comments_liked, user_comments_disliked } from '$store/account';
+
+	// CSS
+	import { CSS_Styles } from '$script/styles';
 
 	// Props
 	export let comment_id;
@@ -20,8 +23,7 @@
 	export let comment_dislikes = 0;
 	export let comment_replies = 0;
 
-	// CSS
-	import { CSS_Styles } from '$script/styles';
+	/* --- LOGIC --- */
 </script>
 
 <div class="flex flex-col">

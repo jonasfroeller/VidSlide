@@ -1,16 +1,18 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// Components
 	import Main from '$component/Main.svelte';
 	import UserData from '$component/UserData.svelte';
 	import SearchSection from '$component/SearchSection.svelte';
 
-	// LoadData
+	// Data Load Props
 	import type { PageData } from './$types';
 	export let data: PageData;
+
+	/* LOGIC */
 </script>
 
 <svelte:head>

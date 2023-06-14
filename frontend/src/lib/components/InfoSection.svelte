@@ -1,15 +1,13 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// Stores
 	import { loginState, user } from '$store/account';
 
 	// CSS-Framework/Library
 	import { ProgressBar } from '@skeletonlabs/skeleton';
-
-	/* Form Trigger */
 	import { modalStore } from '@skeletonlabs/skeleton';
 
 	// Components

@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// Stores
 	import { loginState } from '$store/account';
@@ -12,9 +12,11 @@
 	import ThemeSelect from '$component/ThemeSelect.svelte';
 	import UserData from '$component/UserData.svelte';
 
-	// LoadData
+	// Data Load Props
 	import type { PageData } from './$types';
 	export let data: PageData;
+
+	/* LOGIC */
 </script>
 
 <svelte:head>

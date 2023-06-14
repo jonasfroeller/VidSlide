@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// Stores
 	import { loginState, user } from '$store/account';
@@ -9,10 +9,15 @@
 	// Components
 	import Popups from '$component/Popups.svelte';
 
-	/* --- LOGIC --- */
 	// CSS-Framework/Library
 	import { modalStore } from '@skeletonlabs/skeleton';
 	let popups; // popups in Popups.svelte
+
+	/* --- LOGIC --- */
+
+	/**
+	 * @description Open login modal if not logged in, else open confirm logout modal. Function can be used externally.
+	 */
 
 	export const openLoginModal = () => {
 		if (!$loginState) {

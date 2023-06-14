@@ -4,7 +4,14 @@ export default class Api {
 	
 	static jwt = {};
 	static user = {
-		data: {},
+		data: {
+			VS_USER_ID: null,
+			USER_USERNAME: null,
+			USER_PROFILEPICTURE: null,
+			USER_PROFILEDESCRIPTION: null,
+			USER_DATETIMECREATED: null,
+			USER_LASTUPDATE: null,
+		},
 		socials: [],
 		subscribed: [],
 		subscribers: [],

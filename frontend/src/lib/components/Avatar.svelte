@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* --- INIT --- */
 	// CSS-Framework/Library
 	import { Avatar } from '@skeletonlabs/skeleton';
 
@@ -8,10 +9,12 @@
 	// Translation
 	import { locale } from '$translation/i18n-svelte';
 
+	// Props
 	export let size = 'small';
 	export let comment_avatar = null;
 	export let comment_username;
 
+	/* --- LOGIC --- */
 	$: element_size =
 		size === 'large'
 			? CSS_Styles.LARGE_ELEMENT.AVATAR_SIZE

@@ -13,33 +13,33 @@ export const user = writable({
 		USER_DATETIMECREATED: null,
 		USER_LASTUPDATE: null,
 	},
+	socials: [],
+	subscribed: [],
+	subscribers: [],
+	user_videos_liked: [],
+	user_videos_disliked: [],
+	user_comments_liked: [],
+	user_comments_disliked: [],
 	user_stats: {
 		videos: [],
 		likes: [],
 		views: [],
-		shares: [],
-	},
-	videos_liked: [],
-	videos_disliked: [],
-	comments_liked: [],
-	comments_disliked: [],
-	subscribed: [],
-	subscribers: [],
-	user_social: []
+		shares: []
+	}
 });
 
-export const user_stats = derived(user, ($user) => $user?.user_stats); // Videos, Views, Likes, Followers...
+export const user_stats = derived(user, ($user) => $user?.user_stats);
 
-export const user_videos_liked = derived(user, ($user) => $user?.videos_liked);
+export const user_videos_liked = derived(user, ($user) => $user?.user_videos_liked);
 
-export const user_videos_disliked = derived(user, ($user) => $user?.videos_disliked);
+export const user_videos_disliked = derived(user, ($user) => $user?.user_videos_disliked);
 
-export const user_comments_liked = derived(user, ($user) => $user?.comments_liked);
+export const user_comments_liked = derived(user, ($user) => $user?.user_comments_liked);
 
-export const user_comments_disliked = derived(user, ($user) => $user?.comments_disliked);
+export const user_comments_disliked = derived(user, ($user) => $user?.user_comments_disliked);
 
 export const user_subscribed = derived(user, ($user) => $user?.subscribed);
 
 export const user_subscribers = derived(user, ($user) => $user?.subscribers);
 
-export const user_social = derived(user, ($user) => $user?.user_social);
+export const user_social = derived(user, ($user) => $user?.socials);

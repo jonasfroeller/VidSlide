@@ -1,3 +1,4 @@
+// Stores
 import { writable, derived } from 'svelte/store';
 
 export const searchedVideos = writable([

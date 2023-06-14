@@ -5,9 +5,11 @@
 	import VideoData from '$component/VideoData.svelte';
 	import SearchSection from '$component/SearchSection.svelte';
 
-	// LoadData
+	// Data Load Props
 	import type { PageData } from './$types';
 	export let data: PageData;
+
+	/* LOGIC */
 </script>
 
 <svelte:head>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// Components
 	import VideoInfoInputFields from '$component/VideoInfoInputFields.svelte';
@@ -17,6 +17,10 @@
 	import { z } from 'zod';
 
 	/* --- LOGIC --- */
+	let lockedState: boolean = true;
+	let files: FileList;
+	let video_title: string;
+
 	const allowedVideoTypes = [
 		'video/mp4',
 		'video/mpeg',
@@ -33,10 +37,6 @@
 		size: z.number().max(25_000_000), // 25MB
 		type: z.enum(allowedVideoTypes) // common video types
 	});
-
-	let lockedState: boolean = true;
-	let files: FileList;
-	let video_title: string;
 
 	function onFileInputHandler(e: Event): void {
 		if (files) {

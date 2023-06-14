@@ -4,9 +4,11 @@
 	import Main from '$component/Main.svelte';
 	import VideoData from '$component/VideoData.svelte';
 
-	// LoadData
+	// Data Load Props
 	import type { PageData } from './$types';
 	export let data: PageData;
+
+	/* LOGIC */
 </script>
 
 <svelte:head>

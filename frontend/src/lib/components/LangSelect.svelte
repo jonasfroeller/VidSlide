@@ -1,5 +1,4 @@
 <script lang="ts">
-	// @ts-nocheck
 	/* --- INIT --- */
 	// Stores
 	import { langState } from '$store/config';
@@ -27,11 +26,13 @@
 	import { loadLocaleAsync } from '$translation/i18n-util.async';
 	import { replaceLocaleInUrl } from '$main/utils';
 
-	/* --- LOGIC --- */
+	// Props
 	export let variant = 'large';
 
+	/* --- LOGIC --- */
+
 	/**
-	 * the way the language gets changed in the url
+	 * The way the language gets changed in the url.
 	 * @param { import('$translation/i18n-types').Locales } newLocale
 	 * @param { boolean } updateHistoryState
 	 * @return { Promise<void> }

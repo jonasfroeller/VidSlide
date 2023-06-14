@@ -5,7 +5,7 @@
 <script lang="ts">
 	/* --- INIT --- */
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 	import { locale } from '$translation/i18n-svelte';
 
 	// Stores
@@ -340,7 +340,7 @@
 				<button on:click={modalStore.trigger(popups.editVideo)}
 					><iconify-icon icon="ic:round-edit" /></button
 				>
-				<button on:click={modalStore.trigger(popups.deleteVideo)}
+				<button on:click={modalStore.trigger(popups.confirmVideoDeletion)}
 					><iconify-icon icon="mdi:delete" /></button
 				>
 			</div>

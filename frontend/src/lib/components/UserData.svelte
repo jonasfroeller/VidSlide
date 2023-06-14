@@ -4,7 +4,7 @@
 	import Api from '$api/api';
 
 	// Translation
-	import translation from '$translation/i18n-svelte'; // translations
+	import translation from '$translation/i18n-svelte';
 
 	// JS-Framework/Library
 	import { onMount } from 'svelte';
@@ -33,18 +33,12 @@
 		user_subscribed,
 		user_subscribers,
 		user_social
-	} from '$store/account'; // TODO: display data in user settings
+	} from '$store/account';
 
 	// Props
 	export let page;
 
 	/* --- LOGIC --- */
-	// - medium=user [MEDIUM] // insufficient
-	//   - id=video [ID] // insufficient
-	//     - medium_id=? [ID++] // creator of video
-	//   - id=username [ID] // insufficient
-	//     - medium_id=? [ID++] // username of user
-	//   - id=? [ID]
 	async function fetchUser(id_specification = '') {
 		let response = await Api.get('user', 'username', id_specification);
 		return response;

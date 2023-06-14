@@ -1,5 +1,7 @@
-/* Fonts */
 html,
 body {
 	@apply h-full overflow-hidden;
+	@apply bg-surface-50-900-token;
 }
+
+/* TODO: add default classes with tailwind classes */

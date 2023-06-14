@@ -1,7 +1,13 @@
 <script lang="ts">
+	/* --- INIT --- */
+
+	// JS-Framework/Library
 	import { fly } from 'svelte/transition';
 
+	// Props
 	export let key: string;
+
+	/* --- LOGIC --- */
 </script>
 
 {#key key}
