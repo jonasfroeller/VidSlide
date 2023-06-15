@@ -121,7 +121,7 @@
 	}
 
 	/* --- CONFIG --- */
-	$: sidebarVariant = 'small';
+	let sidebarVariant = 'small';
 </script>
 
 {#key $translation}

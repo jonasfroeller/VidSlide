@@ -36,9 +36,9 @@
 	}
 
 	/* -- Form Input Errors -- */
-	$: username_error = 'undefined';
-	$: password_error = 'undefined';
-	$: password_confirm_error = 'undefined';
+	let username_error = 'undefined';
+	let password_error = 'undefined';
+	let password_confirm_error = 'undefined';
 
 	/* -- Form Validation Schema -- */
 	const userDataSchemaGerman = z.object({

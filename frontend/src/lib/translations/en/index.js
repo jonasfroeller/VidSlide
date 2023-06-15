@@ -128,9 +128,11 @@ const en = {
 			registering_account_info: 'Registering account!',
 			loggedIn_success: 'Logged in!',
 			registered_success: 'Registered new account!',
+			failed_to_upload_video: 'Couldn\'t upload video!',
 			failed_to_fetch_video: 'Couldn\'t fetch video!',
 			failed_to_authenticate: 'Couldn\'t authenticate!',
-			filetype_not_allowed: 'Filetype not allowed!'
+			filetype_not_allowed: 'Filetype not allowed!',
+			login_required: 'Login required to perform this action!',
 		}
 	},
 	SearchSection: {

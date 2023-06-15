@@ -3,6 +3,10 @@
 	// Translation
 	import translation from '$translation/i18n-svelte';
 
+	// Backend API
+	import Api from '$api/api';
+	import { Route } from '$api/api-routes';
+
 	// Components
 	import VideoInfoInputFields from '$component/VideoInfoInputFields.svelte';
 	import Popups from '$component/Popups.svelte';
@@ -20,6 +24,8 @@
 	let lockedState: boolean = true;
 	let files: FileList;
 	let video_title: string;
+	let video_description: string;
+	let video_tags: string[];
 
 	const allowedVideoTypes = [
 		'video/mp4',
@@ -59,12 +65,37 @@
 		}
 	}
 
-	function onCompleteHandler(e: Event): void {
-		// TODO
-		if (true) {
+	async function onCompleteHandler(e: Event): void {
+		// TODO: add tags: video_tags
+		const params = [
+			{
+				attribute_name: 'VIDEO_MEDIA',
+				attribute: Route.REQUEST_METHOD.POST.medium.video.params.VIDEO_MEDIA(files)
+			},
+			{
+				attribute_name: 'VIDEO_TITLE',
+				attribute: Route.REQUEST_METHOD.POST.medium.video.params.VIDEO_TITLE(video_title)
+			},
+			{
+				attribute_name: 'VIDEO_DESCRIPTION',
+				attribute:
+					Route.REQUEST_METHOD.POST.medium.video.params.VIDEO_DESCRIPTION(video_description)
+			}
+		];
+
+		if (video_tags.length > 0) {
+			params.push({
+				attribute_name: 'VIDEO_TAGS',
+				attribute: Route.REQUEST_METHOD.POST.medium.video.params.VIDEO_TAGS(video_tags)
+			});
+		}
+
+		const response = await Api.post(params, Route.REQUEST_METHOD.POST.medium.video.root);
+
+		if (response?.success) {
 			modalStore.close();
 		} else {
-			// TODO
+			toastStore.trigger(popups.failed_to_upload_video);
 		}
 	}
 
@@ -111,7 +142,13 @@
 		</Step>
 		<Step locked={lockedState}>
 			<svelte:fragment slot="header">{$translation.UploadVideo.step_02.title()}</svelte:fragment>
-			<VideoInfoInputFields bind:lockedState on:change={handleChange} {video_title} />
+			<VideoInfoInputFields
+				bind:lockedState
+				bind:video_title
+				bind:video_description
+				bind:video_tags
+				on:change={handleChange}
+			/>
 		</Step>
 	</Stepper>
 </div>

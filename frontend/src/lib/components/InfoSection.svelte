@@ -28,7 +28,7 @@
 		modalStore.trigger(popups.signInUpForm);
 	};
 
-	$: selectedBox = true; // true if comments are selected
+	let selectedBox = true; // true if comments are selected
 
 	$: this_user_avatar = $user?.data?.USER_PROFILEPICTURE;
 	$: this_user_username = $user?.data?.USER_USERNAME ?? '??';
@@ -114,7 +114,7 @@
 			<div id="info" class="pt-4">
 				<h3>{video_title}</h3>
 				<p class="text-md">
-					{video_description}
+					{@html video_description}
 				</p>
 			</div>
 		{/if}

@@ -128,9 +128,11 @@ const de = {
 			registering_account_info: 'Wir registrieren deinen Account!',
 			loggedIn_success: 'Eingeloggt!',
 			registered_success: 'Ein neuer Account wurde registriert!',
+			failed_to_upload_video: 'Video konnte nicht hochgeladen werden!',
 			failed_to_fetch_video: 'Video konnte nicht geladen werden!',
 			failed_to_authenticate: 'Authentifizierung fehlgeschlagen!',
-			filetype_not_allowed: 'Dateityp nicht erlaubt!'
+			filetype_not_allowed: 'Dateityp nicht erlaubt!',
+			login_required: 'Du musst eingeloggt sein um diese Funktion zu benutzen!',
 		}
 	},
 	SearchSection: {

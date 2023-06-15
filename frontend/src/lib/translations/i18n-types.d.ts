@@ -384,6 +384,10 @@ type RootTranslation = {
 			 */
 			registered_success: string
 			/**
+			 * V​i​d​e​o​ ​k​o​n​n​t​e​ ​n​i​c​h​t​ ​h​o​c​h​g​e​l​a​d​e​n​ ​w​e​r​d​e​n​!
+			 */
+			failed_to_upload_video: string
+			/**
 			 * V​i​d​e​o​ ​k​o​n​n​t​e​ ​n​i​c​h​t​ ​g​e​l​a​d​e​n​ ​w​e​r​d​e​n​!
 			 */
 			failed_to_fetch_video: string
@@ -395,6 +399,10 @@ type RootTranslation = {
 			 * D​a​t​e​i​t​y​p​ ​n​i​c​h​t​ ​e​r​l​a​u​b​t​!
 			 */
 			filetype_not_allowed: string
+			/**
+			 * D​u​ ​m​u​s​s​t​ ​e​i​n​g​e​l​o​g​g​t​ ​s​e​i​n​ ​u​m​ ​d​i​e​s​e​ ​F​u​n​k​t​i​o​n​ ​z​u​ ​b​e​n​u​t​z​e​n​!
+			 */
+			login_required: string
 		}
 	}
 	SearchSection: {
@@ -863,6 +871,10 @@ export type TranslationFunctions = {
 			 */
 			registered_success: () => LocalizedString
 			/**
+			 * Video konnte nicht hochgeladen werden!
+			 */
+			failed_to_upload_video: () => LocalizedString
+			/**
 			 * Video konnte nicht geladen werden!
 			 */
 			failed_to_fetch_video: () => LocalizedString
@@ -874,6 +886,10 @@ export type TranslationFunctions = {
 			 * Dateityp nicht erlaubt!
 			 */
 			filetype_not_allowed: () => LocalizedString
+			/**
+			 * Du musst eingeloggt sein um diese Funktion zu benutzen!
+			 */
+			login_required: () => LocalizedString
 		}
 	}
 	SearchSection: {

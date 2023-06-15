@@ -2,6 +2,7 @@
 	/* --- INIT --- */
 	// Backend Api
 	import Api from '$api/api';
+	import { Route } from '$api/api-routes';
 
 	// Components
 	import InfoSection from '$component/InfoSection.svelte';
@@ -33,18 +34,34 @@
 	export let searchedText = '';
 
 	/* --- LOGIC --- */
-	async function fetchVideo(id: number | string, id_specification = '') {
+	async function fetchVideo(id: number | string, id_specification = null) {
 		if (typeof id === 'number' && id <= 0) {
 			failedToFetch = true;
 			id = 'random';
 		}
 
-		let response = await Api.get('video', id, id_specification);
+		let response = null;
+		if (id_specification) {
+			response = await Api.get(
+				Route.REQUEST_METHOD.GET.medium.video.root,
+				Route.REQUEST_METHOD.GET.medium.video.id.id(id),
+				id_specification // TODO: Route-safety?
+			);
+		} else {
+			response = await Api.get(
+				Route.REQUEST_METHOD.GET.medium.video.root,
+				Route.REQUEST_METHOD.GET.medium.video.id.id(id)
+			);
+		}
 
 		if (typeof id === 'number' && response?.data?.length === 0) {
 			failedToFetch = true;
-			response = await Api.get('video', 'random');
+			response = await Api.get(
+				Route.REQUEST_METHOD.GET.medium.video.root,
+				Route.REQUEST_METHOD.GET.medium.video.id.random
+			);
 		}
+
 		return response;
 	}
 
@@ -56,8 +73,8 @@
 			let amount = fetched_videos.data[0].length;
 			let videos = fetched_videos.data[0];
 			let user = fetched_videos.data.user;
-			let feedback = fetched_videos.data.feedback;
-			let tags = fetched_videos.data.tags;
+			let feedback = fetched_videos?.data?.feedback;
+			let tags = fetched_videos?.data?.tags;
 
 			for (let i = 0; i < amount; i++) {
 				const videoId = videos[i].VS_VIDEO_ID;
@@ -70,27 +87,29 @@
 				};
 
 				let feedback_temp = [];
-				for (let j = 0; j < feedback.length; j++) {
-					for (let k = 0; k < feedback[j].length; k++) {
-						if (feedback[j][k].VS_VIDEO_ID == videoId) {
-							feedback_temp.push(feedback[j][k]);
+				if (feedback) {
+					for (let j = 0; j < feedback.length; j++) {
+						for (let k = 0; k < feedback[j].length; k++) {
+							if (feedback[j][k].VS_VIDEO_ID == videoId) {
+								feedback_temp.push(feedback[j][k]);
+							}
+						}
+					}
+				}
+
+				let tags_temp = [];
+				if (tags) {
+					for (let j = 0; j < tags.length; j++) {
+						for (let k = 0; k < tags[j].length; k++) {
+							if (tags[j][k].VS_VIDEO_ID == videoId) {
+								tags_temp.push(tags[j][k]);
+							}
 						}
 					}
 				}
 
 				video.data.feedback = feedback_temp;
-
-				let tags_temp = [];
-				for (let j = 0; j < tags.length; j++) {
-					for (let k = 0; k < tags[j].length; k++) {
-						if (tags[j][k].VS_VIDEO_ID == videoId) {
-							tags_temp.push(tags[j][k]);
-						}
-					}
-				}
-
 				video.data.tags = tags_temp;
-
 				formatted_videos.push(await formatVideo(video));
 			}
 
@@ -123,7 +142,10 @@
 	};
 
 	async function getUserFollowers(id: number) {
-		let userData = await Api.get('user', id);
+		let userData = await Api.get(
+			Route.REQUEST_METHOD.GET.medium.user.root,
+			Route.REQUEST_METHOD.GET.medium.user.id.id(id)
+		);
 
 		if (userData) {
 			let userSubscribers = userData?.data?.subscribers ?? null;
@@ -210,11 +232,11 @@
 	});
 
 	// CURRENT VIDEO
-	$: current_video = null;
-	$: current_video_id = null;
-	$: current_video_publisher_followers = [];
-	$: current_video_likes = [];
-	$: current_video_dislikes = [];
+	let current_video = null;
+	let current_video_id = null;
+	let current_video_publisher_followers = [];
+	let current_video_likes = [];
+	let current_video_dislikes = [];
 
 	let failedToFetch = false;
 
@@ -247,41 +269,43 @@
 			{$translation.SearchSection.search_option.videos_found($filteredVideos?.length ?? 0)}:
 		</p>
 		<hr />
-		<div id="video-results" class="flex flex-wrap gap-2 justify-center overflow-y-auto">
-			{#if searchedText != '' && $filteredVideos}
-				{#each $filteredVideos as result, i}
-					<VideoSection
-						publisher_id={result?.user?.VS_USER_ID ?? -1}
-						publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
-						publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
-						publisher_followers={result?.user?.subscribers ? result?.user?.subscribers : []}
-						video={result?.video?.VIDEO_LOCATION ?? null}
-						video_id={result?.video?.VS_VIDEO_ID ?? 0}
-						video_views={result?.video?.VIDEO_VIEWS ?? 0}
-						video_likes={result?.feedback?.filter(
-							(feedback) => feedback?.VIDEO_FEEDBACK_TYPE === 'positive'
-						)?.length ?? 0}
-						video_dislikes={result?.feedback?.filter(
-							(feedback) => feedback?.VIDEO_FEEDBACK_TYPE === 'negative'
-						)?.length ?? 0}
-						video_tags={result?.tags ?? []}
-						video_title={result?.video?.VIDEO_TITLE ?? 'title loading...'}
-						display_variant={'small'}
-					/>
-				{:else}
-					<div class="flex justify-center">
-						<ProgressRadial
-							stroke={50}
-							width="w-12"
-							meter="stroke-primary-500"
-							track="stroke-primary-500/30"
+		{#key searchSubject || sortBy || searchedText}
+			<div id="video-results" class="flex flex-wrap gap-2 justify-center overflow-y-auto">
+				{#if searchedText != '' && $filteredVideos}
+					{#each $filteredVideos as result, i}
+						<VideoSection
+							publisher_id={result?.user?.VS_USER_ID ?? -1}
+							publisher={result?.user?.USER_USERNAME ?? 'username loading...'}
+							publisher_avatar={result?.user?.USER_PROFILEPICTURE ?? null}
+							publisher_followers={result?.user?.subscribers ? result?.user?.subscribers : []}
+							video={result?.video?.VIDEO_LOCATION ?? null}
+							video_id={result?.video?.VS_VIDEO_ID ?? 0}
+							video_views={result?.video?.VIDEO_VIEWS ?? 0}
+							video_likes={result?.feedback?.filter(
+								(feedback) => feedback?.VIDEO_FEEDBACK_TYPE === 'positive'
+							) ?? []}
+							video_dislikes={result?.feedback?.filter(
+								(feedback) => feedback?.VIDEO_FEEDBACK_TYPE === 'negative'
+							) ?? []}
+							video_tags={result?.tags ?? []}
+							video_title={result?.video?.VIDEO_TITLE ?? 'title loading...'}
+							display_variant={'small'}
 						/>
-					</div>
-				{/each}
-			{:else}
-				<p>{$translation.VideoResult.no_input()}</p>
-			{/if}
-		</div>
+					{:else}
+						<div class="flex justify-center">
+							<ProgressRadial
+								stroke={50}
+								width="w-12"
+								meter="stroke-primary-500"
+								track="stroke-primary-500/30"
+							/>
+						</div>
+					{/each}
+				{:else}
+					<p>{$translation.VideoResult.no_input()}</p>
+				{/if}
+			</div>
+		{/key}
 	</div>
 {:else if current_video}
 	<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
@@ -293,9 +317,9 @@
 			video={current_video?.video?.VIDEO_LOCATION ?? null}
 			video_id={current_video?.video?.VS_VIDEO_ID ?? 0}
 			video_views={current_video?.video?.VIDEO_VIEWS ?? 0}
-			video_likes={current_video_likes?.length ?? 0}
-			video_dislikes={current_video_dislikes?.length ?? 0}
-			video_comments={current_video?.comments?.length ?? 0}
+			video_likes={current_video_likes ?? []}
+			video_dislikes={current_video_dislikes ?? []}
+			video_comments={current_video?.comments ?? []}
 			display_variant={'default'}
 			bind:fetchNextVideo
 		/>

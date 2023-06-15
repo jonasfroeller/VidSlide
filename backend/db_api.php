@@ -39,6 +39,31 @@ require_once('./vendor/autoload.php');
 // GENERAL FUNCTIONS
 
 /**
+ * Returns the string representation of a filesize in bytes.
+ */
+function formatBytes($bytes)
+{
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+
+    $bytes /= pow(1024, $pow);
+
+    if ($pow > 0 && $bytes < 100) {
+        $formatted_bytes = round($bytes, 1);
+    } else {
+        $formatted_bytes = round($bytes);
+    }
+
+    // Konvertiere die formatierte Größe und die Einheit in eine Zeichenkette
+    $formatted_size = strval($formatted_bytes) . $units[$pow];
+
+    return $formatted_size;
+}
+
+/**
  * Returns errors. Fatal Errors will exit the script.
  */
 function errorOccurred($connection, $response, $line, $message = null, $fatal = false)
@@ -122,10 +147,16 @@ function doesntHurtConstraint($connection, $table_name, $bind_str, $return_type,
 /**
  * Looks for a medium in the database. Returns true if it exists, false otherwise.
  */
-function checkIfIdExists($connection, $type, $id, $bind_type = "i")
+function checkIfIdExists($connection, $type, $id, $bind_type = "i", $return_type = "boolean")
 {
     if ($type == "user") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER WHERE VS_USER_ID = ?");
+    } else if ($type == "user_videoID") {
+        if ($return_type == "object") {
+            $id_exists = mysqli_prepare($connection, "SELECT * FROM VS_USER WHERE VS_USER_ID = (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?)");
+        } else {
+            $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER WHERE VS_USER_ID = (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?");
+        }
     } else if ($type == "user_username") {
         $id_exists = mysqli_prepare($connection, "SELECT COUNT(*) as count FROM VS_USER WHERE USER_USERNAME = ?");
     } else if ($type == "video") {
@@ -158,7 +189,11 @@ function checkIfIdExists($connection, $type, $id, $bind_type = "i")
     $result = mysqli_fetch_all($query, MYSQLI_ASSOC);
     mysqli_stmt_close($id_exists);
 
-    return $result[0]["count"] != 0;
+    if ($return_type == "object") {
+        return $result[0];
+    } else {
+        return $result[0]["count"] != 0;
+    }
 }
 
 /**
@@ -235,9 +270,11 @@ function getVideoInfo($connection, $response, $topic = "all", $bulk = false, $se
             }
 
             if ($topic == "all" || $topic == "user") {
-                $exists = checkIfIdExists($connection, "video_userID", $id);
+                $exists = checkIfIdExists($connection, "user_videoID", $id, "i", "object");
 
                 if ($exists) {
+                    // $id = $exists["VS_USER_ID"];
+
                     $query = mysqli_prepare($connection, 'SELECT * FROM VS_USER WHERE VS_USER_ID = (SELECT VS_USER_ID FROM VS_VIDEO WHERE VS_VIDEO_ID = ?)');
                     if ($bulk) {
                         $user = getMedium($connection, $response, $query, $id, true, "i", true);
@@ -919,36 +956,52 @@ try {
                 } else if ($medium == "video") {
                     $jwt_received = get_HTTP_AUTHORIZATION_from_header($connection, $response);
 
+                    $response["response"] = $_POST;
+
                     if ($jwt_received["user_id"]) {
                         $user_id = $jwt_received["user_id"];
 
                         if (isset($_FILES["VIDEO_MEDIA"])) {
                             $video_media = $_FILES["VIDEO_MEDIA"];
-                            $video_media_name = pathinfo(mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["name"]), PATHINFO_FILENAME);
-                            $video_media_tmp_name = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["tmp_name"]); // temp name on server
-                            $video_media_size = mysqli_real_escape_string($connection, strval($_FILES["VIDEO_MEDIA"]["size"])); // in bytes
-                            $video_media_type = mysqli_real_escape_string($connection, $_FILES["VIDEO_MEDIA"]["type"]); // MIME-Typ
+                            $video_media_name = pathinfo(mysqli_real_escape_string($connection, strval($video_media["name"][0])), PATHINFO_FILENAME);
+                            $video_media_tmp_name = mysqli_real_escape_string($connection, strval($video_media["tmp_name"][0])); // temp name on server
+                            $video_media_size = intval(mysqli_real_escape_string($connection, strval($video_media["size"][0]))); // in bytes
+                            $video_media_type = mysqli_real_escape_string($connection, strval(($video_media["type"][0]))); // MIME-Typ
 
                             $supported_video_formats = array(
-                                "AVI",
-                                "MP4",
-                                "MKV",
-                                "MOV",
-                                "WMV",
-                                "FLV",
-                                "MPEG",
-                                "WebM",
-                                "3GP"
+                                'video/mp4',
+                                'video/mpeg',
+                                'video/quicktime',
+                                'video/x-matroska',
+                                'video/webm',
+                                'video/x-msvideo',
+                                'video/x-ms-wmv',
+                                'video/x-flv',
+                                'video/3gpp'
                             );
 
-                            $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_TITLE"]) : "";
-                            $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, $_POST["VIDEO_DESCRIPTION"]) : "";
+                            $supported_video_extensions = array(
+                                'mp4',
+                                'mpeg',
+                                'mov',
+                                'mkv',
+                                'webm',
+                                'avi',
+                                'wmv',
+                                'flv',
+                                '3gp'
+                            );
 
-                            if ($_FILES["VIDEO_MEDIA"]["error"] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supported_video_formats))) {
+                            $video_title = isset($_POST["VIDEO_TITLE"]) ? mysqli_real_escape_string($connection, strval($_POST["VIDEO_TITLE"])) : "";
+                            $video_description = isset($_POST["VIDEO_DESCRIPTION"]) ? mysqli_real_escape_string($connection, strval($_POST["VIDEO_DESCRIPTION"])) : "";
+
+                            $response["requested"] = $_FILES["VIDEO_MEDIA"];
+
+                            if ($video_media["error"][0] == 0 && in_array(strtolower($video_media_type), array_map('strtolower', $supported_video_formats))) {
                                 $media_video_path = "./media/video/uploaded/";
 
                                 if (!is_dir($media_video_path)) {
-                                    mkdir($media_video_path);
+                                    mkdir($media_video_path, 0755, true); // Snapin_6video/mp4
                                 }
 
                                 $media_video_filename = preg_replace('/[^A-Za-z0-9\-\_]/', '0', $video_title); // replaces every special char with 0
@@ -958,7 +1011,10 @@ try {
                                 $files_in_folder = array_slice($files, 2); // removes "." and ".."
                                 $files_count = count($files_in_folder) + 1; // count files
 
-                                $uploaded_video_name = $media_video_filename . "_$files_count" . $video_media_type;
+                                $supported_video_format_index = array_search('video/x-msvideo', $supported_video_formats);
+                                $video_media_extension = $supported_video_extensions[$supported_video_format_index];
+
+                                $uploaded_video_name = $media_video_filename . "_$files_count." . $video_media_extension;
                                 $uploaded_video_path = $media_video_path . $uploaded_video_name;
                                 move_uploaded_file($video_media_tmp_name, $uploaded_video_path);
 
@@ -996,16 +1052,41 @@ try {
                                 if (!$connection) {
                                     errorOccurred($connection, $response, __LINE__, "connection error", true);
                                 } else {
-                                    $exists = checkIfIdExists($connection, "user", $user_id, "s"); // TODO
+                                    $exists = checkIfIdExists($connection, "user", $user_id, "s");
 
                                     if ($exists) {
-                                        $table_video_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES ('?', '?', '?', '?', ?)");
+                                        $video_media_size = formatBytes($video_media_size);
+
+                                        $table_video_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO (VIDEO_TITLE, VIDEO_DESCRIPTION, VIDEO_LOCATION, VIDEO_SIZE, VS_USER_ID) VALUES (?, ?, ?, ?, ?)");
                                         mysqli_stmt_bind_param($table_video_insert, 'ssssi', $video_title, $video_description, $uploaded_video_name, $video_media_size, $user_id);
                                         mysqli_stmt_execute($table_video_insert);
+
+                                        $video_id = mysqli_insert_id($connection);
 
                                         if (mysqli_affected_rows($connection) > 0) {
                                             array_push($response["log"], date('H:i:s') . ": inserted new video, VS_USER_ID:" . $user_id);
                                             mysqli_stmt_close($table_video_insert);
+
+                                            if (isset($_POST["VIDEO_TAGS"])) {
+                                                $video_tags = $_POST["VIDEO_TAGS"];
+
+                                                $response["requested"] = $video_id;
+
+                                                for ($i = 0; $i <= count($video_tags) - 1; $i++) {
+                                                    $video_tag = mysqli_real_escape_string($connection, strval($video_tags[$i]));
+                                                    $table_tag_insert = mysqli_prepare($connection, "INSERT INTO VS_VIDEO_HASHTAG (HASHTAG_NAME, VS_VIDEO_ID) VALUES (?, ?)");
+                                                    mysqli_stmt_bind_param($table_tag_insert, 'si',  $video_tag, $video_id);
+                                                    mysqli_stmt_execute($table_tag_insert);
+                                                    mysqli_stmt_close($table_tag_insert);
+
+                                                    if (mysqli_affected_rows($connection) === -1) {
+                                                        errorOccurred($connection, $response, __LINE__, "tag insert of '$video_tag' failed", true);
+                                                    }
+                                                }
+                                                $response["success"] = true;
+                                            } else {
+                                                $response["success"] = true;
+                                            }
                                         } else {
                                             errorOccurred($connection, $response, __LINE__, "video insert failed", true);
                                         }
@@ -1013,6 +1094,8 @@ try {
                                         $response = errorOccurred($connection, $response, __LINE__, "user doesn't exist");
                                     }
                                 }
+                            } else {
+                                errorOccurred($connection, $response, __LINE__, "wrong video format or upload error", true);
                             }
                         } else {
                             errorOccurred($connection, $response, __LINE__, "video missing", true);

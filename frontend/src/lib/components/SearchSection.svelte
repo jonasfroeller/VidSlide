@@ -18,7 +18,7 @@
 	/* --- LOGIC --- */
 	let subject: string = 'username';
 	let sort: string = 'date';
-	let search: string = '';
+	export let search: string = '';
 </script>
 
 <div

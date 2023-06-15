@@ -153,6 +153,20 @@
 		background: 'variant-ghost-error'
 	};
 
+	// Video Upload
+	let message_failed_to_upload_video = $translation.Popups.toast.failed_to_upload_video();
+	export const failed_to_upload_video: ToastSettings = {
+		message: message_failed_to_upload_video,
+		background: 'variant-ghost-error'
+	};
+
+	// Login Required
+	let message_login_required = $translation.Popups.toast.login_required();
+	export const login_required: ToastSettings = {
+		message: message_login_required,
+		background: 'variant-ghost-warning'
+	};
+
 	// Input Validation
 	let message_loggingIn_warning = $translation.Popups.toast.loggingIn_warning(); // input wrong
 	export const loggingIn_warning: ToastSettings = {

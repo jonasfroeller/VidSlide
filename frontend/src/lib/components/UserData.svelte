@@ -2,6 +2,7 @@
 	/* --- INIT --- */
 	// Backend Api
 	import Api from '$api/api';
+	import { Route } from '$api/api-routes';
 
 	// Translation
 	import translation from '$translation/i18n-svelte';
@@ -40,7 +41,11 @@
 
 	/* --- LOGIC --- */
 	async function fetchUser(id_specification = '') {
-		let response = await Api.get('user', 'username', id_specification);
+		let response = await Api.get(
+			Route.REQUEST_METHOD.GET.medium.user.root,
+			Route.REQUEST_METHOD.GET.medium.user.id.username.branch,
+			Route.REQUEST_METHOD.GET.medium.user.id.username.medium_id(id_specification)
+		);
 		return response;
 	}
 
@@ -88,8 +93,8 @@
 		}
 	});
 
-	$: current_user = null;
-	$: current_user_socials = null;
+	let current_user = null;
+	let current_user_socials = null;
 	$: current_user_username = current_user?.user?.USER_USERNAME ?? $translation.global.loading();
 	$: current_user_profile_description =
 		current_user?.user?.USER_PROFILEDESCRIPTION ?? $translation.UserData.no_description();
@@ -173,8 +178,16 @@
 				>
 					{$translation.UserData.post()}
 				</button>
-			{:else}
+			{:else if $loginState}
 				<button class="btn variant-ringed hover:variant-filled h-1/2" type="button">
+					{$translation.UserData.follow()}
+				</button>
+			{:else}
+				<button
+					on:click={() => toastStore.trigger(popups.login_required)}
+					class="btn variant-ringed hover:variant-filled h-1/2"
+					type="button"
+				>
 					{$translation.UserData.follow()}
 				</button>
 			{/if}

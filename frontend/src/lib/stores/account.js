@@ -14,12 +14,32 @@ export const user = writable({
 		USER_LASTUPDATE: null,
 	},
 	socials: [],
-	subscribed: [],
-	subscribers: [],
-	user_videos_liked: [],
-	user_videos_disliked: [],
-	user_comments_liked: [],
-	user_comments_disliked: [],
+	subscribed: [
+		{
+			VS_USER_ID: null,
+			USER_USERNAME: null,
+			USER_PROFILEPICTURE: null,
+		}
+	],
+	subscribers: [
+		{
+			VS_USER_ID: null,
+			USER_USERNAME: null,
+			USER_PROFILEPICTURE: null,
+		}
+	],
+	user_videos_liked: [{
+		VS_USER_ID: null,
+	}],
+	user_videos_disliked: [{
+		VS_USER_ID: null,
+	}],
+	user_comments_liked: [{
+		VS_USER_ID: null,
+	}],
+	user_comments_disliked: [{
+		VS_USER_ID: null,
+	}],
 	user_stats: {
 		videos: [],
 		likes: [],

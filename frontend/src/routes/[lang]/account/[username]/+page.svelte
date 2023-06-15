@@ -8,6 +8,9 @@
 	import UserData from '$component/UserData.svelte';
 	import SearchSection from '$component/SearchSection.svelte';
 
+	// Stores
+	import { user } from '$store/account';
+
 	// Data Load Props
 	import type { PageData } from './$types';
 	export let data: PageData;
@@ -43,5 +46,5 @@
 
 <Main css={'flex-col'} key={data.pathname}>
 	<UserData page={data.pathname} />
-	<SearchSection display_variant={'horizontal'} />
+	<SearchSection display_variant={'horizontal'} search={$user?.data?.USER_USERNAME ?? ''} />
 </Main>

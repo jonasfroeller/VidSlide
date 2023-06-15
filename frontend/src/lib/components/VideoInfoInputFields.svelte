@@ -161,8 +161,8 @@
 	export let lockedState: boolean; // sync with UploadVideo.svelte
 
 	export let video_title: string = ''; // use name of video file as default
-	$: video_description = '';
-	let video_tags: string[];
+	export let video_description: string = '';
+	export let video_tags: string[];
 
 	let titleErrors = [];
 	let descriptionErrors = [];

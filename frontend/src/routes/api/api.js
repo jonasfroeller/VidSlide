@@ -32,17 +32,17 @@ export default class Api {
 	 * 
 	 * @param {string} type
 	 * @param {string} index (can be 'all' and 'random' too)
-	 * @param {string} specification
+	 * @param {string | number | null} specification
 	 */
-	static async get(type, index, specification = '') {
+	static async get(type, index, specification = null) {
 		const response = fetch(
 			`${this.baseURL}/${this.baseApiFile}?medium=${type}&id=${index}${
-				specification != '' ? '&medium_id=' + specification : ''
+				specification ? '&medium_id=' + specification : ''
 			}`
 		).then(response => {
 			return response.json();
 		}).catch(() => {
-			console.error(`Failed to fetch '${type}' with id '${index}' ${specification != '' ? 'and specification: ' + specification : ''}`);
+			console.error(`Failed to fetch '${type}' with id '${index}' ${specification ? 'and specification: ' + specification : ''}`);
 		});
 
 		return response;
@@ -61,7 +61,15 @@ export default class Api {
 		params.append('HTTP_AUTHORIZATION', `Bearer ${this.jwt}`);
 
 		options.forEach(option => {
-			params.append(option?.attribute_name, option?.attribute);
+			if (option?.attribute_name.includes("_MEDIA")) {
+				params.append(option?.attribute_name + "[]", option?.attribute);
+			} else if (option?.attribute_name == "VIDEO_TAGS") {
+				option?.attribute.forEach((/** @type {string} */ tag) => {
+					params.append(option?.attribute_name + "[]", tag);
+				});
+			} else {
+				params.append(option?.attribute_name, option?.attribute);
+			}
 		});
 
 		const response = fetch(`${this.baseURL}/${this.baseApiFile}`, {
