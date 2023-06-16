@@ -120,9 +120,18 @@
 					USER_PROFILEPICTURE: res?.data[0][0]?.USER_PROFILEPICTURE ?? null
 				};
 
-				publisher_followers.push($user.data);
 				$user.subscribed.push(user);
 				following = $user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
+
+				if (
+					!publisher_followers.some(function (element) {
+						return element.VS_USER_ID === $user.data.VS_USER_ID;
+					})
+				) {
+					publisher_followers.push($user.data);
+				}
+			} else if (action == 'feedback') {
+				liked = true;
 			}
 		} else if (res?.success == false) {
 			// TODO: popup error
@@ -135,13 +144,16 @@
 				);
 				$user.subscribed = $user.subscribed.filter((obj) => obj.VS_USER_ID !== id);
 				following = $user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
+			} else if (action == 'feedback') {
+				liked = false;
 			}
 		}
 	}
 
-	let following = false;
-	let liked = false;
-	let disliked = false;
+	let following = $user.subscribed?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
+	let liked = $user.user_videos_liked?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
+	let disliked =
+		$user.user_videos_disliked?.filter((obj) => obj.VS_USER_ID === publisher_id)?.length > 0;
 </script>
 
 {#key $translation}
@@ -171,7 +183,7 @@
 							class="unstyled hover:underline text-2xl text-primary-700 dark:text-primary-400"
 							>{publisher}</a
 						>
-						{#key publisher_followers.length}
+						{#key following}
 							<UserFollowers {publisher_followers} />
 						{/key}
 					</div>
@@ -307,7 +319,23 @@
 			<div class="flex flex-col gap-2">
 				<div class="flex flex-col gap-1">
 					{#if $loginState}
-						<button type="button" class="btn-icon variant-ringed text-2xl">
+						<button
+							on:click={() =>
+								action(Route.REQUEST_METHOD.POST.medium.feedback.root, [
+									{
+										attribute_name: 'FEEDBACK_TYPE',
+										attribute:
+											Route.REQUEST_METHOD.POST.medium.feedback.params.FEEDBACK_TYPE('positive')
+									},
+									{
+										attribute_name: 'VS_VIDEO_ID',
+										attribute:
+											Route.REQUEST_METHOD.POST.medium.feedback.params.VS_VIDEO_ID(video_id)
+									}
+								])}
+							type="button"
+							class="btn-icon variant-ringed text-2xl"
+						>
 							{#if liked}
 								<iconify-icon icon="material-symbols:thumb-up-rounded" />
 							{:else}
@@ -329,7 +357,23 @@
 				</div>
 				<div class="flex flex-col gap-1">
 					{#if $loginState}
-						<button type="button" class="btn-icon variant-ringed text-2xl">
+						<button
+							on:click={() =>
+								action(Route.REQUEST_METHOD.POST.medium.feedback.root, [
+									{
+										attribute_name: 'FEEDBACK_TYPE',
+										attribute:
+											Route.REQUEST_METHOD.POST.medium.feedback.params.FEEDBACK_TYPE('positive')
+									},
+									{
+										attribute_name: 'VS_VIDEO_ID',
+										attribute:
+											Route.REQUEST_METHOD.POST.medium.feedback.params.VS_VIDEO_ID(video_id)
+									}
+								])}
+							type="button"
+							class="btn-icon variant-ringed text-2xl"
+						>
 							{#if disliked}
 								<iconify-icon icon="material-symbols:thumb-down-rounded" />
 							{:else}

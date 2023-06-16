@@ -35,6 +35,11 @@
 
 	/* --- LOGIC --- */
 	async function fetchVideo(id: number | string, id_specification = null) {
+		current_video = null;
+		current_video_publisher_followers = [];
+		current_video_likes = [];
+		current_video_dislikes = [];
+
 		if (typeof id === 'number' && id <= 0) {
 			failedToFetch = true;
 			id = 'random';
@@ -251,8 +256,9 @@
 <svelte:window on:keydown={fetchNextVideo} />
 
 {#if page.includes('home') && current_video}
-	<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
+	<PostTransition key={current_video_id}>
 		<InfoSection
+			video_id={current_video?.video?.VS_VIDEO_ID ?? -1}
 			video_title={current_video?.video?.VIDEO_TITLE ?? 'title loading...'}
 			video_description={current_video?.video?.VIDEO_DESCRIPTION ?? 'description loading...'}
 			video_date_time_posted={current_video?.video?.VIDEO_DATETIMEPOSTED ??
@@ -308,7 +314,7 @@
 		{/key}
 	</div>
 {:else if current_video}
-	<PostTransition key={current_video?.video?.VS_VIDEO_ID}>
+	<PostTransition key={current_video_id}>
 		<VideoSection
 			publisher_id={current_video?.user?.VS_USER_ID ?? -1}
 			publisher={current_video?.user?.USER_USERNAME ?? 'username loading...'}

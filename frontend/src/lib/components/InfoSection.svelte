@@ -16,7 +16,12 @@
 	import Popups from '$component/Popups.svelte';
 	let popups; // popups in Popups.svelte
 
+	// Backend API
+	import Api from '$api/api';
+	import { Route } from '$api/api-routes';
+
 	// Props
+	export let video_id;
 	export let video_title;
 	export let video_description;
 	export let video_date_time_posted;
@@ -32,6 +37,34 @@
 
 	$: this_user_avatar = $user?.data?.USER_PROFILEPICTURE;
 	$: this_user_username = $user?.data?.USER_USERNAME ?? '??';
+
+	let COMMENT_MESSAGE = '';
+	// $: updateCommentSection = video_comments.length;
+	async function postComment() {
+		if (COMMENT_MESSAGE.length === 0) {
+			// TODO
+		}
+
+		let params = [
+			{
+				attribute_name: 'VS_VIDEO_ID',
+				attribute: Route.REQUEST_METHOD.POST.medium.comment.params.VS_VIDEO_ID(video_id)
+			},
+			{
+				attribute_name: 'COMMENT_MESSAGE',
+				attribute: Route.REQUEST_METHOD.POST.medium.comment.params.COMMENT_MESSAGE(COMMENT_MESSAGE)
+			}
+		];
+
+		const res = await Api.post(params, Route.REQUEST_METHOD.POST.medium.comment.root);
+
+		video_comments.push({
+			VS_VIDEO_ID: video_id,
+			COMMENT_MESSAGE: COMMENT_MESSAGE
+		});
+
+		// updateCommentSection = video_comments.length; TODO
+	}
 </script>
 
 {#key $translation}
@@ -74,12 +107,17 @@
 								<Avatar size="medium" comment_username={this_user_username} />
 							{/if}
 							<textarea
+								bind:value={COMMENT_MESSAGE}
 								class="textarea outline-none hover:outline-none input p-2 w-fit resize-none focus:border-secondary-400-500-token"
 								rows="1"
 								maxlength="200"
 								placeholder={$translation.InfoSection.comment_placeholder()}
 							/>
-							<button type="button" class="btn-icon variant-ghost-secondary">
+							<button
+								on:click={() => postComment()}
+								type="button"
+								class="btn-icon variant-ghost-secondary"
+							>
 								<iconify-icon class="cursor-pointer text-2xl" icon="material-symbols:send" />
 							</button>
 						</div>

@@ -52,16 +52,16 @@
 			}),
 		password: z
 			.string({ required_error: 'Passwort ist erforderlich' })
-			.min(8)
-			.max(25)
+			.min(8, { message: 'Der Benutzername muss mindestens 8 Zeichen lang sein' })
+			.max(25, { message: 'Der Benutzername darf maximal 25 Zeichen lang sein' })
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
 				message:
 					'Mindestens 1 Symbol/Sonderzeichen aus: ?!#@$%&*, mindestens 1 Zahl, mindestens 1 Großbuchstabe, mindestens 1 Kleinbuchstabe.'
 			}),
 		password_confirmation: z
 			.string({ required_error: 'Passwort-Wiederholung ist erforderlich' })
-			.min(8)
-			.max(25)
+			.min(8, { message: 'Der Benutzername muss mindestens 8 Zeichen lang sein' })
+			.max(25, { message: 'Der Benutzername darf maximal 25 Zeichen lang sein' })
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
 				message:
 					'Mindestens 1 Symbol/Sonderzeichen aus: ?!#@$%&*, mindestens 1 Zahl, mindestens 1 Großbuchstabe, mindestens 1 Kleinbuchstabe.'
@@ -82,16 +82,16 @@
 			}) /* min 1 char, - and _ are allowed but not 2x next to each other, numbers are valid too */,
 		password: z
 			.string({ required_error: 'password is required' })
-			.min(8)
-			.max(25)
+			.min(8, { message: 'username must be at least 8 characters long' })
+			.max(25, { message: 'username must be less than 26 characters long' })
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
 				message:
 					'min. 1 symbol/special char out of: ?!#@$%&*, min. 1 digit, min. 1 uppercase char, min. 1 lowercase char'
 			}) /* min 1 symbol/special char, 1 digit, 1 uppercase char, 1 lowercase char */,
 		password_confirmation: z
 			.string({ required_error: 'password repeation is required' })
-			.min(8)
-			.max(25)
+			.min(8, { message: 'username must be at least 8 characters long' })
+			.max(25, { message: 'username must be less than 26 characters long' })
 			.regex(RegExp('^(?=.*[A-Z])(?=.*[a-z])(?=.*d)(?=.*[?!#@$%&*])[A-Za-z0-9?!#@$%&*]+$'), {
 				message:
 					'min. 1 symbol/special char out of: ?!#@$%&*, min. 1 digit, min. 1 uppercase char, min. 1 lowercase char'
